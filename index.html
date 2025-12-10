@@ -320,7 +320,7 @@ function getDailyTabCandidates(){
   const now=getLocalDate(); const y=new Date(now.getTime()-86400000); return [fmtDailyTab(now), fmtDailyTab(y)];
 }
 async function readDailyApproved(){
-  const rangesFor=tab=>([`${tab}!A2:A40`,`${tab}!B2:B40`,`${tab}!C2:C40`,`${tab}!E2:E40`,`${tab}!F2:F40`,`${tab}!G2:G40`].map(encodeURIComponent));
+  const rangesFor=tab=>([`${tab}!A2:A70`,`${tab}!B2:B70`,`${tab}!C2:C70`,`${tab}!E2:E70`,`${tab}!F2:F70`,`${tab}!G2:G70`].map(encodeURIComponent));
   const tabs=getDailyTabCandidates();
   const DAILY_IDS=[DAILY_ID_RAW];
   for(const id of DAILY_IDS){
