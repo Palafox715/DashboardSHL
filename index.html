@@ -606,19 +606,6 @@ function showOverlay(name, todayScore, currentRank, prevRank){
   createConfetti(15);
 }
 
-function createConfetti(count) {
-  const overlay = document.getElementById('overlay');
-  for (let i = 0; i < count; i++) {
-    const c = document.createElement('div');
-    c.className = 'confetti';
-    c.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 70%)`;
-    c.style.left = `${Math.random() * 100}vw`;
-    c.style.animationDelay = `${Math.random() * 1.5}s`;
-    c.style.opacity = '1';
-    overlay.appendChild(c);
-    setTimeout(() => c.remove(), 10000);
-  }
-}
 
 async function updateData(){
   diag('Updating data...', 'pulse');
@@ -680,3 +667,4 @@ async function updateData(){
 </script>
 </body>
 </html>
+
