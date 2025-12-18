@@ -101,10 +101,10 @@
     box-shadow: 0 6px 16px rgba(0,0,0,.3) inset, 0 1px 0 rgba(255,255,255,.1);
   }
 
-  .table-wrap{ flex:1; min-height:0; position:relative; }
+  .table-wrap{ flex:1; min-height:0; position:relative; overflow-x: auto; }
   table{
     width:100%;
-    min-width: 500px;
+    min-width: 700px;
     border-collapse:separate; border-spacing:0 10px;
     table-layout:fixed; font-size:calc(1.7*var(--vh));
   }
@@ -117,11 +117,11 @@
     border-radius:10px;
     border:1px solid rgba(255,255,255,.15);
   }
-  th.col-rank, td.col-rank { width:9%; text-align:center; }
-  th.col-agent,td.col-agent{ width:30%; text-align:left; }
-  th.col-today,td.col-today{ width:12%; text-align:center; }
-  th.col-day,  td.col-day  { width:7%;  text-align:center; }
-  th.col-total,td.col-total{ width:12%; text-align:center; }
+  th.col-rank, td.col-rank { width:60px; text-align:center; }
+  th.col-agent,td.col-agent{ width:180px; text-align:left; }
+  th.col-today,td.col-today{ width:100px; text-align:center; }
+  th.col-day,  td.col-day  { width:60px;  text-align:center; }
+  th.col-total,td.col-total{ width:100px; text-align:center; }
 
   tbody td{
     background: var(--glass);
@@ -134,35 +134,34 @@
   
   .agent-wrap{ display:flex; align-items:center; gap:12px; min-width:0; }
   .avatar{
-    flex:0 0 auto; width:44px; height:44px; border-radius:50%;
+    flex:0 0 auto; width:36px; height:36px; border-radius:50%;
     background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple)); 
     border:1px solid rgba(0,0,0,.08);
     display:grid; place-items:center;
-    font-weight:900; font-size:14px; letter-spacing:.5px;
+    font-weight:900; font-size:12px;
     color:var(--dark-bg);
     text-transform:uppercase;
     box-shadow: 0 4px 14px rgba(0,0,0,.4);
   }
   .name{ font-weight:900; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
-  .bar{ position:relative; height:22px; border-radius:999px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.06); overflow:hidden; }
+  .bar{ position:relative; height:18px; border-radius:999px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.06); overflow:hidden; }
   .bar > .fill{ 
     position:absolute; left:0; top:0; bottom:0; width:0%; 
     background:linear-gradient(90deg, var(--neon-blue), #0099EE); 
     box-shadow: 0 0 10px var(--glow-blue);
-    transition: width .8s ease; 
+    transition: width .8s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
   }
   .bar.total > .fill{ 
     background:linear-gradient(90deg, var(--neon-purple), #EE00AA); 
     box-shadow: 0 0 10px var(--glow-purple);
   }
-  .bar .value{ position:relative; z-index:1; font-weight:900; font-size:90%; color:var(--ink); text-shadow: 0 0 5px #000; }
+  .bar .value{ position:relative; z-index:1; font-weight:900; font-size:11px; color:var(--ink); text-shadow: 0 0 5px #000; line-height: 18px; }
 
-  .rankwrap{ display:flex; align-items:center; justify-content:center; gap:6px; }
   .medal{
     display:inline-grid; place-items:center;
-    width:32px; height:32px; border-radius:50%;
-    font-weight:1000; font-size:14px;
+    width:28px; height:28px; border-radius:50%;
+    font-weight:900; font-size:13px;
     color:var(--dark-bg);
   }
   .gold  { background:linear-gradient(180deg,#FFD700,#FFA500); box-shadow: 0 0 10px gold; }
@@ -173,9 +172,9 @@
 
   @media (max-width: 768px) {
     #board { padding: 10px; }
-    h2 { font-size: 2.5em; text-align: center; }
+    h2 { font-size: 2.2em; text-align: left; }
     thead { display: none; }
-    table, tbody, tr, td { display: block; width: 100%; }
+    table, tbody, tr, td { display: block; width: 100%; min-width: 0; }
     tbody tr { margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px; background: var(--glass-strong); }
     tbody td { display: flex; justify-content: space-between; align-items: center; border: none !important; padding: 5px 0; }
     td.col-rank::before { content: "Rank"; opacity: 0.5; font-size: 0.8em; }
@@ -198,8 +197,8 @@
   </div>
 
   <div class='chips'>
-    <div id='chipWeekly' class='chip'>Week: —</div>
-    <div id='chipDaily' class='chip'>Daily: —</div>
+    <div id='chipWeekly' class='chip'>Week: ...</div>
+    <div id='chipDaily' class='chip'>Daily: ...</div>
   </div>
 
   <div class='table-wrap'>
@@ -209,12 +208,12 @@
           <th class='col-rank'>#</th>
           <th class='col-agent'>Agent</th>
           <th class='col-today'>Today</th>
-          <th class='col-day'>Wed</th>
-          <th class='col-day'>Thu</th>
-          <th class='col-day'>Fri</th>
-          <th class='col-day'>Sat</th>
-          <th class='col-day'>Mon</th>
-          <th class='col-day'>Tue</th>
+          <th class='col-day'>Mié</th>
+          <th class='col-day'>Jue</th>
+          <th class='col-day'>Vie</th>
+          <th class='col-day'>Sáb</th>
+          <th class='col-day'>Lun</th>
+          <th class='col-day'>Mar</th>
           <th class='col-total'>Total</th>
         </tr>
       </thead>
@@ -234,17 +233,66 @@ setVHVar(); window.addEventListener('resize', setVHVar);
 const API_KEY        = "AIzaSyDwOqp2uizZol2et6Uqi7CnntW9Hkrinjg";
 const WEEKLY_SHEETID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
 const DAILY_ID_RAW   = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
-const TIMEZONE       = "America/Tijuana";
 const REFRESH_RATE   = 15000;
 
 function diag(t){ document.getElementById('diag').textContent = t; }
 
+async function fetchSheets(id, range = "A:I") {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${range}?key=${API_KEY}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Error en Google API");
+    return await res.json();
+}
+
 async function fetchData() {
   try {
     diag("Actualizando...");
-    // Simulación de fetch y renderizado (dado que el código original estaba incompleto)
-    // En una implementación real, aquí irían los fetchSafeJSON correspondientes.
-    renderTable();
+    
+    // Obtenemos datos de ambas hojas
+    const weeklyData = await fetchSheets(WEEKLY_SHEETID, "A1:I100");
+    const dailyData = await fetchSheets(DAILY_ID_RAW, "A1:B100");
+
+    if (!weeklyData.values || !dailyData.values) {
+        diag("No hay datos disponibles");
+        return;
+    }
+
+    // Procesamos Diario para el total superior y mapeo rápido
+    const dailyMap = {};
+    let grandTotalDaily = 0;
+    dailyData.values.slice(1).forEach(row => {
+        const name = row[0];
+        const val = parseFloat(row[1]) || 0;
+        if(name) {
+            dailyMap[name] = val;
+            grandTotalDaily += val;
+        }
+    });
+
+    // Mapeamos los datos semanales
+    // Estructura esperada: [Nombre, Hoy(opcional), Mier, Jue, Vie, Sab, Lun, Mar, Total]
+    const list = weeklyData.values.slice(1).map(row => {
+        return {
+            name: row[0],
+            today: dailyMap[row[0]] || 0, // Tomamos el valor de la hoja diaria si existe
+            wed: parseFloat(row[2]) || 0,
+            thu: parseFloat(row[3]) || 0,
+            fri: parseFloat(row[4]) || 0,
+            sat: parseFloat(row[5]) || 0,
+            mon: parseFloat(row[6]) || 0,
+            tue: parseFloat(row[7]) || 0,
+            total: parseFloat(row[8]) || 0
+        };
+    }).filter(a => a.name)
+      .sort((a, b) => b.total - a.total); // Ordenar por total semanal
+
+    renderTable(list, grandTotalDaily);
+    
+    // Actualizar Chips
+    document.getElementById('totalTodayValue').textContent = grandTotalDaily.toLocaleString();
+    document.getElementById('chipDaily').textContent = `Daily: ${grandTotalDaily}`;
+    document.getElementById('chipWeekly').textContent = `Agents: ${list.length}`;
+    
     diag("Conectado");
   } catch (e) {
     diag("Error de conexión");
@@ -252,9 +300,54 @@ async function fetchData() {
   }
 }
 
-function renderTable() {
-  // Esta función debe poblar #leaderboardBody basado en ALL_DATA
-  // Se mantiene la estructura visual solicitada sin overlays
+function renderTable(data, totalDaily) {
+    const tbody = document.getElementById('leaderboardBody');
+    tbody.innerHTML = '';
+
+    const maxTotal = Math.max(...data.map(d => d.total), 1);
+    const maxToday = Math.max(...data.map(d => d.today), 1);
+
+    data.forEach((item, index) => {
+        const rank = index + 1;
+        let rankDisplay = rank;
+        if(rank === 1) rankDisplay = `<span class="medal gold">1</span>`;
+        if(rank === 2) rankDisplay = `<span class="medal silver">2</span>`;
+        if(rank === 3) rankDisplay = `<span class="medal bronze">3</span>`;
+
+        const initials = item.name.split(' ').map(n => n[0]).join('').substring(0, 2);
+        const todayPerc = (item.today / maxToday) * 100;
+        const totalPerc = (item.total / maxTotal) * 100;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="col-rank">${rankDisplay}</td>
+            <td class="col-agent">
+                <div class="agent-wrap">
+                    <div class="avatar">${initials}</div>
+                    <div class="name">${item.name}</div>
+                </div>
+            </td>
+            <td class="col-today">
+                <div class="bar">
+                    <div class="fill" style="width: ${todayPerc}%"></div>
+                    <span class="value">${item.today}</span>
+                </div>
+            </td>
+            <td class="col-day">${item.wed}</td>
+            <td class="col-day">${item.thu}</td>
+            <td class="col-day">${item.fri}</td>
+            <td class="col-day">${item.sat}</td>
+            <td class="col-day">${item.mon}</td>
+            <td class="col-day">${item.tue}</td>
+            <td class="col-total">
+                <div class="bar total">
+                    <div class="fill" style="width: ${totalPerc}%"></div>
+                    <span class="value">${item.total}</span>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
 }
 
 // Iniciar ciclo de actualización
@@ -264,5 +357,3 @@ window.onload = fetchData;
 </script>
 </body>
 </html>
-
-
