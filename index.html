@@ -248,8 +248,8 @@ async function fetchData() {
   try {
     diag("Actualizando...");
     
-    // Obtenemos datos de ambas hojas
-    const weeklyData = await fetchSheets(WEEKLY_SHEETID, "A1:I100");
+    // Rango A:Z para asegurar que no perdemos columnas si la tabla es ancha
+    const weeklyData = await fetchSheets(WEEKLY_SHEETID, "A1:J100");
     const dailyData = await fetchSheets(DAILY_ID_RAW, "A1:B100");
 
     if (!weeklyData.values || !dailyData.values) {
@@ -257,11 +257,11 @@ async function fetchData() {
         return;
     }
 
-    // Procesamos Diario para el total superior y mapeo rápido
+    // Procesamos Diario: Mapeo exacto [Nombre, Valor]
     const dailyMap = {};
     let grandTotalDaily = 0;
     dailyData.values.slice(1).forEach(row => {
-        const name = row[0];
+        const name = row[0] ? row[0].trim() : null;
         const val = parseFloat(row[1]) || 0;
         if(name) {
             dailyMap[name] = val;
@@ -269,38 +269,41 @@ async function fetchData() {
         }
     });
 
-    // Mapeamos los datos semanales
-    // Estructura esperada: [Nombre, Hoy(opcional), Mier, Jue, Vie, Sab, Lun, Mar, Total]
+    // Procesamos Semanal: CORRECCIÓN DE ÍNDICES
+    // Basado en la imagen, el Nombre es la columna 0, y el total suele ser la última.
     const list = weeklyData.values.slice(1).map(row => {
+        const name = row[0] ? row[0].trim() : "Sin Nombre";
+        
         return {
-            name: row[0],
-            today: dailyMap[row[0]] || 0, // Tomamos el valor de la hoja diaria si existe
+            name: name,
+            // Si hay un desfase, ajustamos los índices aquí:
+            today: dailyMap[name] || 0, 
             wed: parseFloat(row[2]) || 0,
             thu: parseFloat(row[3]) || 0,
             fri: parseFloat(row[4]) || 0,
             sat: parseFloat(row[5]) || 0,
             mon: parseFloat(row[6]) || 0,
             tue: parseFloat(row[7]) || 0,
-            total: parseFloat(row[8]) || 0
+            total: parseFloat(row[8]) || 0 // Columna I suele ser el índice 8
         };
-    }).filter(a => a.name)
-      .sort((a, b) => b.total - a.total); // Ordenar por total semanal
+    }).filter(a => a.name !== "Sin Nombre" && a.name !== "")
+      .sort((a, b) => b.total - a.total);
 
-    renderTable(list, grandTotalDaily);
+    renderTable(list);
     
-    // Actualizar Chips
+    // Actualizar Contadores
     document.getElementById('totalTodayValue').textContent = grandTotalDaily.toLocaleString();
-    document.getElementById('chipDaily').textContent = `Daily: ${grandTotalDaily}`;
-    document.getElementById('chipWeekly').textContent = `Agents: ${list.length}`;
+    document.getElementById('chipDaily').textContent = `Hoy: ${grandTotalDaily}`;
+    document.getElementById('chipWeekly').textContent = `Agentes: ${list.length}`;
     
-    diag("Conectado");
+    diag("Sincronizado");
   } catch (e) {
-    diag("Error de conexión");
+    diag("Reconectando...");
     console.error(e);
   }
 }
 
-function renderTable(data, totalDaily) {
+function renderTable(data) {
     const tbody = document.getElementById('leaderboardBody');
     tbody.innerHTML = '';
 
@@ -314,7 +317,9 @@ function renderTable(data, totalDaily) {
         if(rank === 2) rankDisplay = `<span class="medal silver">2</span>`;
         if(rank === 3) rankDisplay = `<span class="medal bronze">3</span>`;
 
-        const initials = item.name.split(' ').map(n => n[0]).join('').substring(0, 2);
+        // Generar iniciales limpias del nombre
+        const initials = item.name.split(' ').filter(x => x).map(n => n[0]).join('').substring(0, 2);
+        
         const todayPerc = (item.today / maxToday) * 100;
         const totalPerc = (item.total / maxTotal) * 100;
 
@@ -350,7 +355,7 @@ function renderTable(data, totalDaily) {
     });
 }
 
-// Iniciar ciclo de actualización
+// Ciclo de vida
 setInterval(fetchData, REFRESH_RATE);
 window.onload = fetchData;
 
