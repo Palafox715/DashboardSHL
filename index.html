@@ -3,262 +3,284 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>Leaderboard — Clean Version</title>
+<title>Leaderboard — Pixel Art Edition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+
 <style>
-  /* Variables de Color (Dark Neon Blue/Purple) */
+  /* ===== VARIABLES PIXEL ART ===== */
   :root{
     --vh: 1vh;
-    --dark-bg: #0A0A0A; /* Fondo casi negro */
-    --ink:#E0E0E0;  /* Texto gris claro */
-    --glass: rgba(0,0,0, .55);
-    --glass-strong: rgba(0,0,0, .75);
-    --neon-blue: #44CCFF;
-    --neon-purple: #FF44CC;
-    --glow-blue: rgba(44, 204, 255, .6);
-    --glow-purple: rgba(255, 68, 204, .5);
+    --bg-color: #2d1b4e; /* Fondo morado oscuro retro */
+    --panel-bg: #4a3276; /* Fondo de paneles */
+    --text-color: #e0f8cf; /* Blanco verdoso retro */
+    --border-color: #000000;
+    --pixel-border: 3px solid var(--border-color);
+    
+    /* Colores de acento retro 8-bit */
+    --pixel-green: #5ede5e;
+    --pixel-blue: #4fa4f3;
+    --pixel-yellow: #ebd320;
+    --pixel-orange: #d95763;
+    --pixel-shadow: 4px 4px 0px #000000; /* Sombra dura sin difuminar */
   }
   
-  /* ===== BACKGROUND ===== */
+  /* Reset General para estilo Pixel */
   html,body{
     margin:0;
     min-height:100%;
     width:100%;
-    background:var(--dark-bg);
-    color:var(--ink);
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    background-color: var(--bg-color);
+    /* Patrón de fondo retro opcional */
+    background-image: 
+      linear-gradient(rgba(255,255,255,.05) 2px, transparent 2px),
+      linear-gradient(90deg, rgba(255,255,255,.05) 2px, transparent 2px);
+    background-size: 20px 20px, 20px 20px;
+    color:var(--text-color);
+    font-family: 'VT323', monospace; /* Fuente Pixelada */
+    font-size: 18px;
+    image-rendering: pixelated; /* Fuerza renderizado nítido */
     overflow-x: hidden;
     overflow-y: auto;
   }
-  body::before, body::after{
-    content:""; position:fixed; inset:-20%;
-    background: radial-gradient(40% 40% at 20% 20%, var(--glow-blue), transparent),
-                radial-gradient(35% 35% at 80% 10%, rgba(255,255,255,.20), transparent),
-                radial-gradient(30% 30% at 50% 90%, var(--glow-purple), transparent);
-    z-index:0; pointer-events:none; mix-blend-mode:lighten; animation:float 22s linear infinite;
-  }
-  body::after{ animation-direction:reverse; animation-duration:27s; opacity:.7; }
-  @keyframes float{ 0%{transform:translate3d(0,0,0)} 50%{transform:translate3d(2%, -2%, 0)} 100%{transform:translate3d(0,0,0)} }
+
+  /* Quitamos las animaciones de fondo previas */
+  body::before, body::after { display: none; }
 
   #board{
     position:relative; z-index:1;
     width:100vw;
     min-height:100vh;
-    padding:calc(1.2*var(--vh)) calc(1.6*var(--vh)); box-sizing:border-box;
-    background: radial-gradient(ellipse at top, #1a0a2e 0%, var(--dark-bg) 100%);
-    display:flex;flex-direction:column;gap:calc(0.8*var(--vh));
+    padding: 20px; box-sizing:border-box;
+    display:flex;flex-direction:column; gap: 15px;
   }
   
-  /* HEADER */
+  /* HEADER BLOCKY */
   .top-header-flex{
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
-  }
-  #dailyTotalDisplay{
-    background: var(--glass-strong);
-    padding: 8px 16px;
-    border-radius: 10px;
-    border: 1px solid var(--neon-blue);
-    box-shadow: 0 0 15px var(--glow-blue);
-    text-align: right;
-    flex-shrink: 0;
-  }
-  #dailyTotalDisplay .label{
-    font-size: calc(1.4*var(--vh));
-    font-weight: 600;
-    color: var(--neon-blue);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  #dailyTotalDisplay .value{
-    font-size: calc(3.0*var(--vh));
-    font-weight: 900;
-    color: var(--neon-purple);
-    line-height: 1;
-    filter: drop-shadow(0 0 8px var(--glow-purple));
+    border-bottom: var(--pixel-border);
+    padding-bottom: 15px;
+    margin-bottom: 10px;
   }
 
   h2{
-    margin:0;text-align:left;font-weight:900;letter-spacing:.3px;
-    font-size:calc(4.0*var(--vh)); line-height:1.1;
-    filter: drop-shadow(0 0 8px var(--neon-blue));
-  }
-  .chips{
-    display:flex;gap:calc(.6*var(--vh));flex-wrap:wrap;
-    justify-content:center;margin-top:calc(-.3*var(--vh));
-  }
-  .chip{
-    padding:calc(.35*var(--vh)) calc(.8*var(--vh));
-    border-radius:999px;
-    background:var(--glass);
-    backdrop-filter: blur(6px);
-    border:1px solid rgba(255,255,255,.2);
-    font-weight:800;font-size:calc(1.5*var(--vh));
-    box-shadow: 0 6px 16px rgba(0,0,0,.3) inset, 0 1px 0 rgba(255,255,255,.1);
+    margin:0; text-align:left;
+    font-size: 3rem; letter-spacing: 2px;
+    color: var(--pixel-yellow);
+    text-shadow: 3px 3px 0px #000; /* Sombra dura */
+    text-transform: uppercase;
   }
 
-  /* TABLA */
-  .table-wrap{ flex:1; min-height:0; position:relative; }
+  #dailyTotalDisplay{
+    background: var(--panel-bg);
+    padding: 10px 15px;
+    border: var(--pixel-border);
+    box-shadow: var(--pixel-shadow);
+    text-align: right;
+    flex-shrink: 0;
+    border-radius: 0px; /* IMPORTANTE: Sin bordes redondeados */
+  }
+  #dailyTotalDisplay .label{
+    font-size: 1.2rem;
+    color: var(--pixel-blue);
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+  #dailyTotalDisplay .value{
+    font-size: 2.5rem;
+    color: var(--pixel-green);
+    line-height: 1;
+    text-shadow: 2px 2px 0px #000;
+  }
+
+  /* CHIPS (Etiquetas) Retro */
+  .chips{
+    display:flex; gap: 10px; flex-wrap:wrap;
+    justify-content:flex-start;
+  }
+  .chip{
+    padding: 5px 10px;
+    background: var(--panel-bg);
+    border: var(--pixel-border);
+    font-size: 1.4rem;
+    text-transform: uppercase;
+    box-shadow: 2px 2px 0px #000;
+  }
+
+  /* TABLA PIXELADA */
+  .table-wrap{ flex:1; min-height:0; position:relative; overflow: auto; }
   table{
     width:100%;
-    min-width: 500px;
-    border-collapse:separate; border-spacing:0 10px;
-    table-layout:fixed; font-size:calc(1.7*var(--vh));
+    min-width: 600px;
+    /* Colapsar bordes para el look de rejilla retro */
+    border-collapse: collapse; 
+    border-spacing: 0;
+    font-size: 1.5rem;
   }
+  
+  /* Cabecera de tabla */
   thead th{
     position:sticky; top:0; z-index:2;
-    background:var(--glass-strong);
-    backdrop-filter: blur(6px);
-    text-transform:uppercase; letter-spacing:.3px;
-    font-size:calc(1.6*var(--vh)); font-weight:900; padding:calc(.6*var(--vh)) calc(0.9*var(--vh));
-    border-radius:10px;
-    border:1px solid rgba(255,255,255,.15);
+    background: var(--panel-bg);
+    text-transform:uppercase;
+    font-size: 1.4rem; padding: 10px;
+    border: var(--pixel-border); /* Bordes gruesos en cada celda */
+    color: var(--pixel-blue);
   }
   
   /* Columnas */
-  th.col-rank, td.col-rank { width:9%; text-align:center; }
-  th.col-agent,td.col-agent{ width:30%; text-align:left; } /* Mismo ancho, más espacio para texto */
-  th.col-today,td.col-today{ width:12%; text-align:center; }
-  th.col-day,  td.col-day  { width:7%;  text-align:center; }
-  th.col-total,td.col-total{ width:12%; text-align:center; }
+  th, td { text-align: center; vertical-align: middle; }
+  th.col-agent, td.col-agent{ text-align:left; }
 
+  /* Cuerpos de tabla */
   tbody td{
-    background: var(--glass);
-    border-top:1px solid rgba(255,255,255,.05);
-    border-bottom:1px solid rgba(255,255,255,.05);
-    padding:calc(.7*var(--vh)) calc(0.9*var(--vh));
-  }
-  tbody tr td:first-child{ border-left:1px solid rgba(255,255,255,.05); border-top-left-radius:14px; border-bottom-left-radius:14px; }
-  tbody tr td:last-child { border-right:1px solid rgba(255,255,255,.05); border-top-right-radius:14px; border-bottom-right-radius:14px; }
-  tbody tr{ transition: transform .25s ease, box-shadow .25s ease; }
-  tbody tr:hover{ transform: translateY(-2px); box-shadow:0 0 18px var(--glow-blue); background: rgba(0,0,0,.8); }
-
-  /* Ajuste de Nombre (Sin Avatar) */
-  .agent-wrap{ display:flex; align-items:center; min-width:0; }
-  .name{ 
-      font-weight:900; 
-      overflow:hidden; 
-      text-overflow:ellipsis; 
-      white-space:nowrap; 
-      font-size: 1.1em; /* Texto un poco más grande para llenar el vacío */
-      padding-left: 5px;
-  }
-
-  /* Barras */
-  .bar{ position:relative; height:22px; border-radius:999px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.06); overflow:hidden; }
-  .bar > .fill{ 
-    position:absolute; left:0; top:0; bottom:0; width:0%; 
-    background:linear-gradient(90deg, var(--neon-blue), #0099EE); 
-    box-shadow: 0 0 16px var(--glow-blue);
-    transition: width .8s ease; 
-  }
-  .bar.total > .fill{ 
-    background:linear-gradient(90deg, var(--neon-purple), #EE00AA); 
-    box-shadow: 0 0 16px var(--glow-purple); 
-  }
-  .bar .value{ position:relative; z-index:1; font-weight:900; font-size:90%; color:var(--dark-bg); text-shadow: 0 0 5px var(--ink); }
-
-  #meta{ display:flex;justify-content:flex-start;align-items:center; font-weight:800; font-size:calc(1.5*var(--vh)); }
-
-  /* ===== NUEVAS MEDALLAS (Realistas) ===== */
-  .medal{
-    display:inline-grid; place-items:center;
-    width:38px; height:38px; border-radius:50%;
-    margin-right:8px; font-weight:1000; font-size:16px; line-height:1;
-    border:1px solid rgba(255,255,255,.2);
-    box-shadow: 0 4px 6px rgba(0,0,0,.5);
-    color: #000; text-shadow: none; /* Texto negro para contraste en metal */
-  }
-  /* ORO REALISTA */
-  .gold { 
-    background: linear-gradient(135deg, #FFD700, #FDB931, #FFD700); 
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
-    border-color: #FFED00;
-  }
-  /* PLATA REALISTA */
-  .silver{ 
-    background: linear-gradient(135deg, #E0E0E0, #F5F5F5, #BDBDBD); 
-    box-shadow: 0 0 15px rgba(192, 192, 192, 0.5);
-    border-color: #FFFFFF;
-  }
-  /* COBRE/BRONCE REALISTA */
-  .bronze{ 
-    background: linear-gradient(135deg, #E67E22, #D35400, #A04000); 
-    box-shadow: 0 0 15px rgba(211, 84, 0, 0.5);
-    border-color: #F39C12;
-    color: #fff; /* Texto blanco para mejor contraste en cobre oscuro */
+    background: var(--bg-color);
+    border: var(--pixel-border); /* Borde en todas las celdas */
+    padding: 8px;
   }
   
-  .rankwrap{ display:flex; align-items:center; justify-content:center; gap:6px; }
+  /* Hover fila retro (cambio de color instantáneo) */
+  tbody tr:hover td{ 
+    background: var(--panel-bg); 
+    cursor: pointer;
+  }
 
-  /* MOBILE */
+  /* Ajuste de Nombre */
+  .agent-wrap{ display:flex; align-items:center; min-width:0; }
+  .name{ 
+      font-weight: normal;
+      white-space:nowrap; 
+      font-size: 1.6rem;
+      padding-left: 5px;
+      color: var(--text-color);
+      letter-spacing: 1px;
+  }
+
+  /* BARRAS DE PROGRESO PIXELADAS */
+  .bar{ 
+    position:relative; height: 24px; 
+    background: #000; /* Fondo negro para la barra vacía */
+    border: var(--pixel-border);
+    overflow:hidden; 
+    border-radius: 0; /* Cuadradas */
+  }
+  /* Relleno sólido sin degradado */
+  .bar > .fill{ 
+    position:absolute; left:0; top:0; bottom:0; width:0%; 
+    background: var(--pixel-blue);
+    /* Patrón de escaneo opcional para el relleno */
+    background-image: linear-gradient(transparent 50%, rgba(0,0,0,.2) 50%);
+    background-size: 100% 4px;
+    transition: width .5s steps(10); /* La transición por pasos da sensación retro */
+  }
+  .bar.total > .fill{ 
+    background: var(--pixel-orange);
+    background-image: linear-gradient(transparent 50%, rgba(0,0,0,.2) 50%);
+    background-size: 100% 4px;
+  }
+  .bar .value{ 
+    position:relative; z-index:1; 
+    font-size: 1.4rem; 
+    color: #fff;
+    text-shadow: 2px 2px 0px #000;
+    line-height: 22px;
+  }
+
+  #meta{ display:flex;justify-content:flex-start;align-items:center; font-size: 1.2rem; margin-top: 10px; }
+  #diag { color: var(--pixel-yellow); }
+
+  /* ===== MEDALLAS PIXEL ART (Bloques cuadrados) ===== */
+  .medal-block {
+    display: inline-block;
+    width: 30px; height: 30px;
+    line-height: 30px;
+    text-align: center;
+    border: var(--pixel-border);
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #000;
+    margin-right: 5px;
+    box-shadow: 2px 2px 0px #000;
+  }
+  /* ORO 8-bit */
+  .medal-gold { background: var(--pixel-yellow); }
+  /* PLATA 8-bit */
+  .medal-silver { background: #a8a8a8; }
+  /* BRONCE 8-bit */
+  .medal-bronze { background: #c77b58; }
+  
+  .rankwrap{ display:flex; align-items:center; justify-content:center; }
+
+  /* MOBILE RETRO */
   @media (max-width: 768px) {
-    #board { padding: 15px; gap: 10px; }
-    .top-header-flex { flex-direction: column; align-items: stretch; }
-    #dailyTotalDisplay { width: 100%; text-align: center; margin-top: 10px; }
-    .chips { margin-top: 10px; }
-    h2 { text-align: center; font-size: 3em; }
-    table { table-layout: auto; min-width: unset; border-spacing: 0; }
+    #board { padding: 10px; gap: 10px; }
+    .top-header-flex { flex-direction: column; align-items: stretch; border-bottom: none;}
+    #dailyTotalDisplay { text-align: center; margin-top: 15px; }
+    h2 { text-align: center; font-size: 2.5rem; }
+    table { min-width: unset; }
     thead { display: none; }
-    tbody, tr, td { display: block; width: 100%; }
+    tbody, tr, td { display: block; width: 100%; box-sizing: border-box; }
+    
     tbody tr { 
-      margin-bottom: 12px; border-radius: 14px; padding: 12px; 
-      border: 1px solid rgba(44, 204, 255, .2);
-      box-shadow: 0 0 10px rgba(0,0,0,.5);
-      background: rgba(0,0,0,.6); 
-      transform: none !important;
+      margin-bottom: 15px; padding: 10px; 
+      border: var(--pixel-border);
+      background: var(--panel-bg);
+      box-shadow: var(--pixel-shadow);
     }
+    /* En móvil quitamos los bordes internos de celda para que parezca una tarjeta */
     tbody td { 
-      padding: 6px 0; border: none !important; display: flex; 
+      padding: 4px 0; border: none; display: flex; 
       justify-content: space-between; align-items: center; 
-      background: none !important; border-radius: 0 !important;
+      background: none;
+      text-align: left;
     }
     th.col-day, td.col-day { display: none; }
-    th.col-rank, td.col-rank, th.col-agent, td.col-agent, th.col-today, td.col-today, th.col-total, td.col-total { width: auto; }
     
-    td.col-rank::before { content: 'Rank'; font-weight: 600; opacity: 0.6; margin-right: 10px; }
-    td.col-agent::before { content: 'Agent'; font-weight: 600; opacity: 0.6; margin-right: 10px; }
-    td.col-today::before { content: 'Today'; font-weight: 600; opacity: 0.6; margin-right: 10px; }
-    td.col-total::before { content: 'Total'; font-weight: 600; opacity: 0.6; margin-right: 10px; }
+    /* Etiquetas retro para móvil */
+    td.col-rank::before { content: '[RANK]'; color: var(--pixel-yellow); margin-right: 10px; }
+    td.col-agent::before { content: '[AGENT]'; color: var(--pixel-yellow); margin-right: 10px; }
+    td.col-today::before { content: '[TODAY]'; color: var(--pixel-yellow); margin-right: 10px; }
+    td.col-total::before { content: '[TOTAL]'; color: var(--pixel-yellow); margin-right: 10px; }
     
-    .agent-wrap { display: flex; align-items: center; gap: 10px; }
-    .agent-wrap .name { font-weight: 900; font-size: 1.1em; }
-    .bar { height: 18px; flex-grow: 1; margin-left: 10px; }
-    .rankwrap { justify-content: flex-end; }
-    .medal { margin-right: 0; }
+    .bar { height: 20px; flex-grow: 1; margin-left: 10px; }
+    .bar .value { line-height: 18px; font-size: 1.2rem; }
+    .rankwrap { justify-content: flex-start; }
   }
 </style>
 </head>
 <body>
 <div id='board'>
   <div class='top-header-flex'> 
-    <h2>🏁 Leaderboard</h2>
+    <h2>👾 LEADERBOARD</h2>
     <div id='dailyTotalDisplay'>
-      <div class='label'>Total Diario (Today)</div>
+      <div class='label'>TOTAL DIARIO (TODAY)</div>
       <div class='value' id='totalTodayValue'>0</div>
     </div>
   </div>
 
   <div class='chips'>
-    <div id='chipWeekly' class='chip'>Week: —</div>
-    <div id='chipDaily' class='chip'>Daily: —</div>
+    <div id='chipWeekly' class='chip'>WEEK: —</div>
+    <div id='chipDaily' class='chip'>DAILY: —</div>
   </div>
 
   <div class='table-wrap'>
     <table id='tbl'>
       <thead>
         <tr>
-          <th class='col-rank'>#</th>
-          <th class='col-agent'>Agent</th>
-          <th class='col-today'>Today</th>
-          <th class='col-day'>Wed</th>
-          <th class='col-day'>Thu</th>
-          <th class='col-day'>Fri</th>
-          <th class='col-day'>Sat</th>
-          <th class='col-day'>Mon</th>
-          <th class='col-day'>Tue</th>
-          <th class='col-total'>Total</th>
+          <th class='col-rank'>RANK</th>
+          <th class='col-agent'>AGENT</th>
+          <th class='col-today'>TODAY</th>
+          <th class='col-day'>WED</th>
+          <th class='col-day'>THU</th>
+          <th class='col-day'>FRI</th>
+          <th class='col-day'>SAT</th>
+          <th class='col-day'>MON</th>
+          <th class='col-day'>TUE</th>
+          <th class='col-total'>TOTAL</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -266,15 +288,15 @@
   </div>
 
   <div id='meta'>
-    <div id='diag'>Loading…</div>
+    <div id='diag'>LOADING SYSTEM...</div>
   </div>
 </div>
 
 <script>
-function setVHVar(){ const vh=window.innerHeight*0.01; document.documentElement.style.setProperty('--vh', `${vh}px`); }
-setVHVar(); window.addEventListener('resize', setVHVar);
+// Nota: En pixel art no necesitamos calcular VH dinámicamente, usaremos tamaños fijos/rem.
+// La función setVHVar se ha eliminado para simplificar.
 
-/* IDs y API */
+/* IDs y API (MISMOS DATOS QUE EL ANTERIOR) */
 const API_KEY        = "AIzaSyDwOqp2uizZol2et6Uqi7CnntW9Hkrinjg";
 const WEEKLY_SHEETID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
 const DAILY_ID_RAW   = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
@@ -286,8 +308,8 @@ const WEEKLY_REFRESH = 5*60*1000;
 let ALL_DATA=[]; 
 
 function diag(t, cls){ document.getElementById('diag').innerHTML = `<span class="${cls||''}">${t}</span>`; }
-function setChipWeekly(t){ document.getElementById('chipWeekly').textContent = `Week: ${t}`; }
-function setChipDaily(t){ document.getElementById('chipDaily').textContent = `Daily: ${t}`; }
+function setChipWeekly(t){ document.getElementById('chipWeekly').textContent = `WEEK: ${t}`; }
+function setChipDaily(t){ document.getElementById('chipDaily').textContent = `DAILY: ${t}`; }
 function getLocalDate(){ const s=new Date().toLocaleString('en-US',{timeZone:TIMEZONE}); return new Date(s); }
 function isoWeek(d){ const x=new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const n=x.getUTCDay()||7; x.setUTCDate(x.getUTCDate()+4-n); const y=new Date(Date.UTC(x.getUTCFullYear(),0,1)); return {week:Math.ceil((((x-y)/86400000)+1)/7), year:x.getUTCFullYear()}; }
 function weeksInISOYear(y){ const d=new Date(Date.UTC(y,11,31)); const day=d.getUTCDay(); return (day===4 || (d.getUTCDate()===31 && day===3))?53:52; }
@@ -301,17 +323,14 @@ const emoji=/[\u{1F1E6}-\u{1F1FF}\u{1F300}-\u{1FAFF}\u{1F900}-\u{1F9FF}\u{2600}-
 function normName(s){ return (s||"").replace(emoji,"").normalize('NFD').replace(/[\u0300-\u036f]/g,"").replace(/[^\x20-\x7E]/g,"").replace(/\s{2,}/g," ").trim().toUpperCase(); }
 function normID(s){ return (s||"").toString().trim(); }
 
-/* fetch con cache-busting */
+/* fetch con cache-busting (Idéntico) */
 async function fetchSafeJSON(url, {tries=4, baseDelay=700} = {}) {
   let lastErr;
   for (let i = 0; i < tries; i++) {
     try {
       const r = await fetch(url, {
         cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, max-age=0',
-          'Pragma': 'no-cache'
-        },
+        headers: { 'Cache-Control': 'no-cache, no-store, max-age=0', 'Pragma': 'no-cache' },
       });
       if (r.ok) return await r.json();
       const text = await r.text();
@@ -330,6 +349,7 @@ async function fetchSafeJSON(url, {tries=4, baseDelay=700} = {}) {
   throw lastErr || new Error('fetchSafeJSON: unknown');
 }
 
+// (Las funciones de lectura de datos readWeeklyTab y readDailyApproved son idénticas al anterior, omito pegarlas para ahorrar espacio, pero DEBEN estar aquí)
 async function readWeeklyTab(weeklyTab){
   const ranges=[`${weeklyTab}!A3:C96`,`${weeklyTab}!D3:D96`,`${weeklyTab}!F3:F96`,`${weeklyTab}!H3:H96`,`${weeklyTab}!J3:J96`,`${weeklyTab}!L3:L96`,`${weeklyTab}!N3:N96`,`${weeklyTab}!O3:O96`].map(encodeURIComponent);
   const url=`https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_SHEETID}/values:batchGet?`+ranges.map(r=>`ranges=${r}`).join("&")+`&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
@@ -389,16 +409,21 @@ function renderList(list){
   
   const maxToday=Math.max(1, ...list.map(p=>p.today||0)); 
   const maxTotal=Math.max(1, ...list.map(p=>p.total||0));
-  const toPct=(v,max)=>Math.max(3, Math.min(100, Math.round((v/max)*100)));
+  // Ajustamos toPct para que no sea tan suave, pasos de 10%
+  const toPct=(v,max)=>{
+      let pct = Math.max(5, Math.min(100, Math.round((v/max)*100)));
+      return Math.floor(pct / 10) * 10; // Redondear a decenas para efecto escalonado
+  };
   
   list.forEach((p,i)=>{
     const rowIndex=i;
     const today=p.today||0, total=p.total||0;
 
+    // ===== CAMBIO A MEDALLAS PIXELADAS (DIVS CUADRADOS) =====
     let medalHTML='';
-    if (rowIndex===0) medalHTML = `<span class="medal gold" title="1st">1</span>`;
-    else if (rowIndex===1) medalHTML = `<span class="medal silver" title="2nd">2</span>`;
-    else if (rowIndex===2) medalHTML = `<span class="medal bronze" title="3rd">3</span>`;
+    if (rowIndex===0) medalHTML = `<div class="medal-block medal-gold">1ST</div>`;
+    else if (rowIndex===1) medalHTML = `<div class="medal-block medal-silver">2ND</div>`;
+    else if (rowIndex===2) medalHTML = `<div class="medal-block medal-bronze">3RD</div>`;
 
     const tr=document.createElement('tr');
     tr.innerHTML = `
@@ -434,7 +459,7 @@ function renderList(list){
     `;
     tbody.appendChild(tr);
 
-    // Animación de barras
+    // Animación de barras (con steps() en el CSS para efecto retro)
     setTimeout(()=>{
       tr.querySelector('.bar.today > .fill').style.width = toPct(today, maxToday) + '%';
       tr.querySelector('.bar.total > .fill').style.width = toPct(total, maxTotal) + '%';
@@ -443,7 +468,7 @@ function renderList(list){
 }
 
 async function updateData(){
-  diag('Updating data...', 'pulse');
+  diag('SCANNING DATA...', 'pulse');
   const weeklyTab=computeWeeklyTabName();
   setChipWeekly(weeklyTab);
 
@@ -454,28 +479,21 @@ async function updateData(){
   
   setChipDaily(dailyData.tab);
   
-  // Merge daily scores into weekly structure
   const tempMap = new Map();
   weeklyData.forEach(p => tempMap.set(p.idKey, p));
   
   dailyData.mapByName.forEach((score, nameKey) => {
     let agent = weeklyData.find(p => p.nameKey === nameKey);
-    if (agent) {
-      agent.today = score;
-    }
+    if (agent) agent.today = score;
   });
   
   dailyData.mapByID.forEach((score, idKey) => {
     let agent = tempMap.get(idKey);
-    if (agent) {
-      agent.today = score;
-    }
+    if (agent) agent.today = score;
   });
 
   weeklyData.sort((a, b) => {
-    if ((b.today || 0) !== (a.today || 0)) {
-      return (b.today || 0) - (a.today || 0);
-    }
+    if ((b.today || 0) !== (a.today || 0)) return (b.today || 0) - (a.today || 0);
     const totalA = (a.total||0) + (a.today||0);
     const totalB = (b.total||0) + (b.today||0);
     return totalB - totalA;
@@ -486,10 +504,9 @@ async function updateData(){
   const totalToday = ALL_DATA.reduce((sum, p) => sum + (p.today || 0), 0);
   updateTotalDisplay(totalToday);
 
-  diag(`Updated ${new Date().toLocaleTimeString('en-US', {timeZone: TIMEZONE, hour12: false})} (${weeklyTab})`);
+  diag(`SYSTEM UPDATED: ${new Date().toLocaleTimeString('en-US', {timeZone: TIMEZONE, hour12: false})}`);
 }
 
-// Función de inicialización
 (async function init(){
   await updateData();
   renderList(ALL_DATA); 
