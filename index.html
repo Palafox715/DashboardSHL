@@ -3,284 +3,207 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>Leaderboard — Pixel Art Edition</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
-
+<title>C:\DATA\LEADER.EXE</title>
 <style>
-  /* ===== VARIABLES PIXEL ART ===== */
+  /* ===== VARIABLES ESTILO DOS/VGA TEXT MODE ===== */
   :root{
-    --vh: 1vh;
-    --bg-color: #2d1b4e; /* Fondo morado oscuro retro */
-    --panel-bg: #4a3276; /* Fondo de paneles */
-    --text-color: #e0f8cf; /* Blanco verdoso retro */
-    --border-color: #000000;
-    --pixel-border: 3px solid var(--border-color);
-    
-    /* Colores de acento retro 8-bit */
-    --pixel-green: #5ede5e;
-    --pixel-blue: #4fa4f3;
-    --pixel-yellow: #ebd320;
-    --pixel-orange: #d95763;
-    --pixel-shadow: 4px 4px 0px #000000; /* Sombra dura sin difuminar */
+    /* Paleta clásica VGA Modo Texto (Azul/Gris/Blanco) */
+    --dos-bg: #0000A8;      /* Fondo Azul Oscuro */
+    --dos-fg: #A8A8A8;      /* Texto Gris Claro (Low Intensity) */
+    --dos-hl: #FFFFFF;      /* Texto Blanco Brillante (High Intensity) */
+    --dos-accent: #55FFFF;  /* Cian Brillante para acentos */
+    --dos-yellow: #FFFF55;  /* Amarillo para alertas */
+    --term-font: 'Courier New', Courier, monospace; /* Fuente monoespaciada del sistema */
   }
   
-  /* Reset General para estilo Pixel */
+  /* Reset General para estilo Terminal */
   html,body{
     margin:0;
-    min-height:100%;
+    height:100%;
     width:100%;
-    background-color: var(--bg-color);
-    /* Patrón de fondo retro opcional */
-    background-image: 
-      linear-gradient(rgba(255,255,255,.05) 2px, transparent 2px),
-      linear-gradient(90deg, rgba(255,255,255,.05) 2px, transparent 2px);
-    background-size: 20px 20px, 20px 20px;
-    color:var(--text-color);
-    font-family: 'VT323', monospace; /* Fuente Pixelada */
-    font-size: 18px;
-    image-rendering: pixelated; /* Fuerza renderizado nítido */
-    overflow-x: hidden;
-    overflow-y: auto;
+    background-color: #000; /* Borde negro del monitor */
+    color:var(--dos-fg);
+    font-family: var(--term-font);
+    font-size: 16px;
+    text-transform: uppercase; /* Todo en mayúsculas siempre */
+    overflow: hidden; /* El contenedor principal manejará el scroll */
   }
 
-  /* Quitamos las animaciones de fondo previas */
-  body::before, body::after { display: none; }
+  /* EFECTO CRT SCANLINE OVERLAY */
+  body::after {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 999;
+    pointer-events: none;
+    background-size: 100% 2px, 3px 100%;
+  }
 
+  /* CONTENEDOR PRINCIPAL "LA PANTALLA" */
   #board{
     position:relative; z-index:1;
-    width:100vw;
-    min-height:100vh;
-    padding: 20px; box-sizing:border-box;
-    display:flex;flex-direction:column; gap: 15px;
+    width: 98%;
+    height: 98%;
+    margin: 1vh auto;
+    background-color: var(--dos-bg); /* Fondo azul de la terminal */
+    border: 2px solid var(--dos-fg); /* Borde simple */
+    padding: 10px; box-sizing:border-box;
+    display:flex; flex-direction:column; gap: 10px;
+    overflow-y: auto;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5); /* Sombra interna para profundidad CRT */
   }
   
-  /* HEADER BLOCKY */
+  /* HEADER TIPO PROGRAMA C */
   .top-header-flex{
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    gap: 10px;
-    border-bottom: var(--pixel-border);
-    padding-bottom: 15px;
-    margin-bottom: 10px;
+    align-items: center;
+    border-bottom: 1px dashed var(--dos-fg); /* Línea discontinua ASCII simulada */
+    padding-bottom: 10px;
   }
 
   h2{
     margin:0; text-align:left;
-    font-size: 3rem; letter-spacing: 2px;
-    color: var(--pixel-yellow);
-    text-shadow: 3px 3px 0px #000; /* Sombra dura */
-    text-transform: uppercase;
+    font-size: 1.5rem; font-weight: bold;
+    color: var(--dos-hl);
   }
+  h2::before { content: "PROGRAM: "; color: var(--dos-fg); }
 
   #dailyTotalDisplay{
-    background: var(--panel-bg);
-    padding: 10px 15px;
-    border: var(--pixel-border);
-    box-shadow: var(--pixel-shadow);
-    text-align: right;
-    flex-shrink: 0;
-    border-radius: 0px; /* IMPORTANTE: Sin bordes redondeados */
-  }
-  #dailyTotalDisplay .label{
-    font-size: 1.2rem;
-    color: var(--pixel-blue);
-    text-transform: uppercase;
-    margin-bottom: 5px;
-  }
-  #dailyTotalDisplay .value{
-    font-size: 2.5rem;
-    color: var(--pixel-green);
-    line-height: 1;
-    text-shadow: 2px 2px 0px #000;
-  }
-
-  /* CHIPS (Etiquetas) Retro */
-  .chips{
-    display:flex; gap: 10px; flex-wrap:wrap;
-    justify-content:flex-start;
-  }
-  .chip{
+    border: 1px solid var(--dos-fg);
     padding: 5px 10px;
-    background: var(--panel-bg);
-    border: var(--pixel-border);
-    font-size: 1.4rem;
-    text-transform: uppercase;
-    box-shadow: 2px 2px 0px #000;
+    background: var(--dos-bg);
   }
+  #dailyTotalDisplay .label{ font-size: 1rem; color: var(--dos-hl); display: inline; }
+  #dailyTotalDisplay .value{ font-size: 1.2rem; color: var(--dos-accent); font-weight: bold; display: inline; margin-left: 10px;}
+  #dailyTotalDisplay .value::before { content: "[ "; color: var(--dos-fg); }
+  #dailyTotalDisplay .value::after { content: " ]"; color: var(--dos-fg); }
 
-  /* TABLA PIXELADA */
-  .table-wrap{ flex:1; min-height:0; position:relative; overflow: auto; }
+  /* CHIPS TIPO LÍNEA DE COMANDOS */
+  .chips{
+    display:flex; gap: 15px; flex-wrap:wrap;
+    justify-content:flex-start; color: var(--dos-hl);
+  }
+  .chip::before{ content: "> "; color: var(--dos-fg); }
+
+  /* TABLA TIPO HOJA DE CÁLCULO DOS */
+  .table-wrap{ flex:1; min-height:0; position:relative; overflow: auto; border: 1px solid var(--dos-fg); }
   table{
     width:100%;
-    min-width: 600px;
-    /* Colapsar bordes para el look de rejilla retro */
+    min-width: 800px;
     border-collapse: collapse; 
     border-spacing: 0;
-    font-size: 1.5rem;
+    font-size: 1rem;
   }
   
   /* Cabecera de tabla */
   thead th{
     position:sticky; top:0; z-index:2;
-    background: var(--panel-bg);
-    text-transform:uppercase;
-    font-size: 1.4rem; padding: 10px;
-    border: var(--pixel-border); /* Bordes gruesos en cada celda */
-    color: var(--pixel-blue);
+    background: var(--dos-fg); /* Cabecera gris invertida */
+    color: var(--dos-bg);       /* Texto azul sobre gris */
+    font-weight: bold;
+    text-align: center; padding: 5px;
+    border: 1px solid var(--dos-bg);
   }
-  
-  /* Columnas */
-  th, td { text-align: center; vertical-align: middle; }
   th.col-agent, td.col-agent{ text-align:left; }
 
   /* Cuerpos de tabla */
   tbody td{
-    background: var(--bg-color);
-    border: var(--pixel-border); /* Borde en todas las celdas */
-    padding: 8px;
+    border: 1px solid var(--dos-fg); /* Rejilla simple */
+    padding: 4px 8px;
+    vertical-align: middle;
   }
   
-  /* Hover fila retro (cambio de color instantáneo) */
+  /* Cursor de selección tipo DOS */
   tbody tr:hover td{ 
-    background: var(--panel-bg); 
-    cursor: pointer;
+    background: var(--dos-hl);
+    color: var(--dos-bg);
+    cursor: default;
   }
+  tbody tr:hover .ascii-bar { color: var(--dos-bg); } /* Invertir color de barra al hover */
 
-  /* Ajuste de Nombre */
-  .agent-wrap{ display:flex; align-items:center; min-width:0; }
-  .name{ 
-      font-weight: normal;
-      white-space:nowrap; 
-      font-size: 1.6rem;
-      padding-left: 5px;
-      color: var(--text-color);
-      letter-spacing: 1px;
-  }
+  .agent-wrap .name{ font-weight: bold; white-space:nowrap; letter-spacing: 1px; }
 
-  /* BARRAS DE PROGRESO PIXELADAS */
-  .bar{ 
-    position:relative; height: 24px; 
-    background: #000; /* Fondo negro para la barra vacía */
-    border: var(--pixel-border);
-    overflow:hidden; 
-    border-radius: 0; /* Cuadradas */
-  }
-  /* Relleno sólido sin degradado */
-  .bar > .fill{ 
-    position:absolute; left:0; top:0; bottom:0; width:0%; 
-    background: var(--pixel-blue);
-    /* Patrón de escaneo opcional para el relleno */
-    background-image: linear-gradient(transparent 50%, rgba(0,0,0,.2) 50%);
-    background-size: 100% 4px;
-    transition: width .5s steps(10); /* La transición por pasos da sensación retro */
-  }
-  .bar.total > .fill{ 
-    background: var(--pixel-orange);
-    background-image: linear-gradient(transparent 50%, rgba(0,0,0,.2) 50%);
-    background-size: 100% 4px;
-  }
-  .bar .value{ 
-    position:relative; z-index:1; 
-    font-size: 1.4rem; 
-    color: #fff;
-    text-shadow: 2px 2px 0px #000;
-    line-height: 22px;
-  }
-
-  #meta{ display:flex;justify-content:flex-start;align-items:center; font-size: 1.2rem; margin-top: 10px; }
-  #diag { color: var(--pixel-yellow); }
-
-  /* ===== MEDALLAS PIXEL ART (Bloques cuadrados) ===== */
-  .medal-block {
-    display: inline-block;
-    width: 30px; height: 30px;
-    line-height: 30px;
-    text-align: center;
-    border: var(--pixel-border);
-    font-size: 1.4rem;
+  /* BARRAS ASCII (Texto en lugar de DIVs) */
+  .ascii-bar{ 
+    font-family: var(--term-font);
+    white-space: pre; /* Mantiene los espacios exactos */
+    color: var(--dos-accent);
     font-weight: bold;
-    color: #000;
-    margin-right: 5px;
-    box-shadow: 2px 2px 0px #000;
   }
-  /* ORO 8-bit */
-  .medal-gold { background: var(--pixel-yellow); }
-  /* PLATA 8-bit */
-  .medal-silver { background: #a8a8a8; }
-  /* BRONCE 8-bit */
-  .medal-bronze { background: #c77b58; }
-  
-  .rankwrap{ display:flex; align-items:center; justify-content:center; }
 
-  /* MOBILE RETRO */
+  #meta{ margin-top: 10px; border-top: 1px dashed var(--dos-fg); padding-top:10px; }
+  #diag { color: var(--dos-fg); }
+  /* Efecto parpadeo del cursor */
+  @keyframes blink { 50% { opacity: 0; } }
+  #diag::after { content: "_"; animation: blink 1s step-start infinite; }
+
+  /* INDICADORES DE RANGO TEXTUALES */
+  .rank-txt { font-weight: bold; color: var(--dos-hl); }
+  .rank-1 { color: var(--dos-yellow); } /* Oro se vuelve Amarillo brillante */
+
+  /* MOBILE DOS VIEW (Lista secuencial) */
   @media (max-width: 768px) {
-    #board { padding: 10px; gap: 10px; }
-    .top-header-flex { flex-direction: column; align-items: stretch; border-bottom: none;}
-    #dailyTotalDisplay { text-align: center; margin-top: 15px; }
-    h2 { text-align: center; font-size: 2.5rem; }
+    #board { width: 100%; height: 100%; margin: 0; border: none; }
+    .top-header-flex { flex-direction: column; align-items: flex-start; gap: 10px;}
+    #dailyTotalDisplay { width: 100%; box-sizing: border-box; text-align: center;}
     table { min-width: unset; }
     thead { display: none; }
-    tbody, tr, td { display: block; width: 100%; box-sizing: border-box; }
+    tbody, tr, td { display: block; width: 100%; box-sizing: border-box; border: none; }
     
     tbody tr { 
       margin-bottom: 15px; padding: 10px; 
-      border: var(--pixel-border);
-      background: var(--panel-bg);
-      box-shadow: var(--pixel-shadow);
+      border: 1px solid var(--dos-fg);
+      background: var(--dos-bg);
     }
-    /* En móvil quitamos los bordes internos de celda para que parezca una tarjeta */
     tbody td { 
-      padding: 4px 0; border: none; display: flex; 
+      padding: 2px 0; display: flex; 
       justify-content: space-between; align-items: center; 
-      background: none;
       text-align: left;
     }
     th.col-day, td.col-day { display: none; }
     
-    /* Etiquetas retro para móvil */
-    td.col-rank::before { content: '[RANK]'; color: var(--pixel-yellow); margin-right: 10px; }
-    td.col-agent::before { content: '[AGENT]'; color: var(--pixel-yellow); margin-right: 10px; }
-    td.col-today::before { content: '[TODAY]'; color: var(--pixel-yellow); margin-right: 10px; }
-    td.col-total::before { content: '[TOTAL]'; color: var(--pixel-yellow); margin-right: 10px; }
+    /* Etiquetas para móvil */
+    td.col-rank::before { content: 'RANK:'; color: var(--dos-fg); margin-right: 10px; }
+    td.col-agent::before { content: 'AGENT:'; color: var(--dos-fg); margin-right: 10px; }
+    td.col-today::before { content: 'TODAY:'; color: var(--dos-fg); margin-right: 5px; }
+    td.col-total::before { content: 'TOTAL:'; color: var(--dos-fg); margin-right: 5px; }
     
-    .bar { height: 20px; flex-grow: 1; margin-left: 10px; }
-    .bar .value { line-height: 18px; font-size: 1.2rem; }
-    .rankwrap { justify-content: flex-start; }
+    .ascii-bar { text-align: right; flex-grow: 1; }
   }
 </style>
 </head>
 <body>
 <div id='board'>
   <div class='top-header-flex'> 
-    <h2>👾 LEADERBOARD</h2>
+    <h2>SALES_DB.C</h2>
     <div id='dailyTotalDisplay'>
-      <div class='label'>TOTAL DIARIO (TODAY)</div>
-      <div class='value' id='totalTodayValue'>0</div>
+      <span class='label'>TOTAL(TODAY):</span>
+      <span class='value' id='totalTodayValue'>0</span>
     </div>
   </div>
 
   <div class='chips'>
-    <div id='chipWeekly' class='chip'>WEEK: —</div>
-    <div id='chipDaily' class='chip'>DAILY: —</div>
+    <div id='chipWeekly' class='chip'>WEEK: ???</div>
+    <div id='chipDaily' class='chip'>DAILY: ???</div>
   </div>
 
   <div class='table-wrap'>
     <table id='tbl'>
       <thead>
         <tr>
-          <th class='col-rank'>RANK</th>
-          <th class='col-agent'>AGENT</th>
-          <th class='col-today'>TODAY</th>
+          <th class='col-rank'>ID</th>
+          <th class='col-agent'>AGENT_NAME</th>
+          <th class='col-today' style="width:15%">TODAY_PERF</th>
           <th class='col-day'>WED</th>
           <th class='col-day'>THU</th>
           <th class='col-day'>FRI</th>
           <th class='col-day'>SAT</th>
           <th class='col-day'>MON</th>
           <th class='col-day'>TUE</th>
-          <th class='col-total'>TOTAL</th>
+          <th class='col-total' style="width:15%">TOTAL_ACC</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -288,26 +211,25 @@
   </div>
 
   <div id='meta'>
-    <div id='diag'>LOADING SYSTEM...</div>
+    <div id='diag'>C:\> INITIATING DATA RETRIEVAL...</div>
   </div>
 </div>
 
 <script>
-// Nota: En pixel art no necesitamos calcular VH dinámicamente, usaremos tamaños fijos/rem.
-// La función setVHVar se ha eliminado para simplificar.
+// Configuración para barras ASCII
+const BAR_LENGTH = 12; // Longitud total de caracteres de la barra
+const CHAR_FILL = '█'; // Carácter lleno (Bloque sólido ASCII 219)
+const CHAR_EMPTY = '░'; // Carácter vacío (Sombra ligera ASCII 176)
 
-/* IDs y API (MISMOS DATOS QUE EL ANTERIOR) */
+/* IDs y API (MISMOS DATOS) */
 const API_KEY        = "AIzaSyDwOqp2uizZol2et6Uqi7CnntW9Hkrinjg";
 const WEEKLY_SHEETID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
 const DAILY_ID_RAW   = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
-
-const TIMEZONE        = "America/Tijuana";
+const TIMEZONE       = "America/Tijuana";
 const DAILY_REFRESH  = 12000; 
-const WEEKLY_REFRESH = 5*60*1000;
-
 let ALL_DATA=[]; 
 
-function diag(t, cls){ document.getElementById('diag').innerHTML = `<span class="${cls||''}">${t}</span>`; }
+function diag(t){ document.getElementById('diag').textContent = `C:\\> ${t}`; }
 function setChipWeekly(t){ document.getElementById('chipWeekly').textContent = `WEEK: ${t}`; }
 function setChipDaily(t){ document.getElementById('chipDaily').textContent = `DAILY: ${t}`; }
 function getLocalDate(){ const s=new Date().toLocaleString('en-US',{timeZone:TIMEZONE}); return new Date(s); }
@@ -323,33 +245,23 @@ const emoji=/[\u{1F1E6}-\u{1F1FF}\u{1F300}-\u{1FAFF}\u{1F900}-\u{1F9FF}\u{2600}-
 function normName(s){ return (s||"").replace(emoji,"").normalize('NFD').replace(/[\u0300-\u036f]/g,"").replace(/[^\x20-\x7E]/g,"").replace(/\s{2,}/g," ").trim().toUpperCase(); }
 function normID(s){ return (s||"").toString().trim(); }
 
-/* fetch con cache-busting (Idéntico) */
 async function fetchSafeJSON(url, {tries=4, baseDelay=700} = {}) {
   let lastErr;
   for (let i = 0; i < tries; i++) {
     try {
-      const r = await fetch(url, {
-        cache: 'no-store',
-        headers: { 'Cache-Control': 'no-cache, no-store, max-age=0', 'Pragma': 'no-cache' },
-      });
+      const r = await fetch(url, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache, no-store, max-age=0', 'Pragma': 'no-cache' }});
       if (r.ok) return await r.json();
       const text = await r.text();
       if (r.status === 429 || (r.status >= 500 && r.status < 600)) {
-        const jitter = Math.random() * 250;
-        await new Promise(res => setTimeout(res, baseDelay * Math.pow(2, i) + jitter));
-        continue;
+        await new Promise(res => setTimeout(res, baseDelay * Math.pow(2, i) + Math.random() * 250)); continue;
       }
-      throw new Error(`HTTP ${r.status} • ${text.slice(0,180)}`);
-    } catch (e) {
-      lastErr = e;
-      const jitter = Math.random() * 250;
-      await new Promise(res => setTimeout(res, baseDelay * Math.pow(2, i) + jitter));
-    }
+      throw new Error(`HTTP ${r.status}`);
+    } catch (e) { lastErr = e; await new Promise(res => setTimeout(res, baseDelay * Math.pow(2, i) + Math.random() * 250)); }
   }
-  throw lastErr || new Error('fetchSafeJSON: unknown');
+  throw lastErr || new Error('Err');
 }
 
-// (Las funciones de lectura de datos readWeeklyTab y readDailyApproved son idénticas al anterior, omito pegarlas para ahorrar espacio, pero DEBEN estar aquí)
+// (Funciones de lectura de datos readWeeklyTab y readDailyApproved se mantienen igual que en versiones anteriores. Omitidas por brevedad pero NECESARIAS)
 async function readWeeklyTab(weeklyTab){
   const ranges=[`${weeklyTab}!A3:C96`,`${weeklyTab}!D3:D96`,`${weeklyTab}!F3:F96`,`${weeklyTab}!H3:H96`,`${weeklyTab}!J3:J96`,`${weeklyTab}!L3:L96`,`${weeklyTab}!N3:N96`,`${weeklyTab}!O3:O96`].map(encodeURIComponent);
   const url=`https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_SHEETID}/values:batchGet?`+ranges.map(r=>`ranges=${r}`).join("&")+`&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
@@ -400,118 +312,89 @@ async function readDailyApproved(){
   return {id:DAILY_IDS[0], tab:tabs[0], mapByName:new Map(), mapByID:new Map()};
 }
 
-function updateTotalDisplay(total){
-  document.getElementById('totalTodayValue').textContent = total.toLocaleString('en-US');
+function updateTotalDisplay(total){ document.getElementById('totalTodayValue').textContent = total; }
+
+// ===== NUEVA FUNCIÓN PARA GENERAR BARRAS ASCII =====
+function generateAsciiBar(value, max) {
+  if (max === 0) max = 1;
+  // Calcular cuántos caracteres llenar
+  const filledCount = Math.round((value / max) * BAR_LENGTH);
+  const emptyCount = BAR_LENGTH - filledCount;
+  // Generar string: █████░░░░░ [123]
+  const barStr = CHAR_FILL.repeat(filledCount) + CHAR_EMPTY.repeat(emptyCount);
+  // Añadir el número al final, alineado a la derecha con ceros si se desea, o simple
+  return `[${barStr}] ${value.toString().padStart(3, ' ')}`;
 }
 
 function renderList(list){
   const tbody=document.querySelector("#tbl tbody"); tbody.innerHTML="";
   
+  // Obtenemos máximos para calcular las barras relativas
   const maxToday=Math.max(1, ...list.map(p=>p.today||0)); 
   const maxTotal=Math.max(1, ...list.map(p=>p.total||0));
-  // Ajustamos toPct para que no sea tan suave, pasos de 10%
-  const toPct=(v,max)=>{
-      let pct = Math.max(5, Math.min(100, Math.round((v/max)*100)));
-      return Math.floor(pct / 10) * 10; // Redondear a decenas para efecto escalonado
-  };
   
   list.forEach((p,i)=>{
     const rowIndex=i;
     const today=p.today||0, total=p.total||0;
 
-    // ===== CAMBIO A MEDALLAS PIXELADAS (DIVS CUADRADOS) =====
-    let medalHTML='';
-    if (rowIndex===0) medalHTML = `<div class="medal-block medal-gold">1ST</div>`;
-    else if (rowIndex===1) medalHTML = `<div class="medal-block medal-silver">2ND</div>`;
-    else if (rowIndex===2) medalHTML = `<div class="medal-block medal-bronze">3RD</div>`;
+    // ===== MEDALLAS DE TEXTO SIMPLE =====
+    let rankTxt = (rowIndex + 1).toString().padStart(2, '0'); // 01, 02, 03...
+    let rankClass = 'rank-txt';
+    if (rowIndex===0) { rankTxt = '[1ST]'; rankClass += ' rank-1'; }
+    else if (rowIndex===1) { rankTxt = '[2ND]'; }
+    else if (rowIndex===2) { rankTxt = '[3RD]'; }
+
+    // GENERAR BARRAS ASCII
+    const asciiToday = generateAsciiBar(today, maxToday);
+    const asciiTotal = generateAsciiBar(total, maxTotal);
 
     const tr=document.createElement('tr');
     tr.innerHTML = `
-      <td class="col-rank">
-        <div class="rankwrap">
-          ${medalHTML}
-          ${rowIndex > 2 ? `<span>${rowIndex+1}</span>` : ''}
-        </div>
-      </td>
+      <td class="col-rank"><span class="${rankClass}">${rankTxt}</span></td>
       <td class="col-agent">
-        <div class="agent-wrap">
-          <div class="name" title="${p.name}">${p.name}</div>
-        </div>
+        <div class="agent-wrap"><div class="name">${p.name}</div></div>
       </td>
-      <td class="col-today">
-        <div class="bar today">
-          <div class="fill" style="width:0%"></div>
-          <div class="value">${today}</div>
-        </div>
-      </td>
+      <td class="col-today"><div class="ascii-bar">${asciiToday}</div></td>
       <td class="col-day">${p.wed||0}</td>
       <td class="col-day">${p.thu||0}</td>
       <td class="col-day">${p.fri||0}</td>
       <td class="col-day">${p.sat||0}</td>
       <td class="col-day">${p.mon||0}</td>
       <td class="col-day">${p.tue||0}</td>
-      <td class="col-total">
-        <div class="bar total">
-          <div class="fill" style="width:0%"></div>
-          <div class="value">${total}</div>
-        </div>
-      </td>
+      <td class="col-total"><div class="ascii-bar">${asciiTotal}</div></td>
     `;
     tbody.appendChild(tr);
-
-    // Animación de barras (con steps() en el CSS para efecto retro)
-    setTimeout(()=>{
-      tr.querySelector('.bar.today > .fill').style.width = toPct(today, maxToday) + '%';
-      tr.querySelector('.bar.total > .fill').style.width = toPct(total, maxTotal) + '%';
-    }, 50);
+    // Nota: Se eliminó la animación setTimeout, las barras de texto son instantáneas.
   });
 }
 
 async function updateData(){
-  diag('SCANNING DATA...', 'pulse');
+  diag('EXECUTING QUERY...');
   const weeklyTab=computeWeeklyTabName();
   setChipWeekly(weeklyTab);
 
-  const [weeklyData, dailyData] = await Promise.all([
-    readWeeklyTab(weeklyTab),
-    readDailyApproved()
-  ]);
-  
+  const [weeklyData, dailyData] = await Promise.all([ readWeeklyTab(weeklyTab), readDailyApproved() ]);
   setChipDaily(dailyData.tab);
   
-  const tempMap = new Map();
-  weeklyData.forEach(p => tempMap.set(p.idKey, p));
-  
-  dailyData.mapByName.forEach((score, nameKey) => {
-    let agent = weeklyData.find(p => p.nameKey === nameKey);
-    if (agent) agent.today = score;
-  });
-  
-  dailyData.mapByID.forEach((score, idKey) => {
-    let agent = tempMap.get(idKey);
-    if (agent) agent.today = score;
-  });
+  const tempMap = new Map(); weeklyData.forEach(p => tempMap.set(p.idKey, p));
+  dailyData.mapByName.forEach((score, nameKey) => { let agent = weeklyData.find(p => p.nameKey === nameKey); if (agent) agent.today = score; });
+  dailyData.mapByID.forEach((score, idKey) => { let agent = tempMap.get(idKey); if (agent) agent.today = score; });
 
   weeklyData.sort((a, b) => {
     if ((b.today || 0) !== (a.today || 0)) return (b.today || 0) - (a.today || 0);
-    const totalA = (a.total||0) + (a.today||0);
-    const totalB = (b.total||0) + (b.today||0);
-    return totalB - totalA;
+    return ((b.total||0) + (b.today||0)) - ((a.total||0) + (a.today||0));
   });
 
   ALL_DATA = weeklyData.filter((p, i) => i < 3 || (p.total||0) > 0 || (p.today||0) > 0);
-  
-  const totalToday = ALL_DATA.reduce((sum, p) => sum + (p.today || 0), 0);
-  updateTotalDisplay(totalToday);
+  updateTotalDisplay(ALL_DATA.reduce((sum, p) => sum + (p.today || 0), 0));
 
-  diag(`SYSTEM UPDATED: ${new Date().toLocaleTimeString('en-US', {timeZone: TIMEZONE, hour12: false})}`);
+  // Timestamp estilo DOS
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('en-US', {timeZone: TIMEZONE, hour12: false});
+  diag(`DATA REFRESHED. LAST_UPDATE: [${timeStr}] TAB:[${weeklyTab}]`);
 }
 
-(async function init(){
-  await updateData();
-  renderList(ALL_DATA); 
-  setInterval(updateData, DAILY_REFRESH); 
-})();
+(async function init(){ await updateData(); renderList(ALL_DATA); setInterval(updateData, DAILY_REFRESH); })();
 </script>
 </body>
 </html>
