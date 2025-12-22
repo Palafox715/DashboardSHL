@@ -3,7 +3,7 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>Royal Hyrule Ledger</title>
+<title>Royal Hyrule Ledger — Fixed Data</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Spectral:wght@400;600&display=swap" rel="stylesheet">
@@ -24,12 +24,6 @@
     
     /* Sombra para dar efecto de relieve dorado */
     --gold-shadow: 1px 1px 0px #6b571a, -1px -1px 0px #ffffa0;
-    /* Borde ornamental complejo usando sombras */
-    --ornate-border: 
-      box-shadow: 
-        0 0 0 3px var(--ancient-brown),
-        0 0 0 6px var(--hyrule-gold),
-        inset 0 0 20px rgba(58, 35, 18, 0.5);
   }
   
   /* Reset y Fondo de Piedra Antigua */
@@ -152,7 +146,7 @@
   }
   tbody tr:last-child td { border-bottom: none; }
   
-  /* Hover fila: Efecto de resaltar en el mapa */
+  /* Hover fila */
   tbody tr:hover td{ 
     background: rgba(212, 175, 55, 0.15); /* Tinte dorado */
     color: var(--ancient-brown);
@@ -163,7 +157,7 @@
 
   /* ===== BARRAS DE PROGRESO ESTILO RPG ===== */
   .rpg-bar-container {
-      height: 18px; background: #2b1d0e; /* Fondo oscuro de la barra */
+      height: 18px; background: #2b1d0e; /* Fondo oscuro */
       border: 2px solid var(--ancient-brown); border-radius: 10px;
       overflow: hidden; position: relative;
       box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
@@ -172,16 +166,14 @@
       height: 100%; position: relative;
       border-radius: 8px; transition: width 0.6s ease-out;
   }
-  /* Barra de Hoy (Estilo Medidor de Estamina - Verde) */
   .bar-today .rpg-bar-fill {
       background: linear-gradient(to bottom, #26a65b, var(--hyrule-green));
       box-shadow: inset 0 2px 4px rgba(255,255,255,0.3), 0 0 8px var(--hyrule-green);
   }
-  /* Barra Total (Estilo Medidor de Magia - Azul/Dorado) */
   .bar-total .rpg-bar-fill {
       background: linear-gradient(to bottom, #4a90e2, var(--hyrule-blue));
       box-shadow: inset 0 2px 4px rgba(255,255,255,0.3), 0 0 8px var(--hyrule-blue);
-      border-right: 2px solid var(--hyrule-gold); /* Punta dorada */
+      border-right: 2px solid var(--hyrule-gold);
   }
   .rpg-bar-value {
       position: absolute; width: 100%; text-align: center; top: 50%; transform: translateY(-50%);
@@ -191,17 +183,14 @@
   #meta{ margin-top: 20px; border-top: 2px dashed var(--ancient-brown); padding-top:15px; color: var(--ancient-brown); font-family: var(--header-font); font-size: 0.9rem; text-align: center;}
   #meta::before { content: "— "; } #meta::after { content: " —"; }
   
-  /* RANGOS ESPECIALES CON TRIFUERZA */
+  /* RANGOS */
   .rank-txt { font-family: var(--header-font); font-weight: bold; }
-  /* El Héroe (Oro) */
   .rank-1 { color: var(--hyrule-gold); text-shadow: var(--gold-shadow); font-size: 1.2em; }
   .rank-1::before { content: "⟁ "; }
-  /* Plata */
   .rank-2 { color: #c0c0c0; text-shadow: 1px 1px 0 #666; }
-  /* Bronce */
   .rank-3 { color: #cd7f32; text-shadow: 1px 1px 0 #8b4513; }
 
-  /* MOBILE ZELDA VIEW (Cartas de Misión) */
+  /* MOBILE VIEW */
   @media (max-width: 768px) {
     #board { width: 98%; margin: 1vh auto; padding: 15px; border: none; box-shadow: none; background: none; }
     .top-header-flex { flex-direction: column; gap: 15px; text-align: center; border-bottom: none; }
@@ -213,20 +202,17 @@
     
     tbody tr { 
       margin-bottom: 25px; padding: 20px;
-      /* Cada fila es un mini pergamino */
       background-color: var(--parchment-bg);
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill='%23d4c8a0' fill-opacity='0.1'%3E%3Cpath fill-rule='evenodd' d='M11 0l5 3v5l-5 3-5-3V3l5-3zm38 0l5 3v5l-5 3-5-3V3l5-3zm38 0l5 3v5l-5 3-5-3V3l5-3zM11 25l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3zM11 50l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3zM11 75l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3z'/%3E%3C/g%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill='%23d4c8a0' fill-opacity='0.1'%3E%3Cpath fill-rule='evenodd' d='M11 0l5 3v5l-5 3-5-3V3l5-3zm38 0l5 3v5l-5 3-5-3V3l5-3zm38 0l5 3v5l-5 3-5-3V3l5-3zM11 25l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3zM11 75l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3z'/%3E%3C/g%3E%3C/svg%3E");
       border: 3px solid var(--ancient-brown);
       border-radius: 12px;
       box-shadow: 0 6px 12px rgba(0,0,0,0.3);
       position: relative;
     }
-    /* Sello de lacre en la esquina de la tarjeta */
     tbody tr::after {
         content: '⟁'; position: absolute; top: 10px; right: 10px;
         color: var(--hyrule-gold); font-size: 20px; opacity: 0.5;
     }
-
     tbody td { 
       padding: 8px 0; display: flex; 
       justify-content: space-between; align-items: center; 
@@ -235,7 +221,6 @@
     tbody td:last-child { border-bottom: none; }
     th.col-day, td.col-day { display: none; }
     
-    /* Etiquetas de Misión para móvil */
     td.col-rank::before { content: 'Rango:'; font-family: var(--header-font); color: var(--ancient-brown); margin-right: 10px; }
     td.col-agent::before { content: 'Héroe:'; font-family: var(--header-font); color: var(--ancient-brown); margin-right: 10px; }
     td.col-today::before { content: 'Misión de Hoy:'; font-family: var(--header-font); color: var(--ancient-brown); margin-right: 5px; font-size: 0.9em;}
@@ -257,8 +242,8 @@
   </div>
 
   <div class='chips'>
-    <div id='chipWeekly' class='chip'>Ciclo Lunar: ???</div>
-    <div id='chipDaily' class='chip'>Registro Diario: ???</div>
+    <div id='chipWeekly' class='chip'>Ciclo Lunar: —</div>
+    <div id='chipDaily' class='chip'>Registro Diario: —</div>
   </div>
 
   <div class='table-wrap'>
@@ -287,19 +272,25 @@
 </div>
 
 <script>
-/* =========================================
-   LÓGICA DEL LEADERBOARD (ESTILO RPG)
-   ========================================= */
+/* ==========================================================================
+   EL MOTOR DE DATOS (RESTAURADO DEL CÓDIGO FUNCIONAL "PIXEL ART")
+   ========================================================================== */
+
+/* IDs y API (EXACTAMENTE IGUAL AL CÓDIGO PIXEL ART) */
 const API_KEY        = "AIzaSyDwOqp2uizZol2et6Uqi7CnntW9Hkrinjg";
 const WEEKLY_SHEETID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
 const DAILY_ID_RAW   = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
-const TIMEZONE       = "America/Tijuana";
+
+const TIMEZONE        = "America/Tijuana";
 const DAILY_REFRESH  = 12000; 
+const WEEKLY_REFRESH = 5*60*1000;
+
 let ALL_DATA=[]; 
 
-function diag(t){ document.getElementById('diag').textContent = `${t}`; }
-function setChipWeekly(t){ document.getElementById('chipWeekly').textContent = `${t}`; }
-function setChipDaily(t){ document.getElementById('chipDaily').textContent = `${t}`; }
+/* Funciones de Utilidad */
+function diag(t){ document.getElementById('diag').textContent = t; }
+function setChipWeekly(t){ document.getElementById('chipWeekly').textContent = `Ciclo Lunar: ${t}`; }
+function setChipDaily(t){ document.getElementById('chipDaily').textContent = `Registro Diario: ${t}`; }
 function getLocalDate(){ const s=new Date().toLocaleString('en-US',{timeZone:TIMEZONE}); return new Date(s); }
 function isoWeek(d){ const x=new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const n=x.getUTCDay()||7; x.setUTCDate(x.getUTCDate()+4-n); const y=new Date(Date.UTC(x.getUTCFullYear(),0,1)); return {week:Math.ceil((((x-y)/86400000)+1)/7), year:x.getUTCFullYear()}; }
 function weeksInISOYear(y){ const d=new Date(Date.UTC(y,11,31)); const day=d.getUTCDay(); return (day===4 || (d.getUTCDate()===31 && day===3))?53:52; }
@@ -313,24 +304,35 @@ const emoji=/[\u{1F1E6}-\u{1F1FF}\u{1F300}-\u{1FAFF}\u{1F900}-\u{1F9FF}\u{2600}-
 function normName(s){ return (s||"").replace(emoji,"").normalize('NFD').replace(/[\u0300-\u036f]/g,"").replace(/[^\x20-\x7E]/g,"").replace(/\s{2,}/g," ").trim().toUpperCase(); }
 function normID(s){ return (s||"").toString().trim(); }
 
+/* fetch con cache-busting (Idéntico al funcional) */
 async function fetchSafeJSON(url, {tries=4, baseDelay=700} = {}) {
   let lastErr;
   for (let i = 0; i < tries; i++) {
     try {
-      const r = await fetch(url, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache, no-store, max-age=0', 'Pragma': 'no-cache' }});
+      const r = await fetch(url, {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache, no-store, max-age=0', 'Pragma': 'no-cache' },
+      });
       if (r.ok) return await r.json();
       const text = await r.text();
       if (r.status === 429 || (r.status >= 500 && r.status < 600)) {
-        await new Promise(res => setTimeout(res, baseDelay * Math.pow(2, i) + Math.random() * 250)); continue;
+        const jitter = Math.random() * 250;
+        await new Promise(res => setTimeout(res, baseDelay * Math.pow(2, i) + jitter));
+        continue;
       }
-      throw new Error(`El oráculo no responde (HTTP ${r.status})`);
-    } catch (e) { lastErr = e; await new Promise(res => setTimeout(res, baseDelay * Math.pow(2, i) + Math.random() * 250)); }
+      throw new Error(`HTTP ${r.status} • ${text.slice(0,180)}`);
+    } catch (e) {
+      lastErr = e;
+      const jitter = Math.random() * 250;
+      await new Promise(res => setTimeout(res, baseDelay * Math.pow(2, i) + jitter));
+    }
   }
-  throw lastErr || new Error('Error de conexión con el reino');
+  throw lastErr || new Error('fetchSafeJSON: unknown');
 }
 
-// (Lectura de datos idéntica - OMITIDA POR BREVEDAD - DEBE INCLUIRSE)
+/* LECTURA SEMANAL (Lógica del código funcional) */
 async function readWeeklyTab(weeklyTab){
+  // Rangos exactos del Pixel Art Code
   const ranges=[`${weeklyTab}!A3:C96`,`${weeklyTab}!D3:D96`,`${weeklyTab}!F3:F96`,`${weeklyTab}!H3:H96`,`${weeklyTab}!J3:J96`,`${weeklyTab}!L3:L96`,`${weeklyTab}!N3:N96`,`${weeklyTab}!O3:O96`].map(encodeURIComponent);
   const url=`https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_SHEETID}/values:batchGet?`+ranges.map(r=>`ranges=${r}`).join("&")+`&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
   const j=await fetchSafeJSON(url); const vr=j.valueRanges||[];
@@ -349,11 +351,14 @@ async function readWeeklyTab(weeklyTab){
   out.sort((a,b)=>(b.total||0)-(a.total||0));
   return out;
 }
+
 function fmtDailyTab(dt){ const m=new Intl.DateTimeFormat('en-US',{month:'short',timeZone:TIMEZONE}).format(dt); const dd=new Intl.DateTimeFormat('en-US',{day:'2-digit',timeZone:TIMEZONE}).format(dt); return `${m} ${dd}`; }
 function getDailyTabCandidates(){
   const url=new URL(window.location.href); const o=url.searchParams.get('dailyTab'); if(o) return [o];
   const now=getLocalDate(); const y=new Date(now.getTime()-86400000); return [fmtDailyTab(now), fmtDailyTab(y)];
 }
+
+/* LECTURA DIARIA (Lógica del código funcional) */
 async function readDailyApproved(){
   const rangesFor=tab=>([`${tab}!A2:A70`,`${tab}!B2:B70`,`${tab}!C2:C70`,`${tab}!E2:E70`,`${tab}!F2:F70`,`${tab}!G2:G70`].map(encodeURIComponent));
   const tabs=getDailyTabCandidates();
@@ -374,19 +379,20 @@ async function readDailyApproved(){
         const rowsFK=Math.max(A.length,B.length,C.length); for(let i=0;i<rowsFK;i++) addPair(A[i],B[i],C[i]);
         const rowsRG=Math.max(E.length,F.length,G.length); for(let i=0;i<rowsRG;i++) addPair(E[i],F[i],G[i]);
         return {id, tab, mapByName, mapByID};
-      }catch(e){ }
+      }catch(e){ /* intenta siguiente tab */ }
     }
   }
   return {id:DAILY_IDS[0], tab:tabs[0], mapByName:new Map(), mapByID:new Map()};
 }
 
-function updateTotalDisplay(total){ document.getElementById('totalTodayValue').textContent = total.toLocaleString('en-US'); }
+function updateTotalDisplay(total){
+  document.getElementById('totalTodayValue').textContent = total.toLocaleString('en-US');
+}
 
-// ===== GENERADOR DE BARRAS RPG =====
+/* GENERADOR DE BARRAS RPG (Visual Only) */
 function generateRPGBar(value, max, type) {
   if (max === 0) max = 1;
   const pct = Math.max(5, Math.min(100, Math.round((value / max) * 100)));
-  // Crea la estructura HTML para las barras de Estamina/Magia
   return `
     <div class="rpg-bar-container bar-${type}">
         <div class="rpg-bar-value">${value}</div>
@@ -397,6 +403,7 @@ function generateRPGBar(value, max, type) {
 
 function renderList(list){
   const tbody=document.querySelector("#tbl tbody"); tbody.innerHTML="";
+  
   const maxToday=Math.max(1, ...list.map(p=>p.today||0)); 
   const maxTotal=Math.max(1, ...list.map(p=>p.total||0));
   
@@ -404,14 +411,84 @@ function renderList(list){
     const rowIndex=i;
     const today=p.today||0, total=p.total||0;
 
-    // Rangos con Trifuerza para el Top 3
+    // LÓGICA DE RANGOS ZELDA
     let rankTxt = `${rowIndex + 1}`;
     let rankClass = 'rank-txt';
     if (rowIndex===0) { rankTxt = 'Héroe Elegido'; rankClass += ' rank-1'; } 
     else if (rowIndex===1) { rankTxt = 'Guardia Real'; rankClass += ' rank-2'; }
     else if (rowIndex===2) { rankTxt = 'Caballero Hyliano'; rankClass += ' rank-3'; }
 
-    // Generar barras visuales RPG en lugar de ASCII
-    const rpgBarToday = generateRPGBar(today, maxToda
+    // Generar barras visuales RPG
+    const rpgBarToday = generateRPGBar(today, maxToday, 'today');
+    const rpgBarTotal = generateRPGBar(total, maxTotal, 'total');
 
+    const tr=document.createElement('tr');
+    tr.innerHTML = `
+      <td class="col-rank"><span class="${rankClass}">${rankTxt}</span></td>
+      <td class="col-agent">
+        <div class="agent-wrap"><div class="name">${p.name}</div></div>
+      </td>
+      <td class="col-today">${rpgBarToday}</td>
+      <td class="col-day">${p.wed||0}</td>
+      <td class="col-day">${p.thu||0}</td>
+      <td class="col-day">${p.fri||0}</td>
+      <td class="col-day">${p.sat||0}</td>
+      <td class="col-day">${p.mon||0}</td>
+      <td class="col-day">${p.tue||0}</td>
+      <td class="col-total">${rpgBarTotal}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function updateData(){
+  diag('Consultando los textos antiguos...', 'pulse');
+  const weeklyTab=computeWeeklyTabName();
+  setChipWeekly(weeklyTab);
+
+  const [weeklyData, dailyData] = await Promise.all([
+    readWeeklyTab(weeklyTab),
+    readDailyApproved()
+  ]);
+  
+  setChipDaily(dailyData.tab);
+  
+  // Merge de datos (Exacto al funcional)
+  const tempMap = new Map();
+  weeklyData.forEach(p => tempMap.set(p.idKey, p));
+  
+  dailyData.mapByName.forEach((score, nameKey) => {
+    let agent = weeklyData.find(p => p.nameKey === nameKey);
+    if (agent) agent.today = score;
+  });
+  
+  dailyData.mapByID.forEach((score, idKey) => {
+    let agent = tempMap.get(idKey);
+    if (agent) agent.today = score;
+  });
+
+  // Sort: Prioridad Today -> luego Total
+  weeklyData.sort((a, b) => {
+    if ((b.today || 0) !== (a.today || 0)) return (b.today || 0) - (a.today || 0);
+    const totalA = (a.total||0) + (a.today||0);
+    const totalB = (b.total||0) + (b.today||0);
+    return totalB - totalA;
+  });
+
+  ALL_DATA = weeklyData.filter((p, i) => i < 3 || (p.total||0) > 0 || (p.today||0) > 0);
+  
+  const totalToday = ALL_DATA.reduce((sum, p) => sum + (p.today || 0), 0);
+  updateTotalDisplay(totalToday);
+
+  diag(`El registro real ha sido actualizado: ${new Date().toLocaleTimeString('en-US', {timeZone: TIMEZONE, hour12: false})}`);
+}
+
+(async function init(){
+  await updateData();
+  renderList(ALL_DATA); 
+  setInterval(updateData, DAILY_REFRESH); 
+})();
+</script>
+</body>
+</html>
 
