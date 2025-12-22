@@ -3,207 +3,217 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>C:\DATA\LEADER.EXE</title>
+<title>MATRIX SYSTEM ROOT</title>
 <style>
-  /* ===== VARIABLES ESTILO DOS/VGA TEXT MODE ===== */
+  /* ===== VARIABLES MATRIX ===== */
   :root{
-    /* Paleta clásica VGA Modo Texto (Azul/Gris/Blanco) */
-    --dos-bg: #0000A8;      /* Fondo Azul Oscuro */
-    --dos-fg: #A8A8A8;      /* Texto Gris Claro (Low Intensity) */
-    --dos-hl: #FFFFFF;      /* Texto Blanco Brillante (High Intensity) */
-    --dos-accent: #55FFFF;  /* Cian Brillante para acentos */
-    --dos-yellow: #FFFF55;  /* Amarillo para alertas */
-    --term-font: 'Courier New', Courier, monospace; /* Fuente monoespaciada del sistema */
+    --matrix-bg: #000000;
+    --matrix-base: #008F11; /* Verde oscuro base */
+    --matrix-bright: #00FF41; /* Verde neón brillante */
+    --matrix-pale: #98FB98; /* Verde pálido para acentos */
+    --term-font: 'Courier New', Courier, monospace;
+    /* El "Glow" esencial de Matrix */
+    --crt-glow: 0 0 4px var(--matrix-base), 0 0 8px var(--matrix-bright);
+    --text-glow-strong: 0 0 5px #fff, 0 0 10px var(--matrix-bright), 0 0 15px var(--matrix-bright);
   }
   
-  /* Reset General para estilo Terminal */
+  /* Reset y Fondo */
   html,body{
-    margin:0;
-    height:100%;
-    width:100%;
-    background-color: #000; /* Borde negro del monitor */
-    color:var(--dos-fg);
+    margin:0; height:100%; width:100%;
+    background-color: var(--matrix-bg);
+    color: var(--matrix-bright);
     font-family: var(--term-font);
     font-size: 16px;
-    text-transform: uppercase; /* Todo en mayúsculas siempre */
-    overflow: hidden; /* El contenedor principal manejará el scroll */
+    text-transform: uppercase;
+    overflow: hidden;
   }
 
-  /* EFECTO CRT SCANLINE OVERLAY */
+  /* Lienzo para la Lluvia Digital (Fondo) */
+  #matrix-canvas {
+    position: fixed; top: 0; left: 0; z-index: 0;
+    opacity: 0.8; /* Que no distraiga demasiado de los datos */
+  }
+
+  /* Efecto Scanlines Sutil sobre toda la pantalla */
   body::after {
-    content: " ";
-    display: block;
-    position: absolute;
-    top: 0; left: 0; bottom: 0; right: 0;
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-    z-index: 999;
-    pointer-events: none;
-    background-size: 100% 2px, 3px 100%;
+    content: " "; display: block; position: absolute; inset:0;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.3) 0px, rgba(0,255,65,0.05) 1px, transparent 2px);
+    z-index: 999; pointer-events: none;
   }
 
-  /* CONTENEDOR PRINCIPAL "LA PANTALLA" */
+  /* CONTENEDOR PRINCIPAL "LA TERMINAL" */
   #board{
     position:relative; z-index:1;
-    width: 98%;
-    height: 98%;
-    margin: 1vh auto;
-    background-color: var(--dos-bg); /* Fondo azul de la terminal */
-    border: 2px solid var(--dos-fg); /* Borde simple */
-    padding: 10px; box-sizing:border-box;
-    display:flex; flex-direction:column; gap: 10px;
+    width: 96%; height: 96%; margin: 2vh auto;
+    /* Fondo semi-transparente para ver la lluvia detrás */
+    background-color: rgba(0, 10, 0, 0.85); 
+    border: 1px solid var(--matrix-base);
+    box-shadow: inset 0 0 30px var(--matrix-base), var(--crt-glow);
+    padding: 15px; box-sizing:border-box;
+    display:flex; flex-direction:column; gap: 15px;
     overflow-y: auto;
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.5); /* Sombra interna para profundidad CRT */
+    text-shadow: var(--crt-glow); /* Todo el texto brilla por defecto */
   }
   
-  /* HEADER TIPO PROGRAMA C */
+  /* HEADER TIPO ACCESO AL SISTEMA */
   .top-header-flex{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px dashed var(--dos-fg); /* Línea discontinua ASCII simulada */
-    padding-bottom: 10px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 2px solid var(--matrix-base);
+    padding-bottom: 15px;
+    position: relative;
+  }
+  /* Decoración de "flujo de datos" bajo el header */
+  .top-header-flex::after {
+      content: 'DATA_STREAM_ID: [0x5F3A1] // TARGET: SALES_NODE // STATUS: CONNECTED';
+      position: absolute; bottom: -12px; left: 0;
+      font-size: 0.7rem; color: var(--matrix-base); letter-spacing: 1px;
   }
 
   h2{
-    margin:0; text-align:left;
-    font-size: 1.5rem; font-weight: bold;
-    color: var(--dos-hl);
+    margin:0; text-align:left; font-size: 1.8rem; font-weight: bold; letter-spacing: 2px;
+    color: var(--matrix-bright);
   }
-  h2::before { content: "PROGRAM: "; color: var(--dos-fg); }
+  h2::before { content: "SYSTEM.ROOT > "; color: var(--matrix-base); }
 
   #dailyTotalDisplay{
-    border: 1px solid var(--dos-fg);
-    padding: 5px 10px;
-    background: var(--dos-bg);
+    border: 1px solid var(--matrix-bright);
+    padding: 8px 15px;
+    background: rgba(0, 255, 65, 0.1);
+    box-shadow: var(--crt-glow);
   }
-  #dailyTotalDisplay .label{ font-size: 1rem; color: var(--dos-hl); display: inline; }
-  #dailyTotalDisplay .value{ font-size: 1.2rem; color: var(--dos-accent); font-weight: bold; display: inline; margin-left: 10px;}
-  #dailyTotalDisplay .value::before { content: "[ "; color: var(--dos-fg); }
-  #dailyTotalDisplay .value::after { content: " ]"; color: var(--dos-fg); }
+  #dailyTotalDisplay .label{ font-size: 0.9rem; color: var(--matrix-base); display: block; margin-bottom: 5px;}
+  #dailyTotalDisplay .value{ 
+      font-size: 1.6rem; color: #fff; font-weight: bold; display: block; text-align: right;
+      text-shadow: var(--text-glow-strong); /* Brillo blanco intenso */
+  }
 
-  /* CHIPS TIPO LÍNEA DE COMANDOS */
+  /* CHIPS TIPO PROMPT */
   .chips{
-    display:flex; gap: 15px; flex-wrap:wrap;
-    justify-content:flex-start; color: var(--dos-hl);
+    display:flex; gap: 20px; flex-wrap:wrap;
+    justify-content:flex-start; color: var(--matrix-pale);
+    margin-top: 10px;
   }
-  .chip::before{ content: "> "; color: var(--dos-fg); }
+  .chip::before{ content: "[LOCAL_MEMORY]: "; color: var(--matrix-base); }
 
-  /* TABLA TIPO HOJA DE CÁLCULO DOS */
-  .table-wrap{ flex:1; min-height:0; position:relative; overflow: auto; border: 1px solid var(--dos-fg); }
+  /* TABLA DE DATOS */
+  .table-wrap{ flex:1; min-height:0; position:relative; overflow: auto; border: 1px solid var(--matrix-base); }
   table{
-    width:100%;
-    min-width: 800px;
-    border-collapse: collapse; 
-    border-spacing: 0;
-    font-size: 1rem;
+    width:100%; min-width: 850px; border-collapse: collapse; border-spacing: 0;
   }
   
-  /* Cabecera de tabla */
   thead th{
     position:sticky; top:0; z-index:2;
-    background: var(--dos-fg); /* Cabecera gris invertida */
-    color: var(--dos-bg);       /* Texto azul sobre gris */
-    font-weight: bold;
-    text-align: center; padding: 5px;
-    border: 1px solid var(--dos-bg);
+    background: #001a00; /* Verde muy oscuro */
+    color: var(--matrix-pale);
+    text-align: center; padding: 10px 5px;
+    border-bottom: 2px solid var(--matrix-base);
+    letter-spacing: 1px;
   }
   th.col-agent, td.col-agent{ text-align:left; }
 
-  /* Cuerpos de tabla */
   tbody td{
-    border: 1px solid var(--dos-fg); /* Rejilla simple */
-    padding: 4px 8px;
-    vertical-align: middle;
+    border-bottom: 1px solid rgba(0, 143, 17, 0.3); /* Separadores sutiles */
+    padding: 8px; vertical-align: middle;
+    color: var(--matrix-bright);
   }
   
-  /* Cursor de selección tipo DOS */
+  /* Hover fila: Efecto "Cursor de Datos" */
   tbody tr:hover td{ 
-    background: var(--dos-hl);
-    color: var(--dos-bg);
-    cursor: default;
+    background: rgba(0, 255, 65, 0.2);
+    color: #fff;
+    text-shadow: var(--text-glow-strong);
+    cursor: crosshair; /* Cursor de mira */
   }
-  tbody tr:hover .ascii-bar { color: var(--dos-bg); } /* Invertir color de barra al hover */
+  tbody tr:hover .ascii-bar { color: #fff; } 
 
   .agent-wrap .name{ font-weight: bold; white-space:nowrap; letter-spacing: 1px; }
 
-  /* BARRAS ASCII (Texto en lugar de DIVs) */
+  /* BARRAS BINARIAS (Efecto Hacker) */
   .ascii-bar{ 
-    font-family: var(--term-font);
-    white-space: pre; /* Mantiene los espacios exactos */
-    color: var(--dos-accent);
-    font-weight: bold;
+    font-family: var(--term-font); white-space: pre;
+    color: var(--matrix-bright); font-weight: bold; letter-spacing: -1px;
+    font-size: 1.1rem;
   }
 
-  #meta{ margin-top: 10px; border-top: 1px dashed var(--dos-fg); padding-top:10px; }
-  #diag { color: var(--dos-fg); }
-  /* Efecto parpadeo del cursor */
-  @keyframes blink { 50% { opacity: 0; } }
-  #diag::after { content: "_"; animation: blink 1s step-start infinite; }
+  #meta{ margin-top: 10px; border-top: 1px solid var(--matrix-base); padding-top:15px; color: var(--matrix-base); font-size: 0.9rem;}
+  
+  /* Animación de "Desencriptado" para el texto de carga */
+  @keyframes decode { 0% { opacity: 1; } 50% { opacity: 0.5;color:#fff; } 100% { opacity: 1; } }
+  #diag { display: inline-block; animation: decode 0.5s infinite steps(2); color: var(--matrix-pale); }
+  #diag::before { content: ">> EXEC(DECRYPT_STREAM); "; }
 
-  /* INDICADORES DE RANGO TEXTUALES */
-  .rank-txt { font-weight: bold; color: var(--dos-hl); }
-  .rank-1 { color: var(--dos-yellow); } /* Oro se vuelve Amarillo brillante */
+  /* INDICADORES DE RANGO "THE ONE" */
+  .rank-txt { color: var(--matrix-base); }
+  .rank-1 { color: #fff; text-shadow: var(--text-glow-strong); } /* El elegido brilla en blanco */
 
-  /* MOBILE DOS VIEW (Lista secuencial) */
+  /* SCROLLBAR PERSONALIZADO (Chrome/Safari) */
+  ::-webkit-scrollbar { width: 8px; background: #000; }
+  ::-webkit-scrollbar-thumb { background: var(--matrix-base); border: 1px solid var(--matrix-bright); }
+
+  /* MOBILE MATRIX VIEW */
   @media (max-width: 768px) {
-    #board { width: 100%; height: 100%; margin: 0; border: none; }
-    .top-header-flex { flex-direction: column; align-items: flex-start; gap: 10px;}
-    #dailyTotalDisplay { width: 100%; box-sizing: border-box; text-align: center;}
-    table { min-width: unset; }
+    #board { width: 100%; height: 100%; margin: 0; border: none; background: rgba(0,10,0,0.9); }
+    .top-header-flex { flex-direction: column; align-items: stretch; gap: 15px;}
+    .top-header-flex::after { display: none; } /* Ocultar decorador en móvil */
+    #dailyTotalDisplay { width: 100%; text-align: center;}
+    #dailyTotalDisplay .value { text-align: center; }
     thead { display: none; }
     tbody, tr, td { display: block; width: 100%; box-sizing: border-box; border: none; }
     
     tbody tr { 
-      margin-bottom: 15px; padding: 10px; 
-      border: 1px solid var(--dos-fg);
-      background: var(--dos-bg);
+      margin-bottom: 20px; padding: 15px; 
+      border: 1px solid var(--matrix-bright);
+      background: rgba(0, 50, 0, 0.4);
+      box-shadow: var(--crt-glow);
     }
     tbody td { 
-      padding: 2px 0; display: flex; 
+      padding: 4px 0; display: flex; 
       justify-content: space-between; align-items: center; 
       text-align: left;
     }
     th.col-day, td.col-day { display: none; }
     
-    /* Etiquetas para móvil */
-    td.col-rank::before { content: 'RANK:'; color: var(--dos-fg); margin-right: 10px; }
-    td.col-agent::before { content: 'AGENT:'; color: var(--dos-fg); margin-right: 10px; }
-    td.col-today::before { content: 'TODAY:'; color: var(--dos-fg); margin-right: 5px; }
-    td.col-total::before { content: 'TOTAL:'; color: var(--dos-fg); margin-right: 5px; }
+    /* Etiquetas "Hacker" para móvil */
+    td.col-rank::before { content: '[NODE_RANK]:'; color: var(--matrix-base); margin-right: 10px; }
+    td.col-agent::before { content: '[IDENTITY]:'; color: var(--matrix-base); margin-right: 10px; }
+    td.col-today::before { content: '[TODAY_DATA]:'; color: var(--matrix-base); margin-right: 5px; }
+    td.col-total::before { content: '[TOTAL_CACHE]:'; color: var(--matrix-base); margin-right: 5px; }
     
-    .ascii-bar { text-align: right; flex-grow: 1; }
+    .ascii-bar { text-align: right; flex-grow: 1; font-size: 1rem; letter-spacing: 0;}
   }
 </style>
 </head>
 <body>
+<canvas id="matrix-canvas"></canvas>
+
 <div id='board'>
   <div class='top-header-flex'> 
-    <h2>SALES_DB.C</h2>
+    <h2>NEO_LEADERBOARD_V3</h2>
     <div id='dailyTotalDisplay'>
-      <span class='label'>TOTAL(TODAY):</span>
-      <span class='value' id='totalTodayValue'>0</span>
+      <span class='label'>SYSTEM_INTEGRITY (TODAY):</span>
+      <span class='value' id='totalTodayValue'>0000</span>
     </div>
   </div>
 
   <div class='chips'>
-    <div id='chipWeekly' class='chip'>WEEK: ???</div>
-    <div id='chipDaily' class='chip'>DAILY: ???</div>
+    <div id='chipWeekly' class='chip'>WEEK_CYCLE: ???</div>
+    <div id='chipDaily' class='chip'>DAILY_CYCLE: ???</div>
   </div>
 
   <div class='table-wrap'>
     <table id='tbl'>
       <thead>
         <tr>
-          <th class='col-rank'>ID</th>
-          <th class='col-agent'>AGENT_NAME</th>
-          <th class='col-today' style="width:15%">TODAY_PERF</th>
-          <th class='col-day'>WED</th>
-          <th class='col-day'>THU</th>
-          <th class='col-day'>FRI</th>
-          <th class='col-day'>SAT</th>
-          <th class='col-day'>MON</th>
-          <th class='col-day'>TUE</th>
-          <th class='col-total' style="width:15%">TOTAL_ACC</th>
+          <th class='col-rank'>[#] RANK_ID</th>
+          <th class='col-agent'>[USER] AGENT_IDENTITY</th>
+          <th class='col-today' style="width:18%">[STREAM] TODAY_FLOW</th>
+          <th class='col-day'>W</th>
+          <th class='col-day'>T</th>
+          <th class='col-day'>F</th>
+          <th class='col-day'>S</th>
+          <th class='col-day'>M</th>
+          <th class='col-day'>T</th>
+          <th class='col-total' style="width:18%">[BUFFER] TOTAL_CACHE</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -211,17 +221,73 @@
   </div>
 
   <div id='meta'>
-    <div id='diag'>C:\> INITIATING DATA RETRIEVAL...</div>
+    <div id='diag'>INITIALIZING CONNECTION... WAIT.</div>
+    <div style="float:right; font-size:0.8rem;">TRACE COMPLETE.</div>
   </div>
 </div>
 
 <script>
-// Configuración para barras ASCII
-const BAR_LENGTH = 12; // Longitud total de caracteres de la barra
-const CHAR_FILL = '█'; // Carácter lleno (Bloque sólido ASCII 219)
-const CHAR_EMPTY = '░'; // Carácter vacío (Sombra ligera ASCII 176)
+/* =========================================
+   1. EFECTO DE LLUVIA DIGITAL (MATRIX RAIN)
+   ========================================= */
+const canvas = document.getElementById('matrix-canvas');
+const ctx = canvas.getContext('2d');
 
-/* IDs y API (MISMOS DATOS) */
+// Ajustar al tamaño de la ventana
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// Caracteres para la lluvia (Katakana + Números + Romaji para efecto críptico)
+const chars = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレゲゼデベペオォコソトノホモヨョロゴゾドボポヴォン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const charArray = chars.split('');
+const fontSize = 14;
+const columns = canvas.width / fontSize;
+const drops = [];
+
+// Inicializar las gotas en posiciones aleatorias verticales para que no empiecen todas arriba
+for (let i = 0; i < columns; i++) {
+    drops[i] = Math.random() * -100; // Empezar fuera de la pantalla
+}
+
+function drawMatrix() {
+    // Fondo negro semi-transparente para crear el efecto de estela
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = '#0F0'; // Color verde Matrix para el texto
+    ctx.font = fontSize + 'px monospace';
+
+    for (let i = 0; i < drops.length; i++) {
+        // Color blanco ocasional para el "cabezal" de la gota
+        if(Math.random() > 0.98) ctx.fillStyle = '#FFF'; 
+        else ctx.fillStyle = '#0F0';
+
+        const text = charArray[Math.floor(Math.random() * charArray.length)];
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        // Reiniciar gota si sale de la pantalla (con aleatoriedad)
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+            drops[i] = 0;
+        }
+        drops[i]++; // Mover gota hacia abajo
+    }
+}
+// Iniciar animación de lluvia (30 FPS para sensación clásica)
+setInterval(drawMatrix, 33);
+
+
+/* =========================================
+   2. LÓGICA DEL LEADERBOARD (MODIFICADA)
+   ========================================= */
+const BAR_LENGTH = 14; // Barras un poco más largas
+// Usaremos 1s y 0s para las barras de progreso "hacker"
+const CHAR_FILL = '1'; 
+const CHAR_EMPTY = '0';
+
 const API_KEY        = "AIzaSyDwOqp2uizZol2et6Uqi7CnntW9Hkrinjg";
 const WEEKLY_SHEETID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
 const DAILY_ID_RAW   = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
@@ -229,9 +295,9 @@ const TIMEZONE       = "America/Tijuana";
 const DAILY_REFRESH  = 12000; 
 let ALL_DATA=[]; 
 
-function diag(t){ document.getElementById('diag').textContent = `C:\\> ${t}`; }
-function setChipWeekly(t){ document.getElementById('chipWeekly').textContent = `WEEK: ${t}`; }
-function setChipDaily(t){ document.getElementById('chipDaily').textContent = `DAILY: ${t}`; }
+function diag(t){ document.getElementById('diag').textContent = `${t}`; }
+function setChipWeekly(t){ document.getElementById('chipWeekly').textContent = `${t}`; }
+function setChipDaily(t){ document.getElementById('chipDaily').textContent = `${t}`; }
 function getLocalDate(){ const s=new Date().toLocaleString('en-US',{timeZone:TIMEZONE}); return new Date(s); }
 function isoWeek(d){ const x=new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const n=x.getUTCDay()||7; x.setUTCDate(x.getUTCDate()+4-n); const y=new Date(Date.UTC(x.getUTCFullYear(),0,1)); return {week:Math.ceil((((x-y)/86400000)+1)/7), year:x.getUTCFullYear()}; }
 function weeksInISOYear(y){ const d=new Date(Date.UTC(y,11,31)); const day=d.getUTCDay(); return (day===4 || (d.getUTCDate()===31 && day===3))?53:52; }
@@ -258,10 +324,10 @@ async function fetchSafeJSON(url, {tries=4, baseDelay=700} = {}) {
       throw new Error(`HTTP ${r.status}`);
     } catch (e) { lastErr = e; await new Promise(res => setTimeout(res, baseDelay * Math.pow(2, i) + Math.random() * 250)); }
   }
-  throw lastErr || new Error('Err');
+  throw lastErr || new Error('CONNECTION_FAILURE');
 }
 
-// (Funciones de lectura de datos readWeeklyTab y readDailyApproved se mantienen igual que en versiones anteriores. Omitidas por brevedad pero NECESARIAS)
+// (Lectura de datos idéntica - OMITIDA POR BREVEDAD - DEBE INCLUIRSE)
 async function readWeeklyTab(weeklyTab){
   const ranges=[`${weeklyTab}!A3:C96`,`${weeklyTab}!D3:D96`,`${weeklyTab}!F3:F96`,`${weeklyTab}!H3:H96`,`${weeklyTab}!J3:J96`,`${weeklyTab}!L3:L96`,`${weeklyTab}!N3:N96`,`${weeklyTab}!O3:O96`].map(encodeURIComponent);
   const url=`https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_SHEETID}/values:batchGet?`+ranges.map(r=>`ranges=${r}`).join("&")+`&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
@@ -306,30 +372,27 @@ async function readDailyApproved(){
         const rowsFK=Math.max(A.length,B.length,C.length); for(let i=0;i<rowsFK;i++) addPair(A[i],B[i],C[i]);
         const rowsRG=Math.max(E.length,F.length,G.length); for(let i=0;i<rowsRG;i++) addPair(E[i],F[i],G[i]);
         return {id, tab, mapByName, mapByID};
-      }catch(e){ /* intenta siguiente tab */ }
+      }catch(e){ }
     }
   }
   return {id:DAILY_IDS[0], tab:tabs[0], mapByName:new Map(), mapByID:new Map()};
 }
 
-function updateTotalDisplay(total){ document.getElementById('totalTodayValue').textContent = total; }
+// Relleno con ceros para el total "hacker"
+function updateTotalDisplay(total){ document.getElementById('totalTodayValue').textContent = total.toString().padStart(4, '0'); }
 
-// ===== NUEVA FUNCIÓN PARA GENERAR BARRAS ASCII =====
+// ===== BARRAS BINARIAS (HACKER STYLE) =====
 function generateAsciiBar(value, max) {
   if (max === 0) max = 1;
-  // Calcular cuántos caracteres llenar
   const filledCount = Math.round((value / max) * BAR_LENGTH);
   const emptyCount = BAR_LENGTH - filledCount;
-  // Generar string: █████░░░░░ [123]
+  // Usamos 1s para lleno, 0s para vacío. El número al final.
   const barStr = CHAR_FILL.repeat(filledCount) + CHAR_EMPTY.repeat(emptyCount);
-  // Añadir el número al final, alineado a la derecha con ceros si se desea, o simple
-  return `[${barStr}] ${value.toString().padStart(3, ' ')}`;
+  return `[${barStr}]_${value}`;
 }
 
 function renderList(list){
   const tbody=document.querySelector("#tbl tbody"); tbody.innerHTML="";
-  
-  // Obtenemos máximos para calcular las barras relativas
   const maxToday=Math.max(1, ...list.map(p=>p.today||0)); 
   const maxTotal=Math.max(1, ...list.map(p=>p.total||0));
   
@@ -337,14 +400,13 @@ function renderList(list){
     const rowIndex=i;
     const today=p.today||0, total=p.total||0;
 
-    // ===== MEDALLAS DE TEXTO SIMPLE =====
-    let rankTxt = (rowIndex + 1).toString().padStart(2, '0'); // 01, 02, 03...
+    // Indicadores de rango estilo código
+    let rankTxt = `N.${(rowIndex + 1).toString().padStart(2, '0')}`;
     let rankClass = 'rank-txt';
-    if (rowIndex===0) { rankTxt = '[1ST]'; rankClass += ' rank-1'; }
-    else if (rowIndex===1) { rankTxt = '[2ND]'; }
-    else if (rowIndex===2) { rankTxt = '[3RD]'; }
+    if (rowIndex===0) { rankTxt = 'THE_ONE'; rankClass += ' rank-1'; } // Referencia a Neo
+    else if (rowIndex===1) { rankTxt = 'PRIORITY_2'; }
+    else if (rowIndex===2) { rankTxt = 'PRIORITY_3'; }
 
-    // GENERAR BARRAS ASCII
     const asciiToday = generateAsciiBar(today, maxToday);
     const asciiTotal = generateAsciiBar(total, maxTotal);
 
@@ -364,12 +426,11 @@ function renderList(list){
       <td class="col-total"><div class="ascii-bar">${asciiTotal}</div></td>
     `;
     tbody.appendChild(tr);
-    // Nota: Se eliminó la animación setTimeout, las barras de texto son instantáneas.
   });
 }
 
 async function updateData(){
-  diag('EXECUTING QUERY...');
+  diag('PINGING SOURCE NODES...');
   const weeklyTab=computeWeeklyTabName();
   setChipWeekly(weeklyTab);
 
@@ -388,10 +449,9 @@ async function updateData(){
   ALL_DATA = weeklyData.filter((p, i) => i < 3 || (p.total||0) > 0 || (p.today||0) > 0);
   updateTotalDisplay(ALL_DATA.reduce((sum, p) => sum + (p.today || 0), 0));
 
-  // Timestamp estilo DOS
   const now = new Date();
   const timeStr = now.toLocaleTimeString('en-US', {timeZone: TIMEZONE, hour12: false});
-  diag(`DATA REFRESHED. LAST_UPDATE: [${timeStr}] TAB:[${weeklyTab}]`);
+  diag(`DATA STREAM SYNCHRONIZED. [T:${timeStr}]`);
 }
 
 (async function init(){ await updateData(); renderList(ALL_DATA); setInterval(updateData, DAILY_REFRESH); })();
