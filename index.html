@@ -3,263 +3,251 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>Royal Hyrule Ledger — Fixed Data</title>
+<title>Shoreline Market — Leaderboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Spectral:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
 
 <style>
-  /* ===== VARIABLES ESTILO ZELDA / MEDIEVAL ===== */
+  /* ===== VARIABLES TEMA SHORELINE ===== */
   :root{
-    --hyrule-green: #0d6b36;  /* Verde Túnica/Kokiri */
-    --hyrule-gold: #d4af37;   /* Dorado Trifuerza */
-    --hyrule-blue: #0066cc;   /* Azul Real/Magia */
-    --ancient-brown: #3a2312; /* Marrón Cuero/Madera Antigua */
-    --parchment-bg: #f4e4bc;  /* Fondo Pergamino claro */
-    --parchment-dark: #e0cd9e;/* Pergamino más oscuro para tablas */
-    --text-ink: #2b1d0e;      /* Color tinta antigua */
+    /* Paleta extraída del Logo */
+    --shore-navy: #102A43;    /* Azul oscuro del texto "SHORELINE" */
+    --shore-teal: #008C99;    /* Turquesa del logo */
+    --shore-water: #E0F7FA;   /* Agua muy clara para fondos */
+    --shore-sand: #F7F5F0;    /* Arena muy suave para fondo general */
+    --shore-white: #FFFFFF;
     
-    --header-font: 'Cinzel Decorative', cursive;
-    --body-font: 'Spectral', serif;
+    --text-main: var(--shore-navy);
+    --text-muted: #627D98;
     
-    /* Sombra para dar efecto de relieve dorado */
-    --gold-shadow: 1px 1px 0px #6b571a, -1px -1px 0px #ffffa0;
+    --font-main: 'Montserrat', sans-serif;
+    
+    /* Sombras suaves "Brisa Marina" */
+    --shadow-soft: 0 4px 20px rgba(16, 42, 67, 0.08);
+    --shadow-hover: 0 8px 30px rgba(0, 140, 153, 0.15);
   }
   
-  /* Reset y Fondo de Piedra Antigua */
+  /* Reset y Fondo */
   html,body{
     margin:0; height:100%; width:100%;
-    background-color: #1a1109;
-    /* Patrón de piedra de mazmorra */
-    background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 4px), 
-                      linear-gradient(to bottom, #2c1e11, #1a0f05);
-    color: var(--text-ink);
-    font-family: var(--body-font);
-    font-size: 17px;
+    background-color: var(--shore-sand);
+    /* Sutil degradado costero */
+    background-image: linear-gradient(180deg, var(--shore-white) 0%, var(--shore-sand) 100%);
+    color: var(--text-main);
+    font-family: var(--font-main);
+    font-size: 16px;
     overflow-x: hidden;
   }
+  
+  /* Elemento decorativo: Ola en el fondo (CSS puro) */
+  body::after {
+    content: ""; position: fixed; bottom: 0; left: 0; right: 0; height: 15vh;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23008C99' fill-opacity='0.05' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
+    background-size: cover; background-repeat: no-repeat;
+    z-index: 0; pointer-events: none;
+  }
 
-  /* CONTENEDOR PRINCIPAL "EL PERGAMINO REAL" */
+  /* CONTENEDOR PRINCIPAL */
   #board{
     position:relative; z-index:1;
-    width: 94%; min-height: 90%; margin: 3vh auto;
-    /* Textura de Pergamino Antiguo */
-    background-color: var(--parchment-bg);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill='%23d4c8a0' fill-opacity='0.1'%3E%3Cpath fill-rule='evenodd' d='M11 0l5 3v5l-5 3-5-3V3l5-3zm38 0l5 3v5l-5 3-5-3V3l5-3zm38 0l5 3v5l-5 3-5-3V3l5-3zM11 25l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3zM11 50l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3zM11 75l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3z'/%3E%3C/g%3E%3C/svg%3E");
-    border-radius: 8px;
-    /* Aplicar el borde ornamental dorado */
-    box-shadow: 
-        0 0 0 4px var(--ancient-brown),
-        0 0 0 8px var(--hyrule-gold),
-        0 0 25px rgba(0,0,0,0.7),
-        inset 0 0 40px rgba(139, 69, 19, 0.2);
-    padding: 25px; box-sizing:border-box;
-    display:flex; flex-direction:column; gap: 20px;
+    width: 94%; max-width: 1400px;
+    min-height: 90%; margin: 0 auto;
+    padding: 30px 20px; box-sizing:border-box;
+    display:flex; flex-direction:column; gap: 25px;
   }
   
-  /* HEADER ESTILO LEYENDA */
+  /* HEADER: IMITANDO EL LOGOTIPO */
   .top-header-flex{
-    display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 3px double var(--ancient-brown);
+    display: flex; justify-content: space-between; align-items: flex-end;
+    border-bottom: 2px solid var(--shore-water);
     padding-bottom: 20px;
-    position: relative;
-  }
-  /* Símbolo de la Trifuerza decorativo */
-  .top-header-flex::after {
-      content: '⟁'; position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%);
-      font-size: 24px; color: var(--hyrule-gold); text-shadow: 0 2px 4px rgba(0,0,0,0.3);
   }
 
+  .brand-title {
+      display: flex; flex-direction: column;
+      line-height: 1;
+  }
   h2{
-    margin:0; text-align:left; font-family: var(--header-font);
-    font-size: 2.2rem; letter-spacing: 1px;
-    color: var(--ancient-brown);
-    text-shadow: 1px 1px 0px #d4c8a0;
+    margin:0; text-align:left; 
+    font-weight: 900; letter-spacing: 3px;
+    font-size: 2.5rem; 
+    color: var(--shore-teal);
+    text-transform: uppercase;
   }
-  /* Espada decorativa antes del título */
-  h2::before { content: "⚔️ "; font-size: 80%; }
+  .sub-title {
+      font-weight: 600; letter-spacing: 6px; font-size: 1rem;
+      color: var(--shore-navy); margin-top: 5px; text-transform: uppercase;
+      margin-left: 2px;
+  }
 
-  /* CONTADOR DE RUPIAS (Total Diario) */
+  /* KPI DIARIO */
   #dailyTotalDisplay{
-    background: var(--hyrule-green);
-    border: 2px solid var(--hyrule-gold);
-    padding: 10px 20px;
-    border-radius: 12px;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.2);
-    text-align: center; color: #fff;
-    position: relative; overflow: hidden;
+    background: var(--shore-white);
+    border-left: 5px solid var(--shore-teal);
+    padding: 10px 25px;
+    border-radius: 0 8px 8px 0;
+    box-shadow: var(--shadow-soft);
+    text-align: right;
   }
-  /* Brillo estilo gema */
-  #dailyTotalDisplay::before {
-      content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-      background: linear-gradient(to bottom right, rgba(255,255,255,0.4), transparent);
-      transform: rotate(30deg); pointer-events: none;
+  #dailyTotalDisplay .label{ 
+      font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;
   }
-  #dailyTotalDisplay .label{ font-family: var(--header-font); font-size: 0.9rem; color: var(--hyrule-gold); letter-spacing: 1px; display: block;}
   #dailyTotalDisplay .value{ 
-      font-family: var(--header-font); font-size: 1.8rem; font-weight: 900;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.5); display: block;
+      font-size: 2.2rem; font-weight: 800; color: var(--shore-navy);
   }
-  /* Icono de Rupia */
-  #dailyTotalDisplay .value::before { content: "♦ "; color: var(--hyrule-gold); font-size: 80%;}
 
-  /* CHIPS TIPO SELLOS DE CERA */
+  /* CHIPS MINIMALISTAS */
   .chips{
-    display:flex; gap: 15px; flex-wrap:wrap; justify-content:flex-start;
+    display:flex; gap: 10px; flex-wrap:wrap; justify-content:flex-start;
   }
   .chip{
-    padding: 6px 12px;
-    background: var(--ancient-brown); color: var(--parchment-bg);
-    border-radius: 20px; border: 2px solid var(--hyrule-gold);
-    font-family: var(--header-font); font-size: 0.9rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
-    display: flex; align-items: center;
+    padding: 6px 14px;
+    background: var(--shore-water); color: var(--shore-teal);
+    border-radius: 50px;
+    font-size: 0.85rem; font-weight: 700;
   }
-  .chip::before{ content: "📜 "; margin-right: 6px; font-size: 1.1em;}
 
-  /* TABLA TIPO LIBRO DE REGISTRO */
-  .table-wrap{ flex:1; min-height:0; position:relative; overflow: auto; }
+  /* TABLA FLOTANTE */
+  .table-wrap{ flex:1; min-height:0; position:relative; overflow: visible; }
   table{
-    width:100%; min-width: 850px; 
-    border-collapse: separate; border-spacing: 0;
-    background: var(--parchment-dark);
-    border: 3px solid var(--ancient-brown); border-radius: 4px;
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+    width:100%; min-width: 800px; 
+    border-collapse: separate; border-spacing: 0 12px; /* Espacio entre filas */
   }
   
   thead th{
     position:sticky; top:0; z-index:2;
-    background: var(--ancient-brown); /* Cabecera oscura */
-    color: var(--hyrule-gold);
-    font-family: var(--header-font); letter-spacing: 1px;
-    text-align: center; padding: 12px 8px;
-    border-bottom: 3px solid var(--hyrule-gold);
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    background: transparent; /* Cabecera transparente */
+    color: var(--text-muted);
+    font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    padding: 0 10px 10px 10px;
+    text-align: center;
   }
-  th.col-agent, td.col-agent{ text-align:left; padding-left: 15px; }
+  th.col-agent, td.col-agent{ text-align:left; padding-left: 20px;}
+
+  /* FILAS COMO TARJETAS FLOTANTES */
+  tbody tr {
+      background: var(--shore-white);
+      box-shadow: var(--shadow-soft);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  tbody tr td:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+  tbody tr td:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
 
   tbody td{
-    border-bottom: 1px solid rgba(58, 35, 18, 0.2);
-    border-right: 1px solid rgba(58, 35, 18, 0.1);
-    padding: 10px 8px; vertical-align: middle;
-    font-weight: 600;
+    padding: 16px 10px; vertical-align: middle;
+    color: var(--shore-navy); font-weight: 600;
+    border: none;
   }
-  tbody tr:last-child td { border-bottom: none; }
   
-  /* Hover fila */
-  tbody tr:hover td{ 
-    background: rgba(212, 175, 55, 0.15); /* Tinte dorado */
-    color: var(--ancient-brown);
+  /* Hover Effect */
+  tbody tr:hover { 
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-hover);
+    background: #FAFDFF;
   }
 
-  .agent-wrap .name{ font-family: var(--header-font); font-size: 1.1rem; font-weight: bold; color: var(--ancient-brown); }
-  .agent-wrap::before { content: "🛡️ "; font-size: 0.9em; opacity: 0.7; margin-right: 5px; }
+  .agent-wrap .name{ font-weight: 800; font-size: 1.1rem; color: var(--shore-navy); }
 
-  /* ===== BARRAS DE PROGRESO ESTILO RPG ===== */
-  .rpg-bar-container {
-      height: 18px; background: #2b1d0e; /* Fondo oscuro */
-      border: 2px solid var(--ancient-brown); border-radius: 10px;
+  /* ===== BARRAS DE PROGRESO SHORELINE (Píldoras redondeadas) ===== */
+  .shore-bar-container {
+      height: 10px; width: 100%;
+      background: var(--shore-water);
+      border-radius: 20px;
       overflow: hidden; position: relative;
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
   }
-  .rpg-bar-fill {
-      height: 100%; position: relative;
-      border-radius: 8px; transition: width 0.6s ease-out;
+  .shore-bar-fill {
+      height: 100%; border-radius: 20px;
+      transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
   }
-  .bar-today .rpg-bar-fill {
-      background: linear-gradient(to bottom, #26a65b, var(--hyrule-green));
-      box-shadow: inset 0 2px 4px rgba(255,255,255,0.3), 0 0 8px var(--hyrule-green);
-  }
-  .bar-total .rpg-bar-fill {
-      background: linear-gradient(to bottom, #4a90e2, var(--hyrule-blue));
-      box-shadow: inset 0 2px 4px rgba(255,255,255,0.3), 0 0 8px var(--hyrule-blue);
-      border-right: 2px solid var(--hyrule-gold);
-  }
-  .rpg-bar-value {
-      position: absolute; width: 100%; text-align: center; top: 50%; transform: translateY(-50%);
-      font-size: 0.85rem; font-weight: bold; color: #fff; text-shadow: 0 1px 2px #000; z-index: 2;
-  }
-
-  #meta{ margin-top: 20px; border-top: 2px dashed var(--ancient-brown); padding-top:15px; color: var(--ancient-brown); font-family: var(--header-font); font-size: 0.9rem; text-align: center;}
-  #meta::before { content: "— "; } #meta::after { content: " —"; }
+  /* Barra Today: Turquesa */
+  .bar-today .shore-bar-fill { background: var(--shore-teal); }
+  /* Barra Total: Azul Marino */
+  .bar-total .shore-bar-fill { background: var(--shore-navy); }
   
-  /* RANGOS */
-  .rank-txt { font-family: var(--header-font); font-weight: bold; }
-  .rank-1 { color: var(--hyrule-gold); text-shadow: var(--gold-shadow); font-size: 1.2em; }
-  .rank-1::before { content: "⟁ "; }
-  .rank-2 { color: #c0c0c0; text-shadow: 1px 1px 0 #666; }
-  .rank-3 { color: #cd7f32; text-shadow: 1px 1px 0 #8b4513; }
+  .shore-val-text {
+      font-size: 0.9rem; font-weight: 800; margin-bottom: 4px; display: block;
+      color: var(--shore-navy);
+  }
 
-  /* MOBILE VIEW */
+  #meta{ margin-top: 30px; text-align:center; color: var(--text-muted); font-size: 0.8rem; font-weight: 500;}
+
+  /* RANGOS (Círculos limpios) */
+  .rank-circle {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border-radius: 50%;
+      font-weight: 800; font-size: 0.9rem;
+      background: var(--shore-water); color: var(--text-muted);
+  }
+  /* Top 3 Colores */
+  .rank-1 { background: var(--shore-navy); color: #fff; box-shadow: 0 4px 10px rgba(16, 42, 67, 0.3); }
+  .rank-2 { background: var(--shore-teal); color: #fff; box-shadow: 0 4px 10px rgba(0, 140, 153, 0.3); }
+  .rank-3 { background: #84C5CB; color: #fff; }
+
+  /* MOBILE SHORELINE (Tarjetas Limpias) */
   @media (max-width: 768px) {
-    #board { width: 98%; margin: 1vh auto; padding: 15px; border: none; box-shadow: none; background: none; }
-    .top-header-flex { flex-direction: column; gap: 15px; text-align: center; border-bottom: none; }
-    .top-header-flex::after { display: none; }
-    h2 { text-align: center; }
-    #dailyTotalDisplay { width: 100%; }
+    #board { padding: 15px; width: 100%; margin: 0;}
+    .top-header-flex { flex-direction: column; align-items: flex-start; gap: 20px; border-bottom: none;}
+    #dailyTotalDisplay { width: 100%; box-sizing: border-box; border-left: none; border-top: 4px solid var(--shore-teal); border-radius: 8px; text-align: center;}
+    
     thead { display: none; }
-    tbody, tr, td { display: block; width: 100%; box-sizing: border-box; border: none; }
+    tbody, tr, td { display: block; width: 100%; box-sizing: border-box; }
     
     tbody tr { 
-      margin-bottom: 25px; padding: 20px;
-      background-color: var(--parchment-bg);
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill='%23d4c8a0' fill-opacity='0.1'%3E%3Cpath fill-rule='evenodd' d='M11 0l5 3v5l-5 3-5-3V3l5-3zm38 0l5 3v5l-5 3-5-3V3l5-3zm38 0l5 3v5l-5 3-5-3V3l5-3zM11 25l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3zM11 75l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3zm38 0l5 3v5l-5 3-5-3v-5l5-3z'/%3E%3C/g%3E%3C/svg%3E");
-      border: 3px solid var(--ancient-brown);
-      border-radius: 12px;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.3);
-      position: relative;
+      margin-bottom: 20px; padding: 20px;
+      border-radius: 16px; /* Más redondeado en móvil */
     }
-    tbody tr::after {
-        content: '⟁'; position: absolute; top: 10px; right: 10px;
-        color: var(--hyrule-gold); font-size: 20px; opacity: 0.5;
-    }
+    
     tbody td { 
       padding: 8px 0; display: flex; 
       justify-content: space-between; align-items: center; 
-      text-align: left; border-bottom: 1px dashed rgba(58, 35, 18, 0.3);
+      text-align: left;
     }
-    tbody td:last-child { border-bottom: none; }
     th.col-day, td.col-day { display: none; }
     
-    td.col-rank::before { content: 'Rango:'; font-family: var(--header-font); color: var(--ancient-brown); margin-right: 10px; }
-    td.col-agent::before { content: 'Héroe:'; font-family: var(--header-font); color: var(--ancient-brown); margin-right: 10px; }
-    td.col-today::before { content: 'Misión de Hoy:'; font-family: var(--header-font); color: var(--ancient-brown); margin-right: 5px; font-size: 0.9em;}
-    td.col-total::before { content: 'Botín Total:'; font-family: var(--header-font); color: var(--ancient-brown); margin-right: 5px; font-size: 0.9em;}
+    /* Etiquetas minimalistas */
+    td.col-rank::before { content: 'Rank'; color: var(--text-muted); font-size: 0.8rem; font-weight: 600;}
+    td.col-agent::before { content: 'Agente'; color: var(--text-muted); font-size: 0.8rem; font-weight: 600;}
+    td.col-today::before { content: 'Hoy'; color: var(--text-muted); font-size: 0.8rem; font-weight: 600;}
+    td.col-total::before { content: 'Acumulado'; color: var(--text-muted); font-size: 0.8rem; font-weight: 600;}
     
-    .agent-wrap .name { font-size: 1.3rem; }
-    .rpg-bar-container { flex-grow: 1; margin-left: 15px; height: 22px;}
+    .agent-wrap .name { font-size: 1.2rem; }
+    .shore-bar-container { width: 50%; }
   }
 </style>
 </head>
 <body>
 <div id='board'>
   <div class='top-header-flex'> 
-    <h2>HEROES OF THE REALM</h2>
+    <div class="brand-title">
+        <h2>SHORELINE</h2>
+        <div class="sub-title">MARKET</div>
+    </div>
     <div id='dailyTotalDisplay'>
-      <span class='label'>Tesoro del Día (Today's Rupees)</span>
-      <span class='value' id='totalTodayValue'>0</span>
+      <div class='label'>Ventas Hoy (Today)</div>
+      <div class='value' id='totalTodayValue'>0</div>
     </div>
   </div>
 
   <div class='chips'>
-    <div id='chipWeekly' class='chip'>Ciclo Lunar: —</div>
-    <div id='chipDaily' class='chip'>Registro Diario: —</div>
+    <div id='chipWeekly' class='chip'>Semana: —</div>
+    <div id='chipDaily' class='chip'>Día: —</div>
   </div>
 
   <div class='table-wrap'>
     <table id='tbl'>
       <thead>
         <tr>
-          <th class='col-rank'>Rango</th>
-          <th class='col-agent'>Nombre del Héroe</th>
-          <th class='col-today' style="width:18%">Estamina Diaria</th>
+          <th class='col-rank'>#</th>
+          <th class='col-agent'>Agente</th>
+          <th class='col-today' style="width:20%">Desempeño Hoy</th>
           <th class='col-day'>Mié</th>
           <th class='col-day'>Jue</th>
           <th class='col-day'>Vie</th>
           <th class='col-day'>Sáb</th>
           <th class='col-day'>Lun</th>
           <th class='col-day'>Mar</th>
-          <th class='col-total' style="width:18%">Poder Mágico Total</th>
+          <th class='col-total' style="width:20%">Total Semanal</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -267,16 +255,16 @@
   </div>
 
   <div id='meta'>
-    <div id='diag'>Consultando los textos antiguos...</div>
+    <div id='diag'>Sincronizando con la costa...</div>
   </div>
 </div>
 
 <script>
 /* ==========================================================================
-   EL MOTOR DE DATOS (RESTAURADO DEL CÓDIGO FUNCIONAL "PIXEL ART")
+   MOTOR DE DATOS (EXACTO AL CÓDIGO FUNCIONAL - NO TOCAR)
    ========================================================================== */
 
-/* IDs y API (EXACTAMENTE IGUAL AL CÓDIGO PIXEL ART) */
+/* IDs y API */
 const API_KEY        = "AIzaSyDwOqp2uizZol2et6Uqi7CnntW9Hkrinjg";
 const WEEKLY_SHEETID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
 const DAILY_ID_RAW   = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
@@ -289,8 +277,8 @@ let ALL_DATA=[];
 
 /* Funciones de Utilidad */
 function diag(t){ document.getElementById('diag').textContent = t; }
-function setChipWeekly(t){ document.getElementById('chipWeekly').textContent = `Ciclo Lunar: ${t}`; }
-function setChipDaily(t){ document.getElementById('chipDaily').textContent = `Registro Diario: ${t}`; }
+function setChipWeekly(t){ document.getElementById('chipWeekly').textContent = `Semana: ${t}`; }
+function setChipDaily(t){ document.getElementById('chipDaily').textContent = `Día: ${t}`; }
 function getLocalDate(){ const s=new Date().toLocaleString('en-US',{timeZone:TIMEZONE}); return new Date(s); }
 function isoWeek(d){ const x=new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const n=x.getUTCDay()||7; x.setUTCDate(x.getUTCDate()+4-n); const y=new Date(Date.UTC(x.getUTCFullYear(),0,1)); return {week:Math.ceil((((x-y)/86400000)+1)/7), year:x.getUTCFullYear()}; }
 function weeksInISOYear(y){ const d=new Date(Date.UTC(y,11,31)); const day=d.getUTCDay(); return (day===4 || (d.getUTCDate()===31 && day===3))?53:52; }
@@ -304,7 +292,7 @@ const emoji=/[\u{1F1E6}-\u{1F1FF}\u{1F300}-\u{1FAFF}\u{1F900}-\u{1F9FF}\u{2600}-
 function normName(s){ return (s||"").replace(emoji,"").normalize('NFD').replace(/[\u0300-\u036f]/g,"").replace(/[^\x20-\x7E]/g,"").replace(/\s{2,}/g," ").trim().toUpperCase(); }
 function normID(s){ return (s||"").toString().trim(); }
 
-/* fetch con cache-busting (Idéntico al funcional) */
+/* fetch con cache-busting */
 async function fetchSafeJSON(url, {tries=4, baseDelay=700} = {}) {
   let lastErr;
   for (let i = 0; i < tries; i++) {
@@ -330,9 +318,8 @@ async function fetchSafeJSON(url, {tries=4, baseDelay=700} = {}) {
   throw lastErr || new Error('fetchSafeJSON: unknown');
 }
 
-/* LECTURA SEMANAL (Lógica del código funcional) */
+/* LECTURA SEMANAL */
 async function readWeeklyTab(weeklyTab){
-  // Rangos exactos del Pixel Art Code
   const ranges=[`${weeklyTab}!A3:C96`,`${weeklyTab}!D3:D96`,`${weeklyTab}!F3:F96`,`${weeklyTab}!H3:H96`,`${weeklyTab}!J3:J96`,`${weeklyTab}!L3:L96`,`${weeklyTab}!N3:N96`,`${weeklyTab}!O3:O96`].map(encodeURIComponent);
   const url=`https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_SHEETID}/values:batchGet?`+ranges.map(r=>`ranges=${r}`).join("&")+`&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
   const j=await fetchSafeJSON(url); const vr=j.valueRanges||[];
@@ -358,7 +345,7 @@ function getDailyTabCandidates(){
   const now=getLocalDate(); const y=new Date(now.getTime()-86400000); return [fmtDailyTab(now), fmtDailyTab(y)];
 }
 
-/* LECTURA DIARIA (Lógica del código funcional) */
+/* LECTURA DIARIA */
 async function readDailyApproved(){
   const rangesFor=tab=>([`${tab}!A2:A70`,`${tab}!B2:B70`,`${tab}!C2:C70`,`${tab}!E2:E70`,`${tab}!F2:F70`,`${tab}!G2:G70`].map(encodeURIComponent));
   const tabs=getDailyTabCandidates();
@@ -389,14 +376,16 @@ function updateTotalDisplay(total){
   document.getElementById('totalTodayValue').textContent = total.toLocaleString('en-US');
 }
 
-/* GENERADOR DE BARRAS RPG (Visual Only) */
-function generateRPGBar(value, max, type) {
+/* GENERADOR DE BARRAS MINIMALISTAS (SHORELINE STYLE) */
+function generateShoreBar(value, max, type) {
   if (max === 0) max = 1;
   const pct = Math.max(5, Math.min(100, Math.round((value / max) * 100)));
   return `
-    <div class="rpg-bar-container bar-${type}">
-        <div class="rpg-bar-value">${value}</div>
-        <div class="rpg-bar-fill" style="width:${pct}%"></div>
+    <div>
+        <span class="shore-val-text">${value}</span>
+        <div class="shore-bar-container bar-${type}">
+            <div class="shore-bar-fill" style="width:${pct}%"></div>
+        </div>
     </div>
   `;
 }
@@ -411,38 +400,39 @@ function renderList(list){
     const rowIndex=i;
     const today=p.today||0, total=p.total||0;
 
-    // LÓGICA DE RANGOS ZELDA
-    let rankTxt = `${rowIndex + 1}`;
-    let rankClass = 'rank-txt';
-    if (rowIndex===0) { rankTxt = 'Héroe Elegido'; rankClass += ' rank-1'; } 
-    else if (rowIndex===1) { rankTxt = 'Guardia Real'; rankClass += ' rank-2'; }
-    else if (rowIndex===2) { rankTxt = 'Caballero Hyliano'; rankClass += ' rank-3'; }
+    // LÓGICA DE RANGOS SHORELINE (Círculos limpios)
+    let rankClass = 'rank-circle';
+    if (rowIndex===0) { rankClass += ' rank-1'; } 
+    else if (rowIndex===1) { rankClass += ' rank-2'; }
+    else if (rowIndex===2) { rankClass += ' rank-3'; }
 
-    // Generar barras visuales RPG
-    const rpgBarToday = generateRPGBar(today, maxToday, 'today');
-    const rpgBarTotal = generateRPGBar(total, maxTotal, 'total');
+    // Generar barras
+    const barToday = generateShoreBar(today, maxToday, 'today');
+    const barTotal = generateShoreBar(total, maxTotal, 'total');
 
     const tr=document.createElement('tr');
     tr.innerHTML = `
-      <td class="col-rank"><span class="${rankClass}">${rankTxt}</span></td>
+      <td class="col-rank">
+        <div class="${rankClass}">${rowIndex + 1}</div>
+      </td>
       <td class="col-agent">
         <div class="agent-wrap"><div class="name">${p.name}</div></div>
       </td>
-      <td class="col-today">${rpgBarToday}</td>
+      <td class="col-today">${barToday}</td>
       <td class="col-day">${p.wed||0}</td>
       <td class="col-day">${p.thu||0}</td>
       <td class="col-day">${p.fri||0}</td>
       <td class="col-day">${p.sat||0}</td>
       <td class="col-day">${p.mon||0}</td>
       <td class="col-day">${p.tue||0}</td>
-      <td class="col-total">${rpgBarTotal}</td>
+      <td class="col-total">${barTotal}</td>
     `;
     tbody.appendChild(tr);
   });
 }
 
 async function updateData(){
-  diag('Consultando los textos antiguos...', 'pulse');
+  diag('Actualizando datos del mercado...', 'pulse');
   const weeklyTab=computeWeeklyTabName();
   setChipWeekly(weeklyTab);
 
@@ -453,7 +443,7 @@ async function updateData(){
   
   setChipDaily(dailyData.tab);
   
-  // Merge de datos (Exacto al funcional)
+  // Merge de datos
   const tempMap = new Map();
   weeklyData.forEach(p => tempMap.set(p.idKey, p));
   
@@ -480,7 +470,7 @@ async function updateData(){
   const totalToday = ALL_DATA.reduce((sum, p) => sum + (p.today || 0), 0);
   updateTotalDisplay(totalToday);
 
-  diag(`El registro real ha sido actualizado: ${new Date().toLocaleTimeString('en-US', {timeZone: TIMEZONE, hour12: false})}`);
+  diag(`Datos sincronizados: ${new Date().toLocaleTimeString('en-US', {timeZone: TIMEZONE, hour12: false})}`);
 }
 
 (async function init(){
@@ -491,4 +481,3 @@ async function updateData(){
 </script>
 </body>
 </html>
-
