@@ -3,7 +3,7 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>Leaderboard — Clean Version</title>
+<title>Leaderboard — Dark Neon + Export</title>
 <style>
   /* Variables de Color (Dark Neon Blue/Purple) */
   :root{
@@ -96,6 +96,28 @@
     border:1px solid rgba(255,255,255,.2);
     font-weight:800;font-size:calc(1.5*var(--vh));
     box-shadow: 0 6px 16px rgba(0,0,0,.3) inset, 0 1px 0 rgba(255,255,255,.1);
+    white-space: nowrap;
+  }
+
+  /* === ESTILOS NUEVOS PARA EL BOTÓN DE EXPORTAR === */
+  .chip-btn {
+    cursor: pointer;
+    color: var(--neon-blue);
+    border-color: var(--neon-blue);
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .chip-btn:hover {
+    background: rgba(68, 204, 255, 0.2);
+    box-shadow: 0 0 20px var(--glow-blue);
+    transform: translateY(-2px) scale(1.05);
+    text-shadow: 0 0 8px var(--neon-blue);
+  }
+  .chip-btn:active {
+    transform: scale(0.98);
   }
 
   /* TABLA */
@@ -118,7 +140,7 @@
   
   /* Columnas */
   th.col-rank, td.col-rank { width:9%; text-align:center; }
-  th.col-agent,td.col-agent{ width:30%; text-align:left; } /* Mismo ancho, más espacio para texto */
+  th.col-agent,td.col-agent{ width:30%; text-align:left; } 
   th.col-today,td.col-today{ width:12%; text-align:center; }
   th.col-day,  td.col-day  { width:7%;  text-align:center; }
   th.col-total,td.col-total{ width:12%; text-align:center; }
@@ -134,14 +156,13 @@
   tbody tr{ transition: transform .25s ease, box-shadow .25s ease; }
   tbody tr:hover{ transform: translateY(-2px); box-shadow:0 0 18px var(--glow-blue); background: rgba(0,0,0,.8); }
 
-  /* Ajuste de Nombre (Sin Avatar) */
   .agent-wrap{ display:flex; align-items:center; min-width:0; }
   .name{ 
       font-weight:900; 
       overflow:hidden; 
       text-overflow:ellipsis; 
       white-space:nowrap; 
-      font-size: 1.1em; /* Texto un poco más grande para llenar el vacío */
+      font-size: 1.1em; 
       padding-left: 5px;
   }
 
@@ -161,33 +182,30 @@
 
   #meta{ display:flex;justify-content:flex-start;align-items:center; font-weight:800; font-size:calc(1.5*var(--vh)); }
 
-  /* ===== NUEVAS MEDALLAS (Realistas) ===== */
+  /* Medallas Realistas */
   .medal{
     display:inline-grid; place-items:center;
     width:38px; height:38px; border-radius:50%;
     margin-right:8px; font-weight:1000; font-size:16px; line-height:1;
     border:1px solid rgba(255,255,255,.2);
     box-shadow: 0 4px 6px rgba(0,0,0,.5);
-    color: #000; text-shadow: none; /* Texto negro para contraste en metal */
+    color: #000; text-shadow: none; 
   }
-  /* ORO REALISTA */
   .gold { 
     background: linear-gradient(135deg, #FFD700, #FDB931, #FFD700); 
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
     border-color: #FFED00;
   }
-  /* PLATA REALISTA */
   .silver{ 
     background: linear-gradient(135deg, #E0E0E0, #F5F5F5, #BDBDBD); 
     box-shadow: 0 0 15px rgba(192, 192, 192, 0.5);
     border-color: #FFFFFF;
   }
-  /* COBRE/BRONCE REALISTA */
   .bronze{ 
     background: linear-gradient(135deg, #E67E22, #D35400, #A04000); 
     box-shadow: 0 0 15px rgba(211, 84, 0, 0.5);
     border-color: #F39C12;
-    color: #fff; /* Texto blanco para mejor contraste en cobre oscuro */
+    color: #fff; 
   }
   
   .rankwrap{ display:flex; align-items:center; justify-content:center; gap:6px; }
@@ -243,6 +261,7 @@
   <div class='chips'>
     <div id='chipWeekly' class='chip'>Week: —</div>
     <div id='chipDaily' class='chip'>Daily: —</div>
+    <div id='btnExport' class='chip chip-btn' onclick="exportCSV()">📥 Export CSV</div>
   </div>
 
   <div class='table-wrap'>
@@ -434,12 +453,57 @@ function renderList(list){
     `;
     tbody.appendChild(tr);
 
-    // Animación de barras
     setTimeout(()=>{
       tr.querySelector('.bar.today > .fill').style.width = toPct(today, maxToday) + '%';
       tr.querySelector('.bar.total > .fill').style.width = toPct(total, maxTotal) + '%';
     }, 50);
   });
+}
+
+// ===== FUNCIÓN DE EXPORTACIÓN A CSV =====
+function exportCSV() {
+  if (!ALL_DATA || ALL_DATA.length === 0) {
+    alert("No data available to export.");
+    return;
+  }
+  
+  // Encabezados del CSV
+  const headers = ["Rank", "Agent Name", "Today", "Wed", "Thu", "Fri", "Sat", "Mon", "Tue", "Total Weekly"];
+  
+  // Construir filas
+  const rows = ALL_DATA.map((p, index) => {
+    // Limpieza básica de comillas en nombres para evitar romper el CSV
+    const safeName = `"${(p.name || "").replace(/"/g, '""')}"`;
+    return [
+      index + 1,
+      safeName,
+      p.today || 0,
+      p.wed || 0,
+      p.thu || 0,
+      p.fri || 0,
+      p.sat || 0,
+      p.mon || 0,
+      p.tue || 0,
+      p.total || 0
+    ].join(",");
+  });
+
+  // Unir todo con saltos de línea y añadir BOM para soporte de acentos en Excel
+  const csvContent = "\uFEFF" + headers.join(",") + "\n" + rows.join("\n");
+  
+  // Crear Blob y descargar
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  
+  // Nombre del archivo con fecha
+  const dateStr = new Date().toISOString().split('T')[0];
+  link.setAttribute("href", url);
+  link.setAttribute("download", `leaderboard_export_${dateStr}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 async function updateData(){
@@ -454,7 +518,6 @@ async function updateData(){
   
   setChipDaily(dailyData.tab);
   
-  // Merge daily scores into weekly structure
   const tempMap = new Map();
   weeklyData.forEach(p => tempMap.set(p.idKey, p));
   
@@ -489,7 +552,6 @@ async function updateData(){
   diag(`Updated ${new Date().toLocaleTimeString('en-US', {timeZone: TIMEZONE, hour12: false})} (${weeklyTab})`);
 }
 
-// Función de inicialización
 (async function init(){
   await updateData();
   renderList(ALL_DATA); 
