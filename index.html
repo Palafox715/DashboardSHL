@@ -3,235 +3,246 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>Shoreline Market — Leaderboard</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
-
+<title>Leaderboard — Clean Version</title>
 <style>
-  /* ===== VARIABLES TEMA SHORELINE ===== */
+  /* Variables de Color (Dark Neon Blue/Purple) */
   :root{
-    /* Paleta extraída del Logo */
-    --shore-navy: #102A43;    /* Azul oscuro del texto "SHORELINE" */
-    --shore-teal: #008C99;    /* Turquesa del logo */
-    --shore-water: #E0F7FA;   /* Agua muy clara para fondos */
-    --shore-sand: #F7F5F0;    /* Arena muy suave para fondo general */
-    --shore-white: #FFFFFF;
-    
-    --text-main: var(--shore-navy);
-    --text-muted: #627D98;
-    
-    --font-main: 'Montserrat', sans-serif;
-    
-    /* Sombras suaves "Brisa Marina" */
-    --shadow-soft: 0 4px 20px rgba(16, 42, 67, 0.08);
-    --shadow-hover: 0 8px 30px rgba(0, 140, 153, 0.15);
+    --vh: 1vh;
+    --dark-bg: #0A0A0A; /* Fondo casi negro */
+    --ink:#E0E0E0;  /* Texto gris claro */
+    --glass: rgba(0,0,0, .55);
+    --glass-strong: rgba(0,0,0, .75);
+    --neon-blue: #44CCFF;
+    --neon-purple: #FF44CC;
+    --glow-blue: rgba(44, 204, 255, .6);
+    --glow-purple: rgba(255, 68, 204, .5);
   }
   
-  /* Reset y Fondo */
+  /* ===== BACKGROUND ===== */
   html,body{
-    margin:0; height:100%; width:100%;
-    background-color: var(--shore-sand);
-    /* Sutil degradado costero */
-    background-image: linear-gradient(180deg, var(--shore-white) 0%, var(--shore-sand) 100%);
-    color: var(--text-main);
-    font-family: var(--font-main);
-    font-size: 16px;
+    margin:0;
+    min-height:100%;
+    width:100%;
+    background:var(--dark-bg);
+    color:var(--ink);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
     overflow-x: hidden;
+    overflow-y: auto;
   }
-  
-  /* Elemento decorativo: Ola en el fondo (CSS puro) */
-  body::after {
-    content: ""; position: fixed; bottom: 0; left: 0; right: 0; height: 15vh;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23008C99' fill-opacity='0.05' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
-    background-size: cover; background-repeat: no-repeat;
-    z-index: 0; pointer-events: none;
+  body::before, body::after{
+    content:""; position:fixed; inset:-20%;
+    background: radial-gradient(40% 40% at 20% 20%, var(--glow-blue), transparent),
+                radial-gradient(35% 35% at 80% 10%, rgba(255,255,255,.20), transparent),
+                radial-gradient(30% 30% at 50% 90%, var(--glow-purple), transparent);
+    z-index:0; pointer-events:none; mix-blend-mode:lighten; animation:float 22s linear infinite;
   }
+  body::after{ animation-direction:reverse; animation-duration:27s; opacity:.7; }
+  @keyframes float{ 0%{transform:translate3d(0,0,0)} 50%{transform:translate3d(2%, -2%, 0)} 100%{transform:translate3d(0,0,0)} }
 
-  /* CONTENEDOR PRINCIPAL */
   #board{
     position:relative; z-index:1;
-    width: 94%; max-width: 1400px;
-    min-height: 90%; margin: 0 auto;
-    padding: 30px 20px; box-sizing:border-box;
-    display:flex; flex-direction:column; gap: 25px;
+    width:100vw;
+    min-height:100vh;
+    padding:calc(1.2*var(--vh)) calc(1.6*var(--vh)); box-sizing:border-box;
+    background: radial-gradient(ellipse at top, #1a0a2e 0%, var(--dark-bg) 100%);
+    display:flex;flex-direction:column;gap:calc(0.8*var(--vh));
   }
   
-  /* HEADER: IMITANDO EL LOGOTIPO */
+  /* HEADER */
   .top-header-flex{
-    display: flex; justify-content: space-between; align-items: flex-end;
-    border-bottom: 2px solid var(--shore-water);
-    padding-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
   }
-
-  .brand-title {
-      display: flex; flex-direction: column;
-      line-height: 1;
-  }
-  h2{
-    margin:0; text-align:left; 
-    font-weight: 900; letter-spacing: 3px;
-    font-size: 2.5rem; 
-    color: var(--shore-teal);
-    text-transform: uppercase;
-  }
-  .sub-title {
-      font-weight: 600; letter-spacing: 6px; font-size: 1rem;
-      color: var(--shore-navy); margin-top: 5px; text-transform: uppercase;
-      margin-left: 2px;
-  }
-
-  /* KPI DIARIO */
   #dailyTotalDisplay{
-    background: var(--shore-white);
-    border-left: 5px solid var(--shore-teal);
-    padding: 10px 25px;
-    border-radius: 0 8px 8px 0;
-    box-shadow: var(--shadow-soft);
+    background: var(--glass-strong);
+    padding: 8px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 15px var(--glow-blue);
     text-align: right;
+    flex-shrink: 0;
   }
-  #dailyTotalDisplay .label{ 
-      font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;
+  #dailyTotalDisplay .label{
+    font-size: calc(1.4*var(--vh));
+    font-weight: 600;
+    color: var(--neon-blue);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
-  #dailyTotalDisplay .value{ 
-      font-size: 2.2rem; font-weight: 800; color: var(--shore-navy);
+  #dailyTotalDisplay .value{
+    font-size: calc(3.0*var(--vh));
+    font-weight: 900;
+    color: var(--neon-purple);
+    line-height: 1;
+    filter: drop-shadow(0 0 8px var(--glow-purple));
   }
 
-  /* CHIPS MINIMALISTAS */
+  h2{
+    margin:0;text-align:left;font-weight:900;letter-spacing:.3px;
+    font-size:calc(4.0*var(--vh)); line-height:1.1;
+    filter: drop-shadow(0 0 8px var(--neon-blue));
+  }
   .chips{
-    display:flex; gap: 10px; flex-wrap:wrap; justify-content:flex-start;
+    display:flex;gap:calc(.6*var(--vh));flex-wrap:wrap;
+    justify-content:center;margin-top:calc(-.3*var(--vh));
   }
   .chip{
-    padding: 6px 14px;
-    background: var(--shore-water); color: var(--shore-teal);
-    border-radius: 50px;
-    font-size: 0.85rem; font-weight: 700;
+    padding:calc(.35*var(--vh)) calc(.8*var(--vh));
+    border-radius:999px;
+    background:var(--glass);
+    backdrop-filter: blur(6px);
+    border:1px solid rgba(255,255,255,.2);
+    font-weight:800;font-size:calc(1.5*var(--vh));
+    box-shadow: 0 6px 16px rgba(0,0,0,.3) inset, 0 1px 0 rgba(255,255,255,.1);
   }
 
-  /* TABLA FLOTANTE */
-  .table-wrap{ flex:1; min-height:0; position:relative; overflow: visible; }
+  /* TABLA */
+  .table-wrap{ flex:1; min-height:0; position:relative; }
   table{
-    width:100%; min-width: 800px; 
-    border-collapse: separate; border-spacing: 0 12px; /* Espacio entre filas */
+    width:100%;
+    min-width: 500px;
+    border-collapse:separate; border-spacing:0 10px;
+    table-layout:fixed; font-size:calc(1.7*var(--vh));
   }
-  
   thead th{
     position:sticky; top:0; z-index:2;
-    background: transparent; /* Cabecera transparente */
-    color: var(--text-muted);
-    font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
-    padding: 0 10px 10px 10px;
-    text-align: center;
+    background:var(--glass-strong);
+    backdrop-filter: blur(6px);
+    text-transform:uppercase; letter-spacing:.3px;
+    font-size:calc(1.6*var(--vh)); font-weight:900; padding:calc(.6*var(--vh)) calc(0.9*var(--vh));
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,.15);
   }
-  th.col-agent, td.col-agent{ text-align:left; padding-left: 20px;}
-
-  /* FILAS COMO TARJETAS FLOTANTES */
-  tbody tr {
-      background: var(--shore-white);
-      box-shadow: var(--shadow-soft);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-  tbody tr td:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
-  tbody tr td:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+  
+  /* Columnas */
+  th.col-rank, td.col-rank { width:9%; text-align:center; }
+  th.col-agent,td.col-agent{ width:30%; text-align:left; } /* Mismo ancho, más espacio para texto */
+  th.col-today,td.col-today{ width:12%; text-align:center; }
+  th.col-day,  td.col-day  { width:7%;  text-align:center; }
+  th.col-total,td.col-total{ width:12%; text-align:center; }
 
   tbody td{
-    padding: 16px 10px; vertical-align: middle;
-    color: var(--shore-navy); font-weight: 600;
-    border: none;
+    background: var(--glass);
+    border-top:1px solid rgba(255,255,255,.05);
+    border-bottom:1px solid rgba(255,255,255,.05);
+    padding:calc(.7*var(--vh)) calc(0.9*var(--vh));
+  }
+  tbody tr td:first-child{ border-left:1px solid rgba(255,255,255,.05); border-top-left-radius:14px; border-bottom-left-radius:14px; }
+  tbody tr td:last-child { border-right:1px solid rgba(255,255,255,.05); border-top-right-radius:14px; border-bottom-right-radius:14px; }
+  tbody tr{ transition: transform .25s ease, box-shadow .25s ease; }
+  tbody tr:hover{ transform: translateY(-2px); box-shadow:0 0 18px var(--glow-blue); background: rgba(0,0,0,.8); }
+
+  /* Ajuste de Nombre (Sin Avatar) */
+  .agent-wrap{ display:flex; align-items:center; min-width:0; }
+  .name{ 
+      font-weight:900; 
+      overflow:hidden; 
+      text-overflow:ellipsis; 
+      white-space:nowrap; 
+      font-size: 1.1em; /* Texto un poco más grande para llenar el vacío */
+      padding-left: 5px;
+  }
+
+  /* Barras */
+  .bar{ position:relative; height:22px; border-radius:999px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.06); overflow:hidden; }
+  .bar > .fill{ 
+    position:absolute; left:0; top:0; bottom:0; width:0%; 
+    background:linear-gradient(90deg, var(--neon-blue), #0099EE); 
+    box-shadow: 0 0 16px var(--glow-blue);
+    transition: width .8s ease; 
+  }
+  .bar.total > .fill{ 
+    background:linear-gradient(90deg, var(--neon-purple), #EE00AA); 
+    box-shadow: 0 0 16px var(--glow-purple); 
+  }
+  .bar .value{ position:relative; z-index:1; font-weight:900; font-size:90%; color:var(--dark-bg); text-shadow: 0 0 5px var(--ink); }
+
+  #meta{ display:flex;justify-content:flex-start;align-items:center; font-weight:800; font-size:calc(1.5*var(--vh)); }
+
+  /* ===== NUEVAS MEDALLAS (Realistas) ===== */
+  .medal{
+    display:inline-grid; place-items:center;
+    width:38px; height:38px; border-radius:50%;
+    margin-right:8px; font-weight:1000; font-size:16px; line-height:1;
+    border:1px solid rgba(255,255,255,.2);
+    box-shadow: 0 4px 6px rgba(0,0,0,.5);
+    color: #000; text-shadow: none; /* Texto negro para contraste en metal */
+  }
+  /* ORO REALISTA */
+  .gold { 
+    background: linear-gradient(135deg, #FFD700, #FDB931, #FFD700); 
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+    border-color: #FFED00;
+  }
+  /* PLATA REALISTA */
+  .silver{ 
+    background: linear-gradient(135deg, #E0E0E0, #F5F5F5, #BDBDBD); 
+    box-shadow: 0 0 15px rgba(192, 192, 192, 0.5);
+    border-color: #FFFFFF;
+  }
+  /* COBRE/BRONCE REALISTA */
+  .bronze{ 
+    background: linear-gradient(135deg, #E67E22, #D35400, #A04000); 
+    box-shadow: 0 0 15px rgba(211, 84, 0, 0.5);
+    border-color: #F39C12;
+    color: #fff; /* Texto blanco para mejor contraste en cobre oscuro */
   }
   
-  /* Hover Effect */
-  tbody tr:hover { 
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-hover);
-    background: #FAFDFF;
-  }
+  .rankwrap{ display:flex; align-items:center; justify-content:center; gap:6px; }
 
-  .agent-wrap .name{ font-weight: 800; font-size: 1.1rem; color: var(--shore-navy); }
-
-  /* ===== BARRAS DE PROGRESO SHORELINE (Píldoras redondeadas) ===== */
-  .shore-bar-container {
-      height: 10px; width: 100%;
-      background: var(--shore-water);
-      border-radius: 20px;
-      overflow: hidden; position: relative;
-  }
-  .shore-bar-fill {
-      height: 100%; border-radius: 20px;
-      transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  /* Barra Today: Turquesa */
-  .bar-today .shore-bar-fill { background: var(--shore-teal); }
-  /* Barra Total: Azul Marino */
-  .bar-total .shore-bar-fill { background: var(--shore-navy); }
-  
-  .shore-val-text {
-      font-size: 0.9rem; font-weight: 800; margin-bottom: 4px; display: block;
-      color: var(--shore-navy);
-  }
-
-  #meta{ margin-top: 30px; text-align:center; color: var(--text-muted); font-size: 0.8rem; font-weight: 500;}
-
-  /* RANGOS (Círculos limpios) */
-  .rank-circle {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 32px; height: 32px; border-radius: 50%;
-      font-weight: 800; font-size: 0.9rem;
-      background: var(--shore-water); color: var(--text-muted);
-  }
-  /* Top 3 Colores */
-  .rank-1 { background: var(--shore-navy); color: #fff; box-shadow: 0 4px 10px rgba(16, 42, 67, 0.3); }
-  .rank-2 { background: var(--shore-teal); color: #fff; box-shadow: 0 4px 10px rgba(0, 140, 153, 0.3); }
-  .rank-3 { background: #84C5CB; color: #fff; }
-
-  /* MOBILE SHORELINE (Tarjetas Limpias) */
+  /* MOBILE */
   @media (max-width: 768px) {
-    #board { padding: 15px; width: 100%; margin: 0;}
-    .top-header-flex { flex-direction: column; align-items: flex-start; gap: 20px; border-bottom: none;}
-    #dailyTotalDisplay { width: 100%; box-sizing: border-box; border-left: none; border-top: 4px solid var(--shore-teal); border-radius: 8px; text-align: center;}
-    
+    #board { padding: 15px; gap: 10px; }
+    .top-header-flex { flex-direction: column; align-items: stretch; }
+    #dailyTotalDisplay { width: 100%; text-align: center; margin-top: 10px; }
+    .chips { margin-top: 10px; }
+    h2 { text-align: center; font-size: 3em; }
+    table { table-layout: auto; min-width: unset; border-spacing: 0; }
     thead { display: none; }
-    tbody, tr, td { display: block; width: 100%; box-sizing: border-box; }
-    
+    tbody, tr, td { display: block; width: 100%; }
     tbody tr { 
-      margin-bottom: 20px; padding: 20px;
-      border-radius: 16px; /* Más redondeado en móvil */
+      margin-bottom: 12px; border-radius: 14px; padding: 12px; 
+      border: 1px solid rgba(44, 204, 255, .2);
+      box-shadow: 0 0 10px rgba(0,0,0,.5);
+      background: rgba(0,0,0,.6); 
+      transform: none !important;
     }
-    
     tbody td { 
-      padding: 8px 0; display: flex; 
+      padding: 6px 0; border: none !important; display: flex; 
       justify-content: space-between; align-items: center; 
-      text-align: left;
+      background: none !important; border-radius: 0 !important;
     }
     th.col-day, td.col-day { display: none; }
+    th.col-rank, td.col-rank, th.col-agent, td.col-agent, th.col-today, td.col-today, th.col-total, td.col-total { width: auto; }
     
-    /* Etiquetas minimalistas */
-    td.col-rank::before { content: 'Rank'; color: var(--text-muted); font-size: 0.8rem; font-weight: 600;}
-    td.col-agent::before { content: 'Agente'; color: var(--text-muted); font-size: 0.8rem; font-weight: 600;}
-    td.col-today::before { content: 'Hoy'; color: var(--text-muted); font-size: 0.8rem; font-weight: 600;}
-    td.col-total::before { content: 'Acumulado'; color: var(--text-muted); font-size: 0.8rem; font-weight: 600;}
+    td.col-rank::before { content: 'Rank'; font-weight: 600; opacity: 0.6; margin-right: 10px; }
+    td.col-agent::before { content: 'Agent'; font-weight: 600; opacity: 0.6; margin-right: 10px; }
+    td.col-today::before { content: 'Today'; font-weight: 600; opacity: 0.6; margin-right: 10px; }
+    td.col-total::before { content: 'Total'; font-weight: 600; opacity: 0.6; margin-right: 10px; }
     
-    .agent-wrap .name { font-size: 1.2rem; }
-    .shore-bar-container { width: 50%; }
+    .agent-wrap { display: flex; align-items: center; gap: 10px; }
+    .agent-wrap .name { font-weight: 900; font-size: 1.1em; }
+    .bar { height: 18px; flex-grow: 1; margin-left: 10px; }
+    .rankwrap { justify-content: flex-end; }
+    .medal { margin-right: 0; }
   }
 </style>
 </head>
 <body>
 <div id='board'>
   <div class='top-header-flex'> 
-    <div class="brand-title">
-        <h2>SHORELINE</h2>
-        <div class="sub-title">MARKET</div>
-    </div>
+    <h2>🏁 Leaderboard</h2>
     <div id='dailyTotalDisplay'>
-      <div class='label'>Ventas Hoy (Today)</div>
+      <div class='label'>Total Diario (Today)</div>
       <div class='value' id='totalTodayValue'>0</div>
     </div>
   </div>
 
   <div class='chips'>
-    <div id='chipWeekly' class='chip'>Semana: —</div>
-    <div id='chipDaily' class='chip'>Día: —</div>
+    <div id='chipWeekly' class='chip'>Week: —</div>
+    <div id='chipDaily' class='chip'>Daily: —</div>
   </div>
 
   <div class='table-wrap'>
@@ -239,15 +250,15 @@
       <thead>
         <tr>
           <th class='col-rank'>#</th>
-          <th class='col-agent'>Agente</th>
-          <th class='col-today' style="width:20%">Desempeño Hoy</th>
-          <th class='col-day'>Mié</th>
-          <th class='col-day'>Jue</th>
-          <th class='col-day'>Vie</th>
-          <th class='col-day'>Sáb</th>
-          <th class='col-day'>Lun</th>
-          <th class='col-day'>Mar</th>
-          <th class='col-total' style="width:20%">Total Semanal</th>
+          <th class='col-agent'>Agent</th>
+          <th class='col-today'>Today</th>
+          <th class='col-day'>Wed</th>
+          <th class='col-day'>Thu</th>
+          <th class='col-day'>Fri</th>
+          <th class='col-day'>Sat</th>
+          <th class='col-day'>Mon</th>
+          <th class='col-day'>Tue</th>
+          <th class='col-total'>Total</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -255,14 +266,13 @@
   </div>
 
   <div id='meta'>
-    <div id='diag'>Sincronizando con la costa...</div>
+    <div id='diag'>Loading…</div>
   </div>
 </div>
 
 <script>
-/* ==========================================================================
-   MOTOR DE DATOS (EXACTO AL CÓDIGO FUNCIONAL - NO TOCAR)
-   ========================================================================== */
+function setVHVar(){ const vh=window.innerHeight*0.01; document.documentElement.style.setProperty('--vh', `${vh}px`); }
+setVHVar(); window.addEventListener('resize', setVHVar);
 
 /* IDs y API */
 const API_KEY        = "AIzaSyDwOqp2uizZol2et6Uqi7CnntW9Hkrinjg";
@@ -275,10 +285,9 @@ const WEEKLY_REFRESH = 5*60*1000;
 
 let ALL_DATA=[]; 
 
-/* Funciones de Utilidad */
-function diag(t){ document.getElementById('diag').textContent = t; }
-function setChipWeekly(t){ document.getElementById('chipWeekly').textContent = `Semana: ${t}`; }
-function setChipDaily(t){ document.getElementById('chipDaily').textContent = `Día: ${t}`; }
+function diag(t, cls){ document.getElementById('diag').innerHTML = `<span class="${cls||''}">${t}</span>`; }
+function setChipWeekly(t){ document.getElementById('chipWeekly').textContent = `Week: ${t}`; }
+function setChipDaily(t){ document.getElementById('chipDaily').textContent = `Daily: ${t}`; }
 function getLocalDate(){ const s=new Date().toLocaleString('en-US',{timeZone:TIMEZONE}); return new Date(s); }
 function isoWeek(d){ const x=new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const n=x.getUTCDay()||7; x.setUTCDate(x.getUTCDate()+4-n); const y=new Date(Date.UTC(x.getUTCFullYear(),0,1)); return {week:Math.ceil((((x-y)/86400000)+1)/7), year:x.getUTCFullYear()}; }
 function weeksInISOYear(y){ const d=new Date(Date.UTC(y,11,31)); const day=d.getUTCDay(); return (day===4 || (d.getUTCDate()===31 && day===3))?53:52; }
@@ -299,7 +308,10 @@ async function fetchSafeJSON(url, {tries=4, baseDelay=700} = {}) {
     try {
       const r = await fetch(url, {
         cache: 'no-store',
-        headers: { 'Cache-Control': 'no-cache, no-store, max-age=0', 'Pragma': 'no-cache' },
+        headers: {
+          'Cache-Control': 'no-cache, no-store, max-age=0',
+          'Pragma': 'no-cache'
+        },
       });
       if (r.ok) return await r.json();
       const text = await r.text();
@@ -318,7 +330,6 @@ async function fetchSafeJSON(url, {tries=4, baseDelay=700} = {}) {
   throw lastErr || new Error('fetchSafeJSON: unknown');
 }
 
-/* LECTURA SEMANAL */
 async function readWeeklyTab(weeklyTab){
   const ranges=[`${weeklyTab}!A3:C96`,`${weeklyTab}!D3:D96`,`${weeklyTab}!F3:F96`,`${weeklyTab}!H3:H96`,`${weeklyTab}!J3:J96`,`${weeklyTab}!L3:L96`,`${weeklyTab}!N3:N96`,`${weeklyTab}!O3:O96`].map(encodeURIComponent);
   const url=`https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_SHEETID}/values:batchGet?`+ranges.map(r=>`ranges=${r}`).join("&")+`&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
@@ -338,14 +349,11 @@ async function readWeeklyTab(weeklyTab){
   out.sort((a,b)=>(b.total||0)-(a.total||0));
   return out;
 }
-
 function fmtDailyTab(dt){ const m=new Intl.DateTimeFormat('en-US',{month:'short',timeZone:TIMEZONE}).format(dt); const dd=new Intl.DateTimeFormat('en-US',{day:'2-digit',timeZone:TIMEZONE}).format(dt); return `${m} ${dd}`; }
 function getDailyTabCandidates(){
   const url=new URL(window.location.href); const o=url.searchParams.get('dailyTab'); if(o) return [o];
   const now=getLocalDate(); const y=new Date(now.getTime()-86400000); return [fmtDailyTab(now), fmtDailyTab(y)];
 }
-
-/* LECTURA DIARIA */
 async function readDailyApproved(){
   const rangesFor=tab=>([`${tab}!A2:A70`,`${tab}!B2:B70`,`${tab}!C2:C70`,`${tab}!E2:E70`,`${tab}!F2:F70`,`${tab}!G2:G70`].map(encodeURIComponent));
   const tabs=getDailyTabCandidates();
@@ -376,63 +384,66 @@ function updateTotalDisplay(total){
   document.getElementById('totalTodayValue').textContent = total.toLocaleString('en-US');
 }
 
-/* GENERADOR DE BARRAS MINIMALISTAS (SHORELINE STYLE) */
-function generateShoreBar(value, max, type) {
-  if (max === 0) max = 1;
-  const pct = Math.max(5, Math.min(100, Math.round((value / max) * 100)));
-  return `
-    <div>
-        <span class="shore-val-text">${value}</span>
-        <div class="shore-bar-container bar-${type}">
-            <div class="shore-bar-fill" style="width:${pct}%"></div>
-        </div>
-    </div>
-  `;
-}
-
 function renderList(list){
   const tbody=document.querySelector("#tbl tbody"); tbody.innerHTML="";
   
   const maxToday=Math.max(1, ...list.map(p=>p.today||0)); 
   const maxTotal=Math.max(1, ...list.map(p=>p.total||0));
+  const toPct=(v,max)=>Math.max(3, Math.min(100, Math.round((v/max)*100)));
   
   list.forEach((p,i)=>{
     const rowIndex=i;
     const today=p.today||0, total=p.total||0;
 
-    // LÓGICA DE RANGOS SHORELINE (Círculos limpios)
-    let rankClass = 'rank-circle';
-    if (rowIndex===0) { rankClass += ' rank-1'; } 
-    else if (rowIndex===1) { rankClass += ' rank-2'; }
-    else if (rowIndex===2) { rankClass += ' rank-3'; }
-
-    // Generar barras
-    const barToday = generateShoreBar(today, maxToday, 'today');
-    const barTotal = generateShoreBar(total, maxTotal, 'total');
+    let medalHTML='';
+    if (rowIndex===0) medalHTML = `<span class="medal gold" title="1st">1</span>`;
+    else if (rowIndex===1) medalHTML = `<span class="medal silver" title="2nd">2</span>`;
+    else if (rowIndex===2) medalHTML = `<span class="medal bronze" title="3rd">3</span>`;
 
     const tr=document.createElement('tr');
     tr.innerHTML = `
       <td class="col-rank">
-        <div class="${rankClass}">${rowIndex + 1}</div>
+        <div class="rankwrap">
+          ${medalHTML}
+          ${rowIndex > 2 ? `<span>${rowIndex+1}</span>` : ''}
+        </div>
       </td>
       <td class="col-agent">
-        <div class="agent-wrap"><div class="name">${p.name}</div></div>
+        <div class="agent-wrap">
+          <div class="name" title="${p.name}">${p.name}</div>
+        </div>
       </td>
-      <td class="col-today">${barToday}</td>
+      <td class="col-today">
+        <div class="bar today">
+          <div class="fill" style="width:0%"></div>
+          <div class="value">${today}</div>
+        </div>
+      </td>
       <td class="col-day">${p.wed||0}</td>
       <td class="col-day">${p.thu||0}</td>
       <td class="col-day">${p.fri||0}</td>
       <td class="col-day">${p.sat||0}</td>
       <td class="col-day">${p.mon||0}</td>
       <td class="col-day">${p.tue||0}</td>
-      <td class="col-total">${barTotal}</td>
+      <td class="col-total">
+        <div class="bar total">
+          <div class="fill" style="width:0%"></div>
+          <div class="value">${total}</div>
+        </div>
+      </td>
     `;
     tbody.appendChild(tr);
+
+    // Animación de barras
+    setTimeout(()=>{
+      tr.querySelector('.bar.today > .fill').style.width = toPct(today, maxToday) + '%';
+      tr.querySelector('.bar.total > .fill').style.width = toPct(total, maxTotal) + '%';
+    }, 50);
   });
 }
 
 async function updateData(){
-  diag('Actualizando datos del mercado...', 'pulse');
+  diag('Updating data...', 'pulse');
   const weeklyTab=computeWeeklyTabName();
   setChipWeekly(weeklyTab);
 
@@ -443,23 +454,28 @@ async function updateData(){
   
   setChipDaily(dailyData.tab);
   
-  // Merge de datos
+  // Merge daily scores into weekly structure
   const tempMap = new Map();
   weeklyData.forEach(p => tempMap.set(p.idKey, p));
   
   dailyData.mapByName.forEach((score, nameKey) => {
     let agent = weeklyData.find(p => p.nameKey === nameKey);
-    if (agent) agent.today = score;
+    if (agent) {
+      agent.today = score;
+    }
   });
   
   dailyData.mapByID.forEach((score, idKey) => {
     let agent = tempMap.get(idKey);
-    if (agent) agent.today = score;
+    if (agent) {
+      agent.today = score;
+    }
   });
 
-  // Sort: Prioridad Today -> luego Total
   weeklyData.sort((a, b) => {
-    if ((b.today || 0) !== (a.today || 0)) return (b.today || 0) - (a.today || 0);
+    if ((b.today || 0) !== (a.today || 0)) {
+      return (b.today || 0) - (a.today || 0);
+    }
     const totalA = (a.total||0) + (a.today||0);
     const totalB = (b.total||0) + (b.today||0);
     return totalB - totalA;
@@ -470,9 +486,10 @@ async function updateData(){
   const totalToday = ALL_DATA.reduce((sum, p) => sum + (p.today || 0), 0);
   updateTotalDisplay(totalToday);
 
-  diag(`Datos sincronizados: ${new Date().toLocaleTimeString('en-US', {timeZone: TIMEZONE, hour12: false})}`);
+  diag(`Updated ${new Date().toLocaleTimeString('en-US', {timeZone: TIMEZONE, hour12: false})} (${weeklyTab})`);
 }
 
+// Función de inicialización
 (async function init(){
   await updateData();
   renderList(ALL_DATA); 
