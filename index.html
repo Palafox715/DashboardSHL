@@ -26,12 +26,14 @@
     font-size: 16px;
     text-transform: uppercase;
     overflow: hidden;
+    cursor: text; /* Cursor estilo terminal */
   }
 
   /* Lienzo para la Lluvia Digital (Fondo) */
   #matrix-canvas {
     position: fixed; top: 0; left: 0; z-index: 0;
     opacity: 0.8; /* Que no distraiga demasiado de los datos */
+    pointer-events: none;
   }
 
   /* Efecto Scanlines Sutil sobre toda la pantalla */
@@ -53,6 +55,7 @@
     display:flex; flex-direction:column; gap: 15px;
     overflow-y: auto;
     text-shadow: var(--crt-glow); /* Todo el texto brilla por defecto */
+    transition: box-shadow 0.1s ease-out; /* Para la animación de clic */
   }
   
   /* HEADER TIPO ACCESO AL SISTEMA */
@@ -281,10 +284,9 @@ setInterval(drawMatrix, 33);
 
 
 /* =========================================
-   2. LÓGICA DEL LEADERBOARD (MODIFICADA)
+   2. LÓGICA DEL LEADERBOARD
    ========================================= */
 const BAR_LENGTH = 14; // Barras un poco más largas
-// Usaremos 1s y 0s para las barras de progreso "hacker"
 const CHAR_FILL = '1'; 
 const CHAR_EMPTY = '0';
 
@@ -327,7 +329,7 @@ async function fetchSafeJSON(url, {tries=4, baseDelay=700} = {}) {
   throw lastErr || new Error('CONNECTION_FAILURE');
 }
 
-// (Lectura de datos idéntica - OMITIDA POR BREVEDAD - DEBE INCLUIRSE)
+// (Lectura de datos)
 async function readWeeklyTab(weeklyTab){
   const ranges=[`${weeklyTab}!A3:C96`,`${weeklyTab}!D3:D96`,`${weeklyTab}!F3:F96`,`${weeklyTab}!H3:H96`,`${weeklyTab}!J3:J96`,`${weeklyTab}!L3:L96`,`${weeklyTab}!N3:N96`,`${weeklyTab}!O3:O96`].map(encodeURIComponent);
   const url=`https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_SHEETID}/values:batchGet?`+ranges.map(r=>`ranges=${r}`).join("&")+`&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
@@ -378,15 +380,12 @@ async function readDailyApproved(){
   return {id:DAILY_IDS[0], tab:tabs[0], mapByName:new Map(), mapByID:new Map()};
 }
 
-// Relleno con ceros para el total "hacker"
 function updateTotalDisplay(total){ document.getElementById('totalTodayValue').textContent = total.toString().padStart(4, '0'); }
 
-// ===== BARRAS BINARIAS (HACKER STYLE) =====
 function generateAsciiBar(value, max) {
   if (max === 0) max = 1;
   const filledCount = Math.round((value / max) * BAR_LENGTH);
   const emptyCount = BAR_LENGTH - filledCount;
-  // Usamos 1s para lleno, 0s para vacío. El número al final.
   const barStr = CHAR_FILL.repeat(filledCount) + CHAR_EMPTY.repeat(emptyCount);
   return `[${barStr}]_${value}`;
 }
@@ -400,10 +399,9 @@ function renderList(list){
     const rowIndex=i;
     const today=p.today||0, total=p.total||0;
 
-    // Indicadores de rango estilo código
     let rankTxt = `N.${(rowIndex + 1).toString().padStart(2, '0')}`;
     let rankClass = 'rank-txt';
-    if (rowIndex===0) { rankTxt = 'THE_ONE'; rankClass += ' rank-1'; } // Referencia a Neo
+    if (rowIndex===0) { rankTxt = 'THE_ONE'; rankClass += ' rank-1'; } 
     else if (rowIndex===1) { rankTxt = 'PRIORITY_2'; }
     else if (rowIndex===2) { rankTxt = 'PRIORITY_3'; }
 
@@ -455,7 +453,68 @@ async function updateData(){
 }
 
 (async function init(){ await updateData(); renderList(ALL_DATA); setInterval(updateData, DAILY_REFRESH); })();
+
+/* =========================================
+   3. EASTER EGG: INTERACCIÓN AL CLICK
+   ========================================= */
+
+document.addEventListener('click', (e) => {
+    // 1. Estallido de datos (Data Burst)
+    const particleCount = 12; // Cantidad de fragmentos
+    const symbols = '01xyZｦｧｨ'; // Símbolos Matrix (Binario + Katakana)
+    
+    for(let i=0; i<particleCount; i++) {
+        const span = document.createElement('span');
+        span.textContent = symbols.charAt(Math.floor(Math.random() * symbols.length));
+        
+        // Estilos iniciales de la partícula
+        span.style.position = 'fixed';
+        span.style.left = e.clientX + 'px';
+        span.style.top = e.clientY + 'px';
+        span.style.color = '#fff'; // Destello blanco inicial
+        span.style.textShadow = '0 0 10px var(--matrix-bright)';
+        span.style.fontFamily = 'monospace';
+        span.style.fontSize = (14 + Math.random() * 12) + 'px';
+        span.style.fontWeight = 'bold';
+        span.style.pointerEvents = 'none'; // Para que no bloquee otros clicks
+        span.style.zIndex = '9999';
+        span.style.userSelect = 'none';
+        
+        document.body.appendChild(span);
+
+        // Física de dispersión aleatoria
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 60 + Math.random() * 80; // Distancia de vuelo
+        const x = Math.cos(angle) * dist;
+        const y = Math.sin(angle) * dist;
+
+        // Animación de dispersión y desvanecimiento
+        const anim = span.animate([
+            { transform: 'translate(-50%, -50%) scale(1)', opacity: 1, color: '#fff' },
+            { transform: `translate(calc(${x}px - 50%), calc(${y}px - 50%)) scale(0.5)`, opacity: 0, color: 'var(--matrix-base)' }
+        ], {
+            duration: 500 + Math.random() * 300,
+            easing: 'cubic-bezier(0, .9, .57, 1)' // Efecto explosivo rápido
+        });
+
+        // Limpiar DOM al terminar
+        anim.onfinish = () => span.remove();
+    }
+
+    // 2. Efecto de "Sobrecarga" en el borde del tablero
+    const board = document.getElementById('board');
+    if(board){
+        // Destello intenso momentáneo
+        board.style.boxShadow = 'inset 0 0 60px var(--matrix-bright), 0 0 30px var(--matrix-bright)';
+        board.style.borderColor = '#fff';
+        
+        // Regresar a la normalidad rápidamente
+        setTimeout(() => {
+            board.style.boxShadow = 'inset 0 0 30px var(--matrix-base), var(--crt-glow)';
+            board.style.borderColor = 'var(--matrix-base)';
+        }, 150);
+    }
+});
 </script>
 </body>
 </html>
-
