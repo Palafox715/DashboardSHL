@@ -3,26 +3,20 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>MATRIX: ANOMALY DETECTED</title>
+<title>MATRIX SYSTEM ROOT</title>
 <style>
   /* ===== VARIABLES MATRIX ===== */
   :root{
     --matrix-bg: #000000;
-    --matrix-base: #008F11; 
-    --matrix-bright: #00FF41; 
-    --matrix-pale: #98FB98; 
-    --smith-color: #1a1a1a; /* Negro para Smith invertido */
-    --smith-bg: #00FF41;    /* Fondo brillante para Smith */
-    
+    --matrix-base: #008F11; /* Verde oscuro base */
+    --matrix-bright: #00FF41; /* Verde neón brillante */
+    --matrix-pale: #98FB98; /* Verde pálido para acentos */
     --term-font: 'Courier New', Courier, monospace;
     --crt-glow: 0 0 4px var(--matrix-base), 0 0 8px var(--matrix-bright);
     --text-glow-strong: 0 0 5px #fff, 0 0 10px var(--matrix-bright), 0 0 15px var(--matrix-bright);
   }
-
-  body.red-mode {
-    --matrix-base: #8F0000; --matrix-bright: #FF0000; --matrix-pale: #FF9999; --smith-bg: #FF0000;
-  }
   
+  /* Reset y Fondo */
   html,body{
     margin:0; height:100%; width:100%;
     background-color: var(--matrix-bg);
@@ -34,25 +28,20 @@
     cursor: text;
   }
 
-  #matrix-canvas { position: fixed; top: 0; left: 0; z-index: 0; opacity: 0.8; pointer-events: none; }
+  /* Lienzo para la Lluvia Digital */
+  #matrix-canvas {
+    position: fixed; top: 0; left: 0; z-index: 0;
+    opacity: 0.8; pointer-events: none;
+  }
+
+  /* Scanlines */
   body::after {
     content: " "; display: block; position: absolute; inset:0;
     background: repeating-linear-gradient(0deg, rgba(0,0,0,0.3) 0px, rgba(0,255,65,0.05) 1px, transparent 2px);
     z-index: 999; pointer-events: none;
   }
 
-  /* Overlay para efecto "Wake Up" */
-  #wake-overlay {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: #000; z-index: 10000;
-      display: none; place-items: center; justify-content: flex-start;
-      padding: 20%; box-sizing: border-box;
-      color: var(--matrix-bright); font-size: 2rem; font-weight: bold;
-      text-shadow: var(--text-glow-strong);
-  }
-  .cursor-blink { animation: blink 1s step-end infinite; }
-  @keyframes blink { 50% { opacity: 0; } }
-
+  /* CONTENEDOR PRINCIPAL */
   #board{
     position:relative; z-index:1;
     width: 96%; height: 96%; margin: 2vh auto;
@@ -63,20 +52,14 @@
     display:flex; flex-direction:column; gap: 15px;
     overflow-y: auto;
     text-shadow: var(--crt-glow);
-    transition: all 0.2s ease-out;
+    transition: box-shadow 0.1s ease-out;
   }
   
-  /* ESTILO PARA CUANDO EL VIRUS ESTÁ ACTIVO */
-  #board.infected {
-      animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
-      border-color: #FFF;
-      box-shadow: inset 0 0 50px #FFF;
-  }
-  @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
-
+  /* HEADER */
   .top-header-flex{
     display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 2px solid var(--matrix-base); padding-bottom: 15px; position: relative;
+    border-bottom: 2px solid var(--matrix-base);
+    padding-bottom: 15px; position: relative;
   }
   .top-header-flex::after {
       content: 'DATA_STREAM_ID: [0x5F3A1] // TARGET: SALES_NODE // STATUS: CONNECTED';
@@ -88,22 +71,30 @@
   h2::before { content: "SYSTEM.ROOT > "; color: var(--matrix-base); }
 
   #dailyTotalDisplay{
-    border: 1px solid var(--matrix-bright); padding: 8px 15px;
-    background: rgba(0, 255, 65, 0.1); box-shadow: var(--crt-glow);
-    cursor: help; transition: background 0.3s;
+    border: 1px solid var(--matrix-bright);
+    padding: 8px 15px;
+    background: rgba(0, 255, 65, 0.1);
+    box-shadow: var(--crt-glow);
+    cursor: help; /* Cursor de ayuda para indicar interacción */
+    transition: background 0.3s;
   }
-  #dailyTotalDisplay:hover{ background: rgba(0, 255, 65, 0.2); }
+  #dailyTotalDisplay:hover{
+      background: rgba(0, 255, 65, 0.2);
+  }
   #dailyTotalDisplay .label{ font-size: 0.9rem; color: var(--matrix-base); display: block; margin-bottom: 5px;}
   #dailyTotalDisplay .value{ 
       font-size: 1.6rem; color: #fff; font-weight: bold; display: block; text-align: right;
       text-shadow: var(--text-glow-strong);
   }
 
-  .chips{ display:flex; gap: 20px; flex-wrap:wrap; justify-content:flex-start; color: var(--matrix-pale); margin-top: 10px; }
-  .chip { cursor: pointer; transition: transform 0.2s; user-select: none; }
-  .chip:active { transform: scale(0.95); }
+  /* CHIPS */
+  .chips{
+    display:flex; gap: 20px; flex-wrap:wrap;
+    justify-content:flex-start; color: var(--matrix-pale); margin-top: 10px;
+  }
   .chip::before{ content: "[LOCAL_MEMORY]: "; color: var(--matrix-base); }
 
+  /* TABLA */
   .table-wrap{ flex:1; min-height:0; position:relative; overflow: auto; border: 1px solid var(--matrix-base); }
   table{ width:100%; min-width: 850px; border-collapse: collapse; border-spacing: 0; }
   
@@ -119,6 +110,7 @@
     border-bottom: 1px solid rgba(0, 143, 17, 0.3); padding: 8px; vertical-align: middle;
     color: var(--matrix-bright);
   }
+  
   tbody tr:hover td{ 
     background: rgba(0, 255, 65, 0.2); color: #fff;
     text-shadow: var(--text-glow-strong); cursor: crosshair;
@@ -126,33 +118,8 @@
   tbody tr:hover .ascii-bar { color: #fff; } 
 
   .agent-wrap .name{ font-weight: bold; white-space:nowrap; letter-spacing: 1px; }
-  .ascii-bar{ font-family: var(--term-font); white-space: pre; color: var(--matrix-bright); font-weight: bold; letter-spacing: -1px; font-size: 1.1rem; }
 
-  /* ===== ESTILOS DE LA ANOMALÍA (SMITH) ===== */
-  /* Smith se ve diferente: Invertido, fuente distinta, glitch */
-  .smith-row td {
-      background-color: var(--smith-bg) !important;
-      color: var(--smith-color) !important;
-      text-shadow: none !important;
-      border-bottom: 1px solid #000;
-      cursor: pointer !important; /* Mano para indicar click */
-  }
-  .smith-row .ascii-bar { color: #000 !important; font-weight: 900; }
-  
-  .smith-glitch {
-      font-family: "Impact", sans-serif; /* Letra distinta y pesada */
-      letter-spacing: 2px;
-      animation: glitch-text 0.3s infinite;
-      display: inline-block;
-  }
-  @keyframes glitch-text {
-      0% { transform: translate(0); }
-      20% { transform: translate(-2px, 2px); }
-      40% { transform: translate(-2px, -2px); }
-      60% { transform: translate(2px, 2px); }
-      80% { transform: translate(2px, -2px); }
-      100% { transform: translate(0); }
-  }
+  .ascii-bar{ font-family: var(--term-font); white-space: pre; color: var(--matrix-bright); font-weight: bold; letter-spacing: -1px; font-size: 1.1rem; }
 
   #meta{ margin-top: 10px; border-top: 1px solid var(--matrix-base); padding-top:15px; color: var(--matrix-base); font-size: 0.9rem;}
   #diag { color: var(--matrix-pale); }
@@ -164,31 +131,38 @@
   ::-webkit-scrollbar { width: 8px; background: #000; }
   ::-webkit-scrollbar-thumb { background: var(--matrix-base); border: 1px solid var(--matrix-bright); }
 
+  /* MOBILE */
   @media (max-width: 768px) {
     #board { width: 100%; height: 100%; margin: 0; border: none; background: rgba(0,10,0,0.9); }
     .top-header-flex { flex-direction: column; align-items: stretch; gap: 15px;}
     .top-header-flex::after { display: none; }
     #dailyTotalDisplay { width: 100%; text-align: center;}
+    #dailyTotalDisplay .value { text-align: center; }
     thead { display: none; }
     tbody, tr, td { display: block; width: 100%; box-sizing: border-box; border: none; }
-    tbody tr { margin-bottom: 20px; padding: 15px; border: 1px solid var(--matrix-bright); background: rgba(0, 50, 0, 0.4); box-shadow: var(--crt-glow); }
-    tbody td { padding: 4px 0; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+    
+    tbody tr { 
+      margin-bottom: 20px; padding: 15px; 
+      border: 1px solid var(--matrix-bright);
+      background: rgba(0, 50, 0, 0.4);
+      box-shadow: var(--crt-glow);
+    }
+    tbody td { 
+      padding: 4px 0; display: flex; 
+      justify-content: space-between; align-items: center; 
+      text-align: left;
+    }
     th.col-day, td.col-day { display: none; }
     td.col-rank::before { content: '[NODE_RANK]:'; color: var(--matrix-base); margin-right: 10px; }
     td.col-agent::before { content: '[IDENTITY]:'; color: var(--matrix-base); margin-right: 10px; }
     td.col-today::before { content: '[TODAY_DATA]:'; color: var(--matrix-base); margin-right: 5px; }
     td.col-total::before { content: '[TOTAL_CACHE]:'; color: var(--matrix-base); margin-right: 5px; }
     .ascii-bar { text-align: right; flex-grow: 1; font-size: 1rem; letter-spacing: 0;}
-    
-    /* Ajuste Smith Móvil */
-    .smith-row td { background-color: var(--smith-bg) !important; color: #000 !important; }
-    .smith-row td::before { color: #000 !important; }
   }
 </style>
 </head>
 <body>
 <canvas id="matrix-canvas"></canvas>
-<div id="wake-overlay"></div>
 
 <div id='board'>
   <div class='top-header-flex'> 
@@ -200,8 +174,8 @@
   </div>
 
   <div class='chips'>
-    <div id='chipWeekly' class='chip' onclick="setMatrixMode('blue')">WEEK_CYCLE: ???</div>
-    <div id='chipDaily' class='chip' onclick="setMatrixMode('red')">DAILY_CYCLE: ???</div>
+    <div id='chipWeekly' class='chip'>WEEK_CYCLE: ???</div>
+    <div id='chipDaily' class='chip'>DAILY_CYCLE: ???</div>
   </div>
 
   <div class='table-wrap'>
@@ -211,8 +185,12 @@
           <th class='col-rank'>[#] RANK_ID</th>
           <th class='col-agent'>[USER] AGENT_IDENTITY</th>
           <th class='col-today' style="width:18%">[STREAM] TODAY_FLOW</th>
-          <th class='col-day'>W</th><th class='col-day'>T</th><th class='col-day'>F</th>
-          <th class='col-day'>S</th><th class='col-day'>M</th><th class='col-day'>T</th>
+          <th class='col-day'>W</th>
+          <th class='col-day'>T</th>
+          <th class='col-day'>F</th>
+          <th class='col-day'>S</th>
+          <th class='col-day'>M</th>
+          <th class='col-day'>T</th>
           <th class='col-total' style="width:18%">[BUFFER] TOTAL_CACHE</th>
         </tr>
       </thead>
@@ -227,21 +205,28 @@
 </div>
 
 <script>
-/* 1. VISUAL: MATRIX RAIN */
+/* =========================================================
+   1. VISUAL: MATRIX RAIN (FONDO)
+   ========================================================= */
 const canvas = document.getElementById('matrix-canvas');
 const ctx = canvas.getContext('2d');
+
 function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
 const chars = ' ᚠᛃᛒアァカサタナハマヤャラワガザダバパイィキシチニヒミリギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレゲゼデベペオォコソトノホモヨョロゴゾドボポヴォン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const charArray = chars.split('');
-const fontSize = 14; const columns = canvas.width / fontSize; const drops = [];
+const fontSize = 14;
+const columns = canvas.width / fontSize;
+const drops = [];
 for (let i = 0; i < columns; i++) drops[i] = Math.random() * -100;
+
 function drawMatrix() {
-    const isRed = document.body.classList.contains('red-mode');
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.05)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = isRed ? '#F00' : '#0F0'; ctx.font = fontSize + 'px monospace';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#0F0'; ctx.font = fontSize + 'px monospace';
     for (let i = 0; i < drops.length; i++) {
-        if(Math.random() > 0.98) ctx.fillStyle = '#FFF'; else ctx.fillStyle = isRed ? '#F00' : '#0F0';
+        if(Math.random() > 0.98) ctx.fillStyle = '#FFF'; else ctx.fillStyle = '#0F0';
         const text = charArray[Math.floor(Math.random() * charArray.length)];
         ctx.fillText(text, i * fontSize, drops[i] * fontSize);
         if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
@@ -250,16 +235,22 @@ function drawMatrix() {
 }
 setInterval(drawMatrix, 33);
 
-/* 2. LÓGICA DE DATOS */
-const BAR_LENGTH = 14; const CHAR_FILL = '1'; const CHAR_EMPTY = '0';
-const API_KEY = "AIzaSyDwOqp2uizZol2et6Uqi7CnntW9Hkrinjg";
+/* =========================================================
+   2. LÓGICA DE DATOS
+   ========================================================= */
+const BAR_LENGTH = 14; 
+const CHAR_FILL = '1'; const CHAR_EMPTY = '0';
+
+// DATOS ORIGINALES FUNCIONALES
+const API_KEY        = "AIzaSyDwOqp2uizZol2et6Uqi7CnntW9Hkrinjg";
 const WEEKLY_SHEETID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
-const DAILY_ID_RAW = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
-const TIMEZONE = "America/Tijuana";
-const DAILY_REFRESH = 12000; 
+const DAILY_ID_RAW   = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
+const TIMEZONE       = "America/Tijuana";
+const DAILY_REFRESH  = 12000; 
 let ALL_DATA=[]; 
+
+// VARIABLE PARA GUARDAR EL TOTAL REAL
 let CURRENT_TOTAL = 0;
-let VIRUS_ACTIVE = false; // Estado de la infección
 
 function diag(t){ document.getElementById('diag').textContent = `${t}`; }
 function setChipWeekly(t){ document.getElementById('chipWeekly').textContent = `${t}`; }
@@ -268,22 +259,34 @@ function getLocalDate(){ const s=new Date().toLocaleString('en-US',{timeZone:TIM
 function isoWeek(d){ const x=new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const n=x.getUTCDay()||7; x.setUTCDate(x.getUTCDate()+4-n); const y=new Date(Date.UTC(x.getUTCFullYear(),0,1)); return {week:Math.ceil((((x-y)/86400000)+1)/7), year:x.getUTCFullYear()}; }
 function weeksInISOYear(y){ const d=new Date(Date.UTC(y,11,31)); const day=d.getUTCDay(); return (day===4 || (d.getUTCDate()===31 && day===3))?53:52; }
 function computeWeeklyTabName(){
-  const url=new URL(window.location.href); const o=url.searchParams.get('weeklyTab'); if(o) return o;
+  const url=new URL(window.location.href); const override=url.searchParams.get('weeklyTab'); if(override) return override;
   const local=getLocalDate(); const hrs=local.getHours(); const dow=local.getDay(); const iw=isoWeek(local); let w=iw.week;
-  const afterCut=(dow>4)||(dow===4&&hrs>=14); if(afterCut){ w++; const mx=weeksInISOYear(iw.year); if(w>mx){w=1;} } return `W${w}`;
+  const afterCut=(dow>4)||(dow===4&&hrs>=14); if(afterCut){ w++; const mx=weeksInISOYear(iw.year); if(w>mx){w=1;} }
+  return `W${w}`;
 }
 function normName(s){ return (s||"").normalize('NFD').replace(/[\u0300-\u036f]/g,"").replace(/[^\x20-\x7E]/g,"").trim().toUpperCase(); }
 function normID(s){ return (s||"").toString().trim(); }
 
-async function fetchSafeJSON(url) {
-  try { const r = await fetch(url); if (r.ok) return await r.json(); } catch (e) {} return null;
+async function fetchSafeJSON(url, {tries=4, baseDelay=700} = {}) {
+  let lastErr;
+  for (let i = 0; i < tries; i++) {
+    try {
+      const r = await fetch(url, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache, no-store, max-age=0', 'Pragma': 'no-cache' }});
+      if (r.ok) return await r.json();
+      const text = await r.text();
+      if (r.status === 429 || (r.status >= 500 && r.status < 600)) {
+        await new Promise(res => setTimeout(res, baseDelay * Math.pow(2, i) + Math.random() * 250)); continue;
+      }
+      throw new Error(`HTTP ${r.status}`);
+    } catch (e) { lastErr = e; await new Promise(res => setTimeout(res, baseDelay * Math.pow(2, i) + Math.random() * 250)); }
+  }
+  throw lastErr || new Error('CONNECTION_FAILURE');
 }
 
-/* LECTURA DATOS (Full) */
 async function readWeeklyTab(weeklyTab){
   const ranges=[`${weeklyTab}!A3:C96`,`${weeklyTab}!D3:D96`,`${weeklyTab}!F3:F96`,`${weeklyTab}!H3:H96`,`${weeklyTab}!J3:J96`,`${weeklyTab}!L3:L96`,`${weeklyTab}!N3:N96`,`${weeklyTab}!O3:O96`].map(encodeURIComponent);
   const url=`https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_SHEETID}/values:batchGet?`+ranges.map(r=>`ranges=${r}`).join("&")+`&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
-  const j=await fetchSafeJSON(url); if(!j) return []; const vr=j.valueRanges||[];
+  const j=await fetchSafeJSON(url); const vr=j.valueRanges||[];
   const base=vr[0]?.values||[]; const toCol=v=>(v?.values||[]).map(r=>(r[0]??"").toString().trim());
   const d=toCol(vr[1]), f=toCol(vr[2]), h=toCol(vr[3]), jv=toCol(vr[4]), l=toCol(vr[5]), n=toCol(vr[6]), oT=toCol(vr[7]);
   const len=Math.max(base.length,d.length,f.length,h.length,jv.length,l.length,n.length,oT.length);
@@ -291,104 +294,98 @@ async function readWeeklyTab(weeklyTab){
   for(let i=0;i<len;i++){
     const id=normID(base[i]?.[0]??""); const name=(base[i]?.[1]??"").toString().trim();
     if(!id && !name) continue;
-    out.push({ id,idKey:id, name, nameKey:normName(name), wed:parseInt(d[i]||0), thu:parseInt(f[i]||0), fri:parseInt(h[i]||0), sat:parseInt(jv[i]||0), mon:parseInt(l[i]||0), tue:parseInt(n[i]||0), total:parseInt(oT[i]||0), today:0 });
+    out.push({ id,idKey:id, name, nameKey:normName(name),
+      wed:parseInt(d[i]||0), thu:parseInt(f[i]||0), fri:parseInt(h[i]||0),
+      sat:parseInt(jv[i]||0), mon:parseInt(l[i]||0), tue:parseInt(n[i]||0),
+      total:parseInt(oT[i]||0), today:0 });
   }
+  out.sort((a,b)=>(b.total||0)-(a.total||0));
   return out;
 }
 function fmtDailyTab(dt){ const m=new Intl.DateTimeFormat('en-US',{month:'short',timeZone:TIMEZONE}).format(dt); const dd=new Intl.DateTimeFormat('en-US',{day:'2-digit',timeZone:TIMEZONE}).format(dt); return `${m} ${dd}`; }
+function getDailyTabCandidates(){
+  const url=new URL(window.location.href); const o=url.searchParams.get('dailyTab'); if(o) return [o];
+  const now=getLocalDate(); const y=new Date(now.getTime()-86400000); return [fmtDailyTab(now), fmtDailyTab(y)];
+}
 async function readDailyApproved(){
-  const tabs=[fmtDailyTab(getLocalDate())];
-  const url=`https://sheets.googleapis.com/v4/spreadsheets/${DAILY_ID_RAW}/values:batchGet?ranges=${tabs[0]}!A2:G70&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
-  const j=await fetchSafeJSON(url); 
-  if(j && j.valueRanges){
-      const A=(j.valueRanges[0]?.values)||[]; 
-      const mapByName=new Map(), mapByID=new Map();
-      for(let i=0;i<A.length;i++){
-          const nm=(A[i][0]??"").toString(); const v=parseInt(A[i][2]??0)||0;
+  const rangesFor=tab=>([`${tab}!A2:A70`,`${tab}!B2:B70`,`${tab}!C2:C70`,`${tab}!E2:E70`,`${tab}!F2:F70`,`${tab}!G2:G70`].map(encodeURIComponent));
+  const tabs=getDailyTabCandidates();
+  const DAILY_IDS=[DAILY_ID_RAW];
+  for(const id of DAILY_IDS){
+    for(const tab of tabs){
+      const url=`https://sheets.googleapis.com/v4/spreadsheets/${id}/values:batchGet?`+rangesFor(tab).map(r=>`ranges=${r}`).join("&")+`&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
+      try{
+        const j=await fetchSafeJSON(url); const vr=j.valueRanges||[];
+        const A=vr[0]?.values||[], B=vr[1]?.values||[], C=vr[2]?.values||[];
+        const E=vr[3]?.values||[], F=vr[4]?.values||[], G=vr[5]?.values||[];
+        const mapByName=new Map(); const mapByID=new Map();
+        function addPair(nmCell,idCell,valCell){
+          const nm=(nmCell?.[0]??"").toString(); const id=(idCell?.[0]??"").toString().trim(); const v=parseInt((valCell?.[0]??0))||0;
           if(nm.trim()){ const nk=normName(nm); mapByName.set(nk,(mapByName.get(nk)||0)+v); }
-      }
-      return {tab:tabs[0], mapByName, mapByID}; 
+          if(id){ mapByID.set(id,(mapByID.get(id)||0)+v); }
+        }
+        const rowsFK=Math.max(A.length,B.length,C.length); for(let i=0;i<rowsFK;i++) addPair(A[i],B[i],C[i]);
+        const rowsRG=Math.max(E.length,F.length,G.length); for(let i=0;i<rowsRG;i++) addPair(E[i],F[i],G[i]);
+        return {id, tab, mapByName, mapByID};
+      }catch(e){ }
+    }
   }
-  return {tab:'OFFLINE', mapByName:new Map(), mapByID:new Map()};
+  return {id:DAILY_IDS[0], tab:tabs[0], mapByName:new Map(), mapByID:new Map()};
 }
 
-let SCRAMBLING = false; let scrambleInterval;
+// ACTUALIZACIÓN DINÁMICA DEL TOTAL (MODIFICADA)
 function updateTotalDisplay(total){ 
     CURRENT_TOTAL = total;
+    // Solo actualizamos si no estamos en medio de una animación de scramble
     if(!SCRAMBLING) document.getElementById('totalTodayValue').textContent = total.toString().padStart(4, '0'); 
-}
-function startScramble(){
-    SCRAMBLING = true;
-    const target = document.getElementById('totalTodayValue'); const chars = "0123456789X£¥Z";
-    scrambleInterval = setInterval(() => { target.textContent = Array(4).fill(0).map(() => chars[Math.floor(Math.random() * chars.length)]).join(''); }, 50);
-}
-function stopScramble(){
-    SCRAMBLING = false; clearInterval(scrambleInterval);
-    document.getElementById('totalTodayValue').textContent = CURRENT_TOTAL.toString().padStart(4, '0');
 }
 
 function generateAsciiBar(value, max) {
   if (max === 0) max = 1;
   const filledCount = Math.round((value / max) * BAR_LENGTH);
-  const barStr = CHAR_FILL.repeat(filledCount) + CHAR_EMPTY.repeat(BAR_LENGTH - filledCount);
+  const emptyCount = BAR_LENGTH - filledCount;
+  const barStr = CHAR_FILL.repeat(filledCount) + CHAR_EMPTY.repeat(emptyCount);
   return `[${barStr}]_${value}`;
 }
 
-// === ACTIVAR EL VIRUS (CLICK EN SMITH) ===
-function activateVirus() {
-    VIRUS_ACTIVE = true;
-    const board = document.getElementById('board');
-    // Efecto de terremoto
-    board.classList.add('infected');
-    // Flash Rojo
-    document.body.classList.add('red-mode');
-    setTimeout(() => {
-        board.classList.remove('infected');
-        renderList(ALL_DATA); // Re-renderizar con todos siendo Smith
-    }, 500);
-}
-
+// Renderizado con Lógica Smith
 function renderList(list){
   const tbody=document.querySelector("#tbl tbody"); tbody.innerHTML="";
   const maxToday=Math.max(1, ...list.map(p=>p.today||0)); 
   const maxTotal=Math.max(1, ...list.map(p=>p.total||0));
   
+  // === EASTER EGG: VIRUS SMITH ===
+  const hasSmith = list.some(p => p.name && p.name.includes("SMITH"));
+
   list.forEach((p,i)=>{
     const rowIndex=i;
-    // Si el virus está activo, todos son Smith
-    const displayName = VIRUS_ACTIVE ? "AGENT SMITH" : p.name;
-    // Detectar si ESTA fila específica es el Smith Original (para estilo)
-    const isOriginalSmith = p.name && p.name.includes("SMITH");
-    
-    let rowClass = "";
-    if (isOriginalSmith) rowClass = "smith-row"; // Clase especial para Smith
+    const today=p.today||0, total=p.total||0;
 
-    // Estilo especial de texto para Smith (o todos si hay virus)
-    let nameHtml = `<div class="name">${displayName}</div>`;
-    if (isOriginalSmith || VIRUS_ACTIVE) {
-        nameHtml = `<div class="name smith-glitch">${displayName}</div>`;
-    }
+    let displayName = hasSmith ? "AGENT SMITH" : p.name;
 
     let rankTxt = `N.${(rowIndex + 1).toString().padStart(2, '0')}`;
     let rankClass = 'rank-txt';
     if (rowIndex===0) { rankTxt = 'THE_ONE'; rankClass += ' rank-1'; } 
+    else if (rowIndex===1) { rankTxt = 'PRIORITY_2'; }
+    else if (rowIndex===2) { rankTxt = 'PRIORITY_3'; }
 
-    // Evento Click solo en el Smith Original
-    let clickAttr = isOriginalSmith ? 'onclick="activateVirus()"' : '';
+    const asciiToday = generateAsciiBar(today, maxToday);
+    const asciiTotal = generateAsciiBar(total, maxTotal);
 
     const tr=document.createElement('tr');
-    if(rowClass) tr.className = rowClass;
-    if(clickAttr) tr.innerHTML = `<tr ${clickAttr}>`; // Hack simple para insertar atributo
-
     tr.innerHTML = `
       <td class="col-rank"><span class="${rankClass}">${rankTxt}</span></td>
-      <td class="col-agent" ${clickAttr}>
-        <div class="agent-wrap">${nameHtml}</div>
+      <td class="col-agent">
+        <div class="agent-wrap"><div class="name">${displayName}</div></div>
       </td>
-      <td class="col-today"><div class="ascii-bar">${generateAsciiBar(p.today||0, maxToday)}</div></td>
-      <td class="col-day">${p.wed||0}</td><td class="col-day">${p.thu||0}</td><td class="col-day">${p.fri||0}</td>
-      <td class="col-day">${p.sat||0}</td><td class="col-day">${p.mon||0}</td><td class="col-day">${p.tue||0}</td>
-      <td class="col-total"><div class="ascii-bar">${generateAsciiBar(p.total||0, maxTotal)}</div></td>
+      <td class="col-today"><div class="ascii-bar">${asciiToday}</div></td>
+      <td class="col-day">${p.wed||0}</td>
+      <td class="col-day">${p.thu||0}</td>
+      <td class="col-day">${p.fri||0}</td>
+      <td class="col-day">${p.sat||0}</td>
+      <td class="col-day">${p.mon||0}</td>
+      <td class="col-day">${p.tue||0}</td>
+      <td class="col-total"><div class="ascii-bar">${asciiTotal}</div></td>
     `;
     tbody.appendChild(tr);
   });
@@ -399,76 +396,116 @@ async function updateData(){
   const weeklyTab=computeWeeklyTabName();
   setChipWeekly(weeklyTab);
 
-  // Lógica completa de datos
+  // Usando la lógica recuperada del código funcional
   const [weeklyData, dailyData] = await Promise.all([ readWeeklyTab(weeklyTab), readDailyApproved() ]);
   setChipDaily(dailyData.tab);
   
   const tempMap = new Map(); weeklyData.forEach(p => tempMap.set(p.idKey, p));
   dailyData.mapByName.forEach((score, nameKey) => { let agent = weeklyData.find(p => p.nameKey === nameKey); if (agent) agent.today = score; });
-  
-  // Ordenamiento Estándar
+  dailyData.mapByID.forEach((score, idKey) => { let agent = tempMap.get(idKey); if (agent) agent.today = score; });
+
   weeklyData.sort((a, b) => {
     if ((b.today || 0) !== (a.today || 0)) return (b.today || 0) - (a.today || 0);
     return ((b.total||0) + (b.today||0)) - ((a.total||0) + (a.today||0));
   });
 
   ALL_DATA = weeklyData.filter((p, i) => i < 3 || (p.total||0) > 0 || (p.today||0) > 0);
-
-  // === LÓGICA DE EXILIO DE SMITH ===
-  // Si encontramos a Smith, lo movemos al final, sin importar su score
-  const smithIndex = ALL_DATA.findIndex(p => p.name && p.name.includes("SMITH"));
-  if (smithIndex > -1) {
-      const smithAgent = ALL_DATA.splice(smithIndex, 1)[0];
-      ALL_DATA.push(smithAgent); // Empujar al fondo
-  }
-
   updateTotalDisplay(ALL_DATA.reduce((sum, p) => sum + (p.today || 0), 0));
-  diag(`DATA STREAM SYNCHRONIZED.`);
-  renderList(ALL_DATA);
+
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('en-US', {timeZone: TIMEZONE, hour12: false});
+  diag(`DATA STREAM SYNCHRONIZED. [T:${timeStr}]`);
 }
 
-(async function init(){ await updateData(); setInterval(updateData, DAILY_REFRESH); })();
+(async function init(){ await updateData(); renderList(ALL_DATA); setInterval(updateData, DAILY_REFRESH); })();
 
-/* 3. INTERACCIONES EXTRA */
-function setMatrixMode(mode) {
-    if (mode === 'red') { document.body.classList.add('red-mode'); } 
-    else { document.body.classList.remove('red-mode'); }
-}
 
+/* =========================================
+   3. EASTER EGGS: INTERACCIÓN AL CLICK & SCRAMBLE
+   ========================================= */
+
+// === CLICK DATA BURST ===
 document.addEventListener('click', (e) => {
-    if(e.target.closest('.chip') || e.target.closest('.smith-row')) return; // Ignorar si es interacción específica
-    const particleCount = 8; const symbols = '01xyZ';
+    // 1. Estallido de datos (Data Burst)
+    const particleCount = 12; // Cantidad de fragmentos
+    const symbols = '01xyZｦｧｨ'; // Símbolos Matrix (Binario + Katakana)
+    
     for(let i=0; i<particleCount; i++) {
         const span = document.createElement('span');
         span.textContent = symbols.charAt(Math.floor(Math.random() * symbols.length));
-        span.style.position = 'fixed'; span.style.left = e.clientX + 'px'; span.style.top = e.clientY + 'px';
-        span.style.color = '#fff'; span.style.textShadow = '0 0 10px var(--matrix-bright)';
-        span.style.fontFamily = 'monospace'; span.style.fontSize = (12 + Math.random() * 10) + 'px';
-        span.style.pointerEvents = 'none'; span.style.zIndex = '9999';
+        
+        // Estilos iniciales de la partícula
+        span.style.position = 'fixed';
+        span.style.left = e.clientX + 'px';
+        span.style.top = e.clientY + 'px';
+        span.style.color = '#fff'; // Destello blanco inicial
+        span.style.textShadow = '0 0 10px var(--matrix-bright)';
+        span.style.fontFamily = 'monospace';
+        span.style.fontSize = (14 + Math.random() * 12) + 'px';
+        span.style.fontWeight = 'bold';
+        span.style.pointerEvents = 'none'; // Para que no bloquee otros clicks
+        span.style.zIndex = '9999';
+        span.style.userSelect = 'none';
+        
         document.body.appendChild(span);
-        const x = Math.cos(Math.random() * Math.PI * 2) * 100;
-        const y = Math.sin(Math.random() * Math.PI * 2) * 100;
-        const anim = span.animate([ { transform: 'translate(0,0) scale(1)', opacity: 1 }, { transform: `translate(${x}px, ${y}px) scale(0)`, opacity: 0 } ], { duration: 600 });
+
+        // Física de dispersión aleatoria
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 60 + Math.random() * 80; // Distancia de vuelo
+        const x = Math.cos(angle) * dist;
+        const y = Math.sin(angle) * dist;
+
+        // Animación de dispersión y desvanecimiento
+        const anim = span.animate([
+            { transform: 'translate(-50%, -50%) scale(1)', opacity: 1, color: '#fff' },
+            { transform: `translate(calc(${x}px - 50%), calc(${y}px - 50%)) scale(0.5)`, opacity: 0, color: 'var(--matrix-base)' }
+        ], {
+            duration: 500 + Math.random() * 300,
+            easing: 'cubic-bezier(0, .9, .57, 1)' // Efecto explosivo rápido
+        });
+
+        // Limpiar DOM al terminar
         anim.onfinish = () => span.remove();
+    }
+
+    // 2. Efecto de "Sobrecarga" en el borde del tablero
+    const board = document.getElementById('board');
+    if(board){
+        board.style.boxShadow = 'inset 0 0 60px var(--matrix-bright), 0 0 30px var(--matrix-bright)';
+        board.style.borderColor = '#fff';
+        setTimeout(() => {
+            board.style.boxShadow = 'inset 0 0 30px var(--matrix-base), var(--crt-glow)';
+            board.style.borderColor = 'var(--matrix-base)';
+        }, 150);
     }
 });
 
-// Wake Up Neo Keybinds
-document.addEventListener('keydown', async (e) => {
-    if (e.key === 'Escape' || e.key.toLowerCase() === 'w') {
-        const overlay = document.getElementById('wake-overlay');
-        overlay.style.display = 'flex'; overlay.innerHTML = '';
-        await typeWriter("Wake up, Neo...", overlay); await new Promise(r => setTimeout(r, 2000));
-        overlay.innerHTML = ''; await typeWriter("The Matrix has you...", overlay); await new Promise(r => setTimeout(r, 2000));
-        overlay.style.display = 'none';
-    }
-});
-async function typeWriter(text, container) {
-    for (let i = 0; i < text.length; i++) {
-        container.innerHTML += text.charAt(i); await new Promise(r => setTimeout(r, 150));
-    }
+// === LOGICA DE SCRAMBLE (CIFRADO) ===
+let SCRAMBLING = false;
+let scrambleInterval;
+
+function startScramble(){
+    SCRAMBLING = true;
+    const target = document.getElementById('totalTodayValue');
+    // Caracteres que se usarán en la animación (Números y símbolos Matrix)
+    const chars = "0123456789X£¥Z";
+    
+    // Iniciar el cambio rápido
+    scrambleInterval = setInterval(() => {
+        target.textContent = Array(4).fill(0).map(() => chars[Math.floor(Math.random() * chars.length)]).join('');
+        // Efecto de color aleatorio momentáneo (opcional)
+        target.style.textShadow = Math.random() > 0.5 ? '0 0 15px #fff' : 'var(--text-glow-strong)';
+    }, 50); // Velocidad de cambio (ms)
+}
+
+function stopScramble(){
+    SCRAMBLING = false;
+    clearInterval(scrambleInterval);
+    const target = document.getElementById('totalTodayValue');
+    // Restaurar el valor real y el estilo
+    target.textContent = CURRENT_TOTAL.toString().padStart(4, '0');
+    target.style.textShadow = '';
 }
 </script>
 </body>
 </html>
-
