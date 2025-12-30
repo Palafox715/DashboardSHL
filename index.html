@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang='es'>
 <head>
@@ -13,7 +12,6 @@
     --matrix-bright: #00FF41; /* Verde neón brillante */
     --matrix-pale: #98FB98; /* Verde pálido para acentos */
     --term-font: 'Courier New', Courier, monospace;
-    /* El "Glow" esencial de Matrix */
     --crt-glow: 0 0 4px var(--matrix-base), 0 0 8px var(--matrix-bright);
     --text-glow-strong: 0 0 5px #fff, 0 0 10px var(--matrix-bright), 0 0 15px var(--matrix-bright);
   }
@@ -27,56 +25,49 @@
     font-size: 16px;
     text-transform: uppercase;
     overflow: hidden;
-    cursor: text; /* Cursor estilo terminal */
+    cursor: text;
   }
 
-  /* Lienzo para la Lluvia Digital (Fondo) */
+  /* Lienzo para la Lluvia Digital */
   #matrix-canvas {
     position: fixed; top: 0; left: 0; z-index: 0;
-    opacity: 0.8; /* Que no distraiga demasiado de los datos */
-    pointer-events: none;
+    opacity: 0.8; pointer-events: none;
   }
 
-  /* Efecto Scanlines Sutil sobre toda la pantalla */
+  /* Scanlines */
   body::after {
     content: " "; display: block; position: absolute; inset:0;
     background: repeating-linear-gradient(0deg, rgba(0,0,0,0.3) 0px, rgba(0,255,65,0.05) 1px, transparent 2px);
     z-index: 999; pointer-events: none;
   }
 
-  /* CONTENEDOR PRINCIPAL "LA TERMINAL" */
+  /* CONTENEDOR PRINCIPAL */
   #board{
     position:relative; z-index:1;
     width: 96%; height: 96%; margin: 2vh auto;
-    /* Fondo semi-transparente para ver la lluvia detrás */
     background-color: rgba(0, 10, 0, 0.85); 
     border: 1px solid var(--matrix-base);
     box-shadow: inset 0 0 30px var(--matrix-base), var(--crt-glow);
     padding: 15px; box-sizing:border-box;
     display:flex; flex-direction:column; gap: 15px;
     overflow-y: auto;
-    text-shadow: var(--crt-glow); /* Todo el texto brilla por defecto */
-    transition: box-shadow 0.1s ease-out; /* Para la animación de clic */
+    text-shadow: var(--crt-glow);
+    transition: box-shadow 0.1s ease-out;
   }
   
-  /* HEADER TIPO ACCESO AL SISTEMA */
+  /* HEADER */
   .top-header-flex{
     display: flex; justify-content: space-between; align-items: center;
     border-bottom: 2px solid var(--matrix-base);
-    padding-bottom: 15px;
-    position: relative;
+    padding-bottom: 15px; position: relative;
   }
-  /* Decoración de "flujo de datos" bajo el header */
   .top-header-flex::after {
       content: 'DATA_STREAM_ID: [0x5F3A1] // TARGET: SALES_NODE // STATUS: CONNECTED';
       position: absolute; bottom: -12px; left: 0;
       font-size: 0.7rem; color: var(--matrix-base); letter-spacing: 1px;
   }
 
-  h2{
-    margin:0; text-align:left; font-size: 1.8rem; font-weight: bold; letter-spacing: 2px;
-    color: var(--matrix-bright);
-  }
+  h2{ margin:0; text-align:left; font-size: 1.8rem; font-weight: bold; letter-spacing: 2px; color: var(--matrix-bright); }
   h2::before { content: "SYSTEM.ROOT > "; color: var(--matrix-base); }
 
   #dailyTotalDisplay{
@@ -88,77 +79,58 @@
   #dailyTotalDisplay .label{ font-size: 0.9rem; color: var(--matrix-base); display: block; margin-bottom: 5px;}
   #dailyTotalDisplay .value{ 
       font-size: 1.6rem; color: #fff; font-weight: bold; display: block; text-align: right;
-      text-shadow: var(--text-glow-strong); /* Brillo blanco intenso */
+      text-shadow: var(--text-glow-strong);
   }
 
-  /* CHIPS TIPO PROMPT */
+  /* CHIPS */
   .chips{
     display:flex; gap: 20px; flex-wrap:wrap;
-    justify-content:flex-start; color: var(--matrix-pale);
-    margin-top: 10px;
+    justify-content:flex-start; color: var(--matrix-pale); margin-top: 10px;
   }
   .chip::before{ content: "[LOCAL_MEMORY]: "; color: var(--matrix-base); }
 
-  /* TABLA DE DATOS */
+  /* TABLA */
   .table-wrap{ flex:1; min-height:0; position:relative; overflow: auto; border: 1px solid var(--matrix-base); }
-  table{
-    width:100%; min-width: 850px; border-collapse: collapse; border-spacing: 0;
-  }
+  table{ width:100%; min-width: 850px; border-collapse: collapse; border-spacing: 0; }
   
   thead th{
     position:sticky; top:0; z-index:2;
-    background: #001a00; /* Verde muy oscuro */
-    color: var(--matrix-pale);
+    background: #001a00; color: var(--matrix-pale);
     text-align: center; padding: 10px 5px;
-    border-bottom: 2px solid var(--matrix-base);
-    letter-spacing: 1px;
+    border-bottom: 2px solid var(--matrix-base); letter-spacing: 1px;
   }
   th.col-agent, td.col-agent{ text-align:left; }
 
   tbody td{
-    border-bottom: 1px solid rgba(0, 143, 17, 0.3); /* Separadores sutiles */
-    padding: 8px; vertical-align: middle;
+    border-bottom: 1px solid rgba(0, 143, 17, 0.3); padding: 8px; vertical-align: middle;
     color: var(--matrix-bright);
   }
   
-  /* Hover fila: Efecto "Cursor de Datos" */
   tbody tr:hover td{ 
-    background: rgba(0, 255, 65, 0.2);
-    color: #fff;
-    text-shadow: var(--text-glow-strong);
-    cursor: crosshair; /* Cursor de mira */
+    background: rgba(0, 255, 65, 0.2); color: #fff;
+    text-shadow: var(--text-glow-strong); cursor: crosshair;
   }
   tbody tr:hover .ascii-bar { color: #fff; } 
 
   .agent-wrap .name{ font-weight: bold; white-space:nowrap; letter-spacing: 1px; }
 
-  /* BARRAS BINARIAS (Efecto Hacker) */
-  .ascii-bar{ 
-    font-family: var(--term-font); white-space: pre;
-    color: var(--matrix-bright); font-weight: bold; letter-spacing: -1px;
-    font-size: 1.1rem;
-  }
+  .ascii-bar{ font-family: var(--term-font); white-space: pre; color: var(--matrix-bright); font-weight: bold; letter-spacing: -1px; font-size: 1.1rem; }
 
   #meta{ margin-top: 10px; border-top: 1px solid var(--matrix-base); padding-top:15px; color: var(--matrix-base); font-size: 0.9rem;}
-  
-  /* Animación de "Desencriptado" para el texto de carga */
-  @keyframes decode { 0% { opacity: 1; } 50% { opacity: 0.5;color:#fff; } 100% { opacity: 1; } }
-  #diag { display: inline-block; animation: decode 0.5s infinite steps(2); color: var(--matrix-pale); }
-  #diag::before { content: ">> EXEC(DECRYPT_STREAM); "; }
+  #diag { color: var(--matrix-pale); }
+  #diag::before { content: ">> EXEC(STATUS_CHECK); "; }
 
-  /* INDICADORES DE RANGO "THE ONE" */
   .rank-txt { color: var(--matrix-base); }
-  .rank-1 { color: #fff; text-shadow: var(--text-glow-strong); } /* El elegido brilla en blanco */
+  .rank-1 { color: #fff; text-shadow: var(--text-glow-strong); }
 
-  /* SCROLLBAR PERSONALIZADO (Chrome/Safari) */
   ::-webkit-scrollbar { width: 8px; background: #000; }
   ::-webkit-scrollbar-thumb { background: var(--matrix-base); border: 1px solid var(--matrix-bright); }
 
-  /* MOBILE MATRIX VIEW */
+  /* MOBILE */
   @media (max-width: 768px) {
     #board { width: 100%; height: 100%; margin: 0; border: none; background: rgba(0,10,0,0.9); }
     .top-header-flex { flex-direction: column; align-items: stretch; gap: 15px;}
-    .top-header-flex::after { display: none; } /* Ocultar decorador en móvil */
+    .top-header-flex::after { display: none; }
     #dailyTotalDisplay { width: 100%; text-align: center;}
     #dailyTotalDisplay .value { text-align: center; }
     thead { display: none; }
@@ -176,13 +148,10 @@
       text-align: left;
     }
     th.col-day, td.col-day { display: none; }
-    
-    /* Etiquetas "Hacker" para móvil */
     td.col-rank::before { content: '[NODE_RANK]:'; color: var(--matrix-base); margin-right: 10px; }
     td.col-agent::before { content: '[IDENTITY]:'; color: var(--matrix-base); margin-right: 10px; }
     td.col-today::before { content: '[TODAY_DATA]:'; color: var(--matrix-base); margin-right: 5px; }
     td.col-total::before { content: '[TOTAL_CACHE]:'; color: var(--matrix-base); margin-right: 5px; }
-    
     .ascii-bar { text-align: right; flex-grow: 1; font-size: 1rem; letter-spacing: 0;}
   }
 </style>
@@ -231,66 +200,43 @@
 </div>
 
 <script>
-/* =========================================
-   1. EFECTO DE LLUVIA DIGITAL (MATRIX RAIN)
-   ========================================= */
+/* =========================================================
+   1. VISUAL: MATRIX RAIN (FONDO)
+   ========================================================= */
 const canvas = document.getElementById('matrix-canvas');
 const ctx = canvas.getContext('2d');
 
-// Ajustar al tamaño de la ventana
-function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+window.addEventListener('resize', resizeCanvas); resizeCanvas();
 
-// Caracteres para la lluvia (Katakana + Números + Romaji para efecto críptico)
 const chars = ' ᚠᛃᛒアァカサタナハマヤャラワガザダバパイィキシチニヒミリギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレゲゼデベペオォコソトノホモヨョロゴゾドボポヴォン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const charArray = chars.split('');
 const fontSize = 14;
 const columns = canvas.width / fontSize;
 const drops = [];
-
-// Inicializar las gotas en posiciones aleatorias verticales para que no empiecen todas arriba
-for (let i = 0; i < columns; i++) {
-    drops[i] = Math.random() * -100; // Empezar fuera de la pantalla
-}
+for (let i = 0; i < columns; i++) drops[i] = Math.random() * -100;
 
 function drawMatrix() {
-    // Fondo negro semi-transparente para crear el efecto de estela
     ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = '#0F0'; // Color verde Matrix para el texto
-    ctx.font = fontSize + 'px monospace';
-
+    ctx.fillStyle = '#0F0'; ctx.font = fontSize + 'px monospace';
     for (let i = 0; i < drops.length; i++) {
-        // Color blanco ocasional para el "cabezal" de la gota
-        if(Math.random() > 0.98) ctx.fillStyle = '#FFF'; 
-        else ctx.fillStyle = '#0F0';
-
+        if(Math.random() > 0.98) ctx.fillStyle = '#FFF'; else ctx.fillStyle = '#0F0';
         const text = charArray[Math.floor(Math.random() * charArray.length)];
         ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-        // Reiniciar gota si sale de la pantalla (con aleatoriedad)
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-            drops[i] = 0;
-        }
-        drops[i]++; // Mover gota hacia abajo
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
     }
 }
-// Iniciar animación de lluvia (30 FPS para sensación clásica)
 setInterval(drawMatrix, 33);
 
+/* =========================================================
+   2. LÓGICA DE DATOS (IMPORTADA DEL CÓDIGO QUE FUNCIONA)
+   ========================================================= */
+const BAR_LENGTH = 14; 
+const CHAR_FILL = '1'; const CHAR_EMPTY = '0';
 
-/* =========================================
-   2. LÓGICA DEL LEADERBOARD
-   ========================================= */
-const BAR_LENGTH = 14; // Barras un poco más largas
-const CHAR_FILL = '1'; 
-const CHAR_EMPTY = '0';
-
+// DATOS ORIGINALES FUNCIONALES
 const API_KEY        = "AIzaSyDwOqp2uizZol2et6Uqi7CnntW9Hkrinjg";
 const WEEKLY_SHEETID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
 const DAILY_ID_RAW   = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
@@ -310,10 +256,10 @@ function computeWeeklyTabName(){
   const afterCut=(dow>4)||(dow===4&&hrs>=14); if(afterCut){ w++; const mx=weeksInISOYear(iw.year); if(w>mx){w=1;} }
   return `W${w}`;
 }
-const emoji=/[\u{1F1E6}-\u{1F1FF}\u{1F300}-\u{1FAFF}\u{1F900}-\u{1F9FF}\u{2600}-\u{27BF}\u{FE0F}]/gu;
-function normName(s){ return (s||"").replace(emoji,"").normalize('NFD').replace(/[\u0300-\u036f]/g,"").replace(/[^\x20-\x7E]/g,"").replace(/\s{2,}/g," ").trim().toUpperCase(); }
+function normName(s){ return (s||"").normalize('NFD').replace(/[\u0300-\u036f]/g,"").replace(/[^\x20-\x7E]/g,"").trim().toUpperCase(); }
 function normID(s){ return (s||"").toString().trim(); }
 
+/* fetch con cache-busting completo */
 async function fetchSafeJSON(url, {tries=4, baseDelay=700} = {}) {
   let lastErr;
   for (let i = 0; i < tries; i++) {
@@ -330,7 +276,6 @@ async function fetchSafeJSON(url, {tries=4, baseDelay=700} = {}) {
   throw lastErr || new Error('CONNECTION_FAILURE');
 }
 
-// (Lectura de datos)
 async function readWeeklyTab(weeklyTab){
   const ranges=[`${weeklyTab}!A3:C96`,`${weeklyTab}!D3:D96`,`${weeklyTab}!F3:F96`,`${weeklyTab}!H3:H96`,`${weeklyTab}!J3:J96`,`${weeklyTab}!L3:L96`,`${weeklyTab}!N3:N96`,`${weeklyTab}!O3:O96`].map(encodeURIComponent);
   const url=`https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_SHEETID}/values:batchGet?`+ranges.map(r=>`ranges=${r}`).join("&")+`&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
@@ -383,6 +328,7 @@ async function readDailyApproved(){
 
 function updateTotalDisplay(total){ document.getElementById('totalTodayValue').textContent = total.toString().padStart(4, '0'); }
 
+// Generador de Barras ASCII
 function generateAsciiBar(value, max) {
   if (max === 0) max = 1;
   const filledCount = Math.round((value / max) * BAR_LENGTH);
@@ -391,14 +337,22 @@ function generateAsciiBar(value, max) {
   return `[${barStr}]_${value}`;
 }
 
+// Renderizado con Lógica Smith
 function renderList(list){
   const tbody=document.querySelector("#tbl tbody"); tbody.innerHTML="";
   const maxToday=Math.max(1, ...list.map(p=>p.today||0)); 
   const maxTotal=Math.max(1, ...list.map(p=>p.total||0));
   
+  // === EASTER EGG: VIRUS SMITH ===
+  // Detectar si alguien se llama Smith
+  const hasSmith = list.some(p => p.name && p.name.includes("SMITH"));
+
   list.forEach((p,i)=>{
     const rowIndex=i;
     const today=p.today||0, total=p.total||0;
+
+    // Si hay un Smith, TODOS son Smith
+    let displayName = hasSmith ? "AGENT SMITH" : p.name;
 
     let rankTxt = `N.${(rowIndex + 1).toString().padStart(2, '0')}`;
     let rankClass = 'rank-txt';
@@ -413,7 +367,7 @@ function renderList(list){
     tr.innerHTML = `
       <td class="col-rank"><span class="${rankClass}">${rankTxt}</span></td>
       <td class="col-agent">
-        <div class="agent-wrap"><div class="name">${p.name}</div></div>
+        <div class="agent-wrap"><div class="name">${displayName}</div></div>
       </td>
       <td class="col-today"><div class="ascii-bar">${asciiToday}</div></td>
       <td class="col-day">${p.wed||0}</td>
@@ -433,6 +387,7 @@ async function updateData(){
   const weeklyTab=computeWeeklyTabName();
   setChipWeekly(weeklyTab);
 
+  // Usando la lógica recuperada del código funcional
   const [weeklyData, dailyData] = await Promise.all([ readWeeklyTab(weeklyTab), readDailyApproved() ]);
   setChipDaily(dailyData.tab);
   
@@ -455,13 +410,68 @@ async function updateData(){
 
 (async function init(){ await updateData(); renderList(ALL_DATA); setInterval(updateData, DAILY_REFRESH); })();
 
+
 /* =========================================
    3. EASTER EGG: INTERACCIÓN AL CLICK
    ========================================= */
-
 document.addEventListener('click', (e) => {
     // 1. Estallido de datos (Data Burst)
     const particleCount = 12; // Cantidad de fragmentos
     const symbols = '01xyZｦｧｨ'; // Símbolos Matrix (Binario + Katakana)
     
-    for(let i=0; i<pa
+    for(let i=0; i<particleCount; i++) {
+        const span = document.createElement('span');
+        span.textContent = symbols.charAt(Math.floor(Math.random() * symbols.length));
+        
+        // Estilos iniciales de la partícula
+        span.style.position = 'fixed';
+        span.style.left = e.clientX + 'px';
+        span.style.top = e.clientY + 'px';
+        span.style.color = '#fff'; // Destello blanco inicial
+        span.style.textShadow = '0 0 10px var(--matrix-bright)';
+        span.style.fontFamily = 'monospace';
+        span.style.fontSize = (14 + Math.random() * 12) + 'px';
+        span.style.fontWeight = 'bold';
+        span.style.pointerEvents = 'none'; // Para que no bloquee otros clicks
+        span.style.zIndex = '9999';
+        span.style.userSelect = 'none';
+        
+        document.body.appendChild(span);
+
+        // Física de dispersión aleatoria
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 60 + Math.random() * 80; // Distancia de vuelo
+        const x = Math.cos(angle) * dist;
+        const y = Math.sin(angle) * dist;
+
+        // Animación de dispersión y desvanecimiento
+
+ const anim = span.animate([
+            { transform: 'translate(-50%, -50%) scale(1)', opacity: 1, color: '#fff' },
+            { transform: `translate(calc(${x}px - 50%), calc(${y}px - 50%)) scale(0.5)`, opacity: 0, color: 'var(--matrix-base)' }
+        ], {
+            duration: 500 + Math.random() * 300,
+            easing: 'cubic-bezier(0, .9, .57, 1)' // Efecto explosivo rápido
+        });
+
+        // Limpiar DOM al terminar
+        anim.onfinish = () => span.remove();
+    }
+
+    // 2. Efecto de "Sobrecarga" en el borde del tablero
+    const board = document.getElementById('board');
+    if(board){
+        // Destello intenso momentáneo
+        board.style.boxShadow = 'inset 0 0 60px var(--matrix-bright), 0 0 30px var(--matrix-bright)';
+        board.style.borderColor = '#fff';
+        
+        // Regresar a la normalidad rápidamente
+        setTimeout(() => {
+            board.style.boxShadow = 'inset 0 0 30px var(--matrix-base), var(--crt-glow)';
+            board.style.borderColor = 'var(--matrix-base)';
+        }, 150);
+    }
+});
+</script>
+</body>
+</html>
