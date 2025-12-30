@@ -75,6 +75,11 @@
     padding: 8px 15px;
     background: rgba(0, 255, 65, 0.1);
     box-shadow: var(--crt-glow);
+    cursor: help; /* Cursor de ayuda para indicar interacción */
+    transition: background 0.3s;
+  }
+  #dailyTotalDisplay:hover{
+      background: rgba(0, 255, 65, 0.2);
   }
   #dailyTotalDisplay .label{ font-size: 0.9rem; color: var(--matrix-base); display: block; margin-bottom: 5px;}
   #dailyTotalDisplay .value{ 
@@ -162,7 +167,7 @@
 <div id='board'>
   <div class='top-header-flex'> 
     <h2>NEO_LEADERBOARD_V3</h2>
-    <div id='dailyTotalDisplay'>
+    <div id='dailyTotalDisplay' onmouseover="startScramble()" onmouseout="stopScramble()">
       <span class='label'>SYSTEM_INTEGRITY (TODAY):</span>
       <span class='value' id='totalTodayValue'>0000</span>
     </div>
@@ -231,7 +236,7 @@ function drawMatrix() {
 setInterval(drawMatrix, 33);
 
 /* =========================================================
-   2. LÓGICA DE DATOS (IMPORTADA DEL CÓDIGO QUE FUNCIONA)
+   2. LÓGICA DE DATOS
    ========================================================= */
 const BAR_LENGTH = 14; 
 const CHAR_FILL = '1'; const CHAR_EMPTY = '0';
@@ -243,6 +248,9 @@ const DAILY_ID_RAW   = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
 const TIMEZONE       = "America/Tijuana";
 const DAILY_REFRESH  = 12000; 
 let ALL_DATA=[]; 
+
+// VARIABLE PARA GUARDAR EL TOTAL REAL
+let CURRENT_TOTAL = 0;
 
 function diag(t){ document.getElementById('diag').textContent = `${t}`; }
 function setChipWeekly(t){ document.getElementById('chipWeekly').textContent = `${t}`; }
@@ -259,7 +267,6 @@ function computeWeeklyTabName(){
 function normName(s){ return (s||"").normalize('NFD').replace(/[\u0300-\u036f]/g,"").replace(/[^\x20-\x7E]/g,"").trim().toUpperCase(); }
 function normID(s){ return (s||"").toString().trim(); }
 
-/* fetch con cache-busting completo */
 async function fetchSafeJSON(url, {tries=4, baseDelay=700} = {}) {
   let lastErr;
   for (let i = 0; i < tries; i++) {
@@ -326,9 +333,13 @@ async function readDailyApproved(){
   return {id:DAILY_IDS[0], tab:tabs[0], mapByName:new Map(), mapByID:new Map()};
 }
 
-function updateTotalDisplay(total){ document.getElementById('totalTodayValue').textContent = total.toString().padStart(4, '0'); }
+// ACTUALIZACIÓN DINÁMICA DEL TOTAL (MODIFICADA)
+function updateTotalDisplay(total){ 
+    CURRENT_TOTAL = total;
+    // Solo actualizamos si no estamos en medio de una animación de scramble
+    if(!SCRAMBLING) document.getElementById('totalTodayValue').textContent = total.toString().padStart(4, '0'); 
+}
 
-// Generador de Barras ASCII
 function generateAsciiBar(value, max) {
   if (max === 0) max = 1;
   const filledCount = Math.round((value / max) * BAR_LENGTH);
@@ -344,14 +355,12 @@ function renderList(list){
   const maxTotal=Math.max(1, ...list.map(p=>p.total||0));
   
   // === EASTER EGG: VIRUS SMITH ===
-  // Detectar si alguien se llama Smith
   const hasSmith = list.some(p => p.name && p.name.includes("SMITH"));
 
   list.forEach((p,i)=>{
     const rowIndex=i;
     const today=p.today||0, total=p.total||0;
 
-    // Si hay un Smith, TODOS son Smith
     let displayName = hasSmith ? "AGENT SMITH" : p.name;
 
     let rankTxt = `N.${(rowIndex + 1).toString().padStart(2, '0')}`;
@@ -412,8 +421,10 @@ async function updateData(){
 
 
 /* =========================================
-   3. EASTER EGG: INTERACCIÓN AL CLICK
+   3. EASTER EGGS: INTERACCIÓN AL CLICK & SCRAMBLE
    ========================================= */
+
+// === CLICK DATA BURST ===
 document.addEventListener('click', (e) => {
     // 1. Estallido de datos (Data Burst)
     const particleCount = 12; // Cantidad de fragmentos
@@ -445,7 +456,6 @@ document.addEventListener('click', (e) => {
         const y = Math.sin(angle) * dist;
 
         // Animación de dispersión y desvanecimiento
-
         const anim = span.animate([
             { transform: 'translate(-50%, -50%) scale(1)', opacity: 1, color: '#fff' },
             { transform: `translate(calc(${x}px - 50%), calc(${y}px - 50%)) scale(0.5)`, opacity: 0, color: 'var(--matrix-base)' }
@@ -461,19 +471,41 @@ document.addEventListener('click', (e) => {
     // 2. Efecto de "Sobrecarga" en el borde del tablero
     const board = document.getElementById('board');
     if(board){
-        // Destello intenso momentáneo
         board.style.boxShadow = 'inset 0 0 60px var(--matrix-bright), 0 0 30px var(--matrix-bright)';
         board.style.borderColor = '#fff';
-        
-        // Regresar a la normalidad rápidamente
         setTimeout(() => {
             board.style.boxShadow = 'inset 0 0 30px var(--matrix-base), var(--crt-glow)';
             board.style.borderColor = 'var(--matrix-base)';
         }, 150);
     }
 });
+
+// === LOGICA DE SCRAMBLE (CIFRADO) ===
+let SCRAMBLING = false;
+let scrambleInterval;
+
+function startScramble(){
+    SCRAMBLING = true;
+    const target = document.getElementById('totalTodayValue');
+    // Caracteres que se usarán en la animación (Números y símbolos Matrix)
+    const chars = "0123456789X£¥Z";
+    
+    // Iniciar el cambio rápido
+    scrambleInterval = setInterval(() => {
+        target.textContent = Array(4).fill(0).map(() => chars[Math.floor(Math.random() * chars.length)]).join('');
+        // Efecto de color aleatorio momentáneo (opcional)
+        target.style.textShadow = Math.random() > 0.5 ? '0 0 15px #fff' : 'var(--text-glow-strong)';
+    }, 50); // Velocidad de cambio (ms)
+}
+
+function stopScramble(){
+    SCRAMBLING = false;
+    clearInterval(scrambleInterval);
+    const target = document.getElementById('totalTodayValue');
+    // Restaurar el valor real y el estilo
+    target.textContent = CURRENT_TOTAL.toString().padStart(4, '0');
+    target.style.textShadow = '';
+}
 </script>
 </body>
 </html>
-
-
