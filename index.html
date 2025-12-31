@@ -7,6 +7,7 @@
 <style>
   /* ===== VARIABLES MATRIX ===== */
   :root{
+    /* MODO VERDE (DEFAULT) */
     --matrix-bg: #000000;
     --matrix-base: #008F11; 
     --matrix-bright: #00FF41; 
@@ -15,6 +16,13 @@
     --term-font: 'Courier New', Courier, monospace;
     --crt-glow: 0 0 4px var(--matrix-base), 0 0 8px var(--matrix-bright);
     --text-glow-strong: 0 0 5px #fff, 0 0 10px var(--matrix-bright), 0 0 15px var(--matrix-bright);
+  }
+
+  /* MODO ROJO (PASTILLA ROJA) */
+  body.red-mode {
+    --matrix-base: #8F0000; 
+    --matrix-bright: #FF0000; 
+    --matrix-pale: #FF9999;
   }
   
   html,body{
@@ -26,6 +34,7 @@
     text-transform: uppercase;
     overflow: hidden;
     cursor: text;
+    transition: color 0.5s ease;
   }
 
   /* Lienzo para la Lluvia Digital */
@@ -52,7 +61,7 @@
     display:flex; flex-direction:column; gap: 15px;
     overflow-y: auto;
     text-shadow: var(--crt-glow);
-    transition: box-shadow 0.1s ease-out;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
   }
   
   /* HEADER */
@@ -85,11 +94,13 @@
       text-shadow: var(--text-glow-strong);
   }
 
-  /* CHIPS */
+  /* CHIPS (PASTILLAS) */
   .chips{
     display:flex; gap: 20px; flex-wrap:wrap;
     justify-content:flex-start; color: var(--matrix-pale); margin-top: 10px;
   }
+  .chip { cursor: pointer; transition: transform 0.2s; user-select: none; }
+  .chip:active { transform: scale(0.95); }
   .chip::before{ content: "[LOCAL_MEMORY]: "; color: var(--matrix-base); }
 
   /* TABLA */
@@ -190,8 +201,8 @@
   </div>
 
   <div class='chips'>
-    <div id='chipWeekly' class='chip'>WEEK_CYCLE: ???</div>
-    <div id='chipDaily' class='chip'>DAILY_CYCLE: ???</div>
+    <div id='chipWeekly' class='chip' onclick="setMatrixMode('blue')" title="Blue Pill: Normal Reality">WEEK_CYCLE: ???</div>
+    <div id='chipDaily' class='chip' onclick="setMatrixMode('red')" title="Red Pill: Truth Mode">DAILY_CYCLE: ???</div>
   </div>
 
   <div class='table-wrap'>
@@ -222,7 +233,7 @@
 
 <script>
 /* =========================================
-   1. VISUAL: MATRIX RAIN (FONDO)
+   1. VISUAL: MATRIX RAIN (FONDO DINÁMICO)
    ========================================= */
 const canvas = document.getElementById('matrix-canvas');
 const ctx = canvas.getContext('2d');
@@ -240,9 +251,17 @@ for (let i = 0; i < columns; i++) drops[i] = Math.random() * -100;
 function drawMatrix() {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#0F0'; ctx.font = fontSize + 'px monospace';
+    
+    // Detectar si el modo rojo está activo
+    const isRed = document.body.classList.contains('red-mode');
+    ctx.fillStyle = isRed ? '#F00' : '#0F0'; 
+    ctx.font = fontSize + 'px monospace';
+    
     for (let i = 0; i < drops.length; i++) {
-        if(Math.random() > 0.98) ctx.fillStyle = '#FFF'; else ctx.fillStyle = '#0F0';
+        // Cabezal blanco de la gota
+        if(Math.random() > 0.98) ctx.fillStyle = '#FFF'; 
+        else ctx.fillStyle = isRed ? '#F00' : '#0F0';
+        
         const text = charArray[Math.floor(Math.random() * charArray.length)];
         ctx.fillText(text, i * fontSize, drops[i] * fontSize);
         if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
@@ -308,8 +327,12 @@ async function readWeeklyTab(weeklyTab){
   for(let i=0;i<len;i++){
     const id=normID(base[i]?.[0]??""); const name=(base[i]?.[1]??"").toString().trim();
     if(!id && !name) continue;
-    out.push({ id,idKey:id, name, nameKey:normName(name), wed:parseInt(d[i]||0), thu:parseInt(f[i]||0), fri:parseInt(h[i]||0), sat:parseInt(jv[i]||0), mon:parseInt(l[i]||0), tue:parseInt(n[i]||0), total:parseInt(oT[i]||0), today:0 });
+    out.push({ id,idKey:id, name, nameKey:normName(name),
+      wed:parseInt(d[i]||0), thu:parseInt(f[i]||0), fri:parseInt(h[i]||0),
+      sat:parseInt(jv[i]||0), mon:parseInt(l[i]||0), tue:parseInt(n[i]||0),
+      total:parseInt(oT[i]||0), today:0 });
   }
+  out.sort((a,b)=>(b.total||0)-(a.total||0));
   return out;
 }
 function fmtDailyTab(dt){ const m=new Intl.DateTimeFormat('en-US',{month:'short',timeZone:TIMEZONE}).format(dt); const dd=new Intl.DateTimeFormat('en-US',{day:'2-digit',timeZone:TIMEZONE}).format(dt); return `${m} ${dd}`; }
@@ -437,23 +460,20 @@ async function updateData(){
 
 
 /* =========================================
-   3. EASTER EGGS: CONTAGIO PROGRESIVO
+   3. EASTER EGGS: CONTAGIO & PASTILLA ROJA
    ========================================= */
 
 // === PROTOCOLO DE CONTAGIO ===
 function startInfectionProtocol() {
     // Se ejecuta cada 8-12 segundos (random)
     setInterval(() => {
-        // Seleccionamos todas las filas
         const rows = document.querySelectorAll('#tbl tbody tr');
         if (rows.length === 0) return;
 
-        // Elegimos una fila al azar
         const randomIndex = Math.floor(Math.random() * rows.length);
         const row = rows[randomIndex];
         const nameCell = row.querySelector('.name');
         
-        // Guardamos el nombre original
         const originalName = nameCell.textContent;
 
         // --- FASE 1: INFECCIÓN ---
@@ -471,6 +491,9 @@ function startInfectionProtocol() {
 
 // === INTERACCIÓN AL CLICK (DATA BURST) ===
 document.addEventListener('click', (e) => {
+    // Ignorar clic si es en un Chip (para no disparar estallido sobre el botón)
+    if(e.target.closest('.chip')) return;
+
     const particleCount = 12; const symbols = '01xyZｦｧｨ';
     for(let i=0; i<particleCount; i++) {
         const span = document.createElement('span');
@@ -497,6 +520,15 @@ document.addEventListener('click', (e) => {
         }, 150);
     }
 });
+
+// === PASTILLA ROJA / AZUL (MODO DE COLOR) ===
+function setMatrixMode(mode) {
+    if (mode === 'red') {
+        document.body.classList.add('red-mode');
+    } else {
+        document.body.classList.remove('red-mode');
+    }
+}
 </script>
 </body>
 </html>
