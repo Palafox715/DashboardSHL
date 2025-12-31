@@ -308,12 +308,8 @@ async function readWeeklyTab(weeklyTab){
   for(let i=0;i<len;i++){
     const id=normID(base[i]?.[0]??""); const name=(base[i]?.[1]??"").toString().trim();
     if(!id && !name) continue;
-    out.push({ id,idKey:id, name, nameKey:normName(name),
-      wed:parseInt(d[i]||0), thu:parseInt(f[i]||0), fri:parseInt(h[i]||0),
-      sat:parseInt(jv[i]||0), mon:parseInt(l[i]||0), tue:parseInt(n[i]||0),
-      total:parseInt(oT[i]||0), today:0 });
+    out.push({ id,idKey:id, name, nameKey:normName(name), wed:parseInt(d[i]||0), thu:parseInt(f[i]||0), fri:parseInt(h[i]||0), sat:parseInt(jv[i]||0), mon:parseInt(l[i]||0), tue:parseInt(n[i]||0), total:parseInt(oT[i]||0), today:0 });
   }
-  out.sort((a,b)=>(b.total||0)-(a.total||0));
   return out;
 }
 function fmtDailyTab(dt){ const m=new Intl.DateTimeFormat('en-US',{month:'short',timeZone:TIMEZONE}).format(dt); const dd=new Intl.DateTimeFormat('en-US',{day:'2-digit',timeZone:TIMEZONE}).format(dt); return `${m} ${dd}`; }
