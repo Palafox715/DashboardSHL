@@ -271,7 +271,7 @@ function drawMatrix() {
 setInterval(drawMatrix, 33);
 
 /* =========================================
-   2. LÓGICA DE DATOS ESTABLE
+   2. LÓGICA DE DATOS (CORREGIDA PARA 2026)
    ========================================= */
 const BAR_LENGTH = 14; 
 const CHAR_FILL = '1'; const CHAR_EMPTY = '0';
@@ -288,15 +288,43 @@ let CURRENT_TOTAL = 0; // Para el scramble effect
 function diag(t){ document.getElementById('diag').textContent = `${t}`; }
 function setChipWeekly(t){ document.getElementById('chipWeekly').textContent = `${t}`; }
 function setChipDaily(t){ document.getElementById('chipDaily').textContent = `${t}`; }
-function getLocalDate(){ const s=new Date().toLocaleString('en-US',{timeZone:TIMEZONE}); return new Date(s); }
-function isoWeek(d){ const x=new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const n=x.getUTCDay()||7; x.setUTCDate(x.getUTCDate()+4-n); const y=new Date(Date.UTC(x.getUTCFullYear(),0,1)); return {week:Math.ceil((((x-y)/86400000)+1)/7), year:x.getUTCFullYear()}; }
-function weeksInISOYear(y){ const d=new Date(Date.UTC(y,11,31)); const day=d.getUTCDay(); return (day===4 || (d.getUTCDate()===31 && day===3))?53:52; }
+
+// FECHA ACTUAL CON ZONA HORARIA
+function getLocalDate(){ 
+    const s=new Date().toLocaleString('en-US',{timeZone:TIMEZONE}); 
+    return new Date(s); 
+}
+
+// CÁLCULO SEMANA ISO (CORREGIDO)
+function isoWeek(date) {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+}
+
+// DETERMINAR PESTAÑA SEMANAL (W1, W2, etc.)
 function computeWeeklyTabName(){
-  const url=new URL(window.location.href); const override=url.searchParams.get('weeklyTab'); if(override) return override;
-  const local=getLocalDate(); const hrs=local.getHours(); const dow=local.getDay(); const iw=isoWeek(local); let w=iw.week;
-  const afterCut=(dow>4)||(dow===4&&hrs>=14); if(afterCut){ w++; const mx=weeksInISOYear(iw.year); if(w>mx){w=1;} }
+  const url=new URL(window.location.href); 
+  const override=url.searchParams.get('weeklyTab'); 
+  if(override) return override;
+  
+  const local=getLocalDate(); 
+  const hrs=local.getHours(); 
+  const dow=local.getDay(); 
+  let w = isoWeek(local); 
+  
+  // CORTE DE SEMANA (JUEVES > 14:00)
+  const afterCut = (dow > 4) || (dow === 4 && hrs >= 14); 
+  if(afterCut){ 
+      w++; 
+      // Lógica Roll-Over: Si es sem 53 y pasa corte -> W1
+      if(w > 53) w = 1; 
+  }
   return `W${w}`;
 }
+
 function normName(s){ return (s||"").normalize('NFD').replace(/[\u0300-\u036f]/g,"").replace(/[^\x20-\x7E]/g,"").trim().toUpperCase(); }
 function normID(s){ return (s||"").toString().trim(); }
 
@@ -316,54 +344,68 @@ async function fetchSafeJSON(url, {tries=4, baseDelay=700} = {}) {
   throw lastErr || new Error('CONNECTION_FAILURE');
 }
 
+// LECTURA SEMANAL (ROBUSTA)
 async function readWeeklyTab(weeklyTab){
   const ranges=[`${weeklyTab}!A3:C96`,`${weeklyTab}!D3:D96`,`${weeklyTab}!F3:F96`,`${weeklyTab}!H3:H96`,`${weeklyTab}!J3:J96`,`${weeklyTab}!L3:L96`,`${weeklyTab}!N3:N96`,`${weeklyTab}!O3:O96`].map(encodeURIComponent);
   const url=`https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_SHEETID}/values:batchGet?`+ranges.map(r=>`ranges=${r}`).join("&")+`&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
-  const j=await fetchSafeJSON(url); const vr=j.valueRanges||[];
-  const base=vr[0]?.values||[]; const toCol=v=>(v?.values||[]).map(r=>(r[0]??"").toString().trim());
-  const d=toCol(vr[1]), f=toCol(vr[2]), h=toCol(vr[3]), jv=toCol(vr[4]), l=toCol(vr[5]), n=toCol(vr[6]), oT=toCol(vr[7]);
-  const len=Math.max(base.length,d.length,f.length,h.length,jv.length,l.length,n.length,oT.length);
-  const out=[];
-  for(let i=0;i<len;i++){
-    const id=normID(base[i]?.[0]??""); const name=(base[i]?.[1]??"").toString().trim();
-    if(!id && !name) continue;
-    out.push({ id,idKey:id, name, nameKey:normName(name),
-      wed:parseInt(d[i]||0), thu:parseInt(f[i]||0), fri:parseInt(h[i]||0),
-      sat:parseInt(jv[i]||0), mon:parseInt(l[i]||0), tue:parseInt(n[i]||0),
-      total:parseInt(oT[i]||0), today:0 });
+  
+  try {
+      const j=await fetchSafeJSON(url); 
+      if(!j || !j.valueRanges) return [];
+      
+      const vr=j.valueRanges||[];
+      const base=vr[0]?.values||[]; const toCol=v=>(v?.values||[]).map(r=>(r[0]??"").toString().trim());
+      const d=toCol(vr[1]), f=toCol(vr[2]), h=toCol(vr[3]), jv=toCol(vr[4]), l=toCol(vr[5]), n=toCol(vr[6]), oT=toCol(vr[7]);
+      const len=Math.max(base.length,d.length,f.length,h.length,jv.length,l.length,n.length,oT.length);
+      const out=[];
+      for(let i=0;i<len;i++){
+        const id=normID(base[i]?.[0]??""); const name=(base[i]?.[1]??"").toString().trim();
+        if(!id && !name) continue;
+        out.push({ id,idKey:id, name, nameKey:normName(name),
+          wed:parseInt(d[i]||0), thu:parseInt(f[i]||0), fri:parseInt(h[i]||0),
+          sat:parseInt(jv[i]||0), mon:parseInt(l[i]||0), tue:parseInt(n[i]||0),
+          total:parseInt(oT[i]||0), today:0 });
+      }
+      return out;
+  } catch (e) {
+      console.error("Error reading weekly tab:", e);
+      return [];
   }
-  out.sort((a,b)=>(b.total||0)-(a.total||0));
-  return out;
 }
-function fmtDailyTab(dt){ const m=new Intl.DateTimeFormat('en-US',{month:'short',timeZone:TIMEZONE}).format(dt); const dd=new Intl.DateTimeFormat('en-US',{day:'2-digit',timeZone:TIMEZONE}).format(dt); return `${m} ${dd}`; }
+
+// FORMATO FECHA DIARIA (CORREGIDO 2026)
+function fmtDailyTab(dt){ 
+    const m=new Intl.DateTimeFormat('en-US',{month:'short',timeZone:TIMEZONE}).format(dt); 
+    const dd=new Intl.DateTimeFormat('en-US',{day:'2-digit',timeZone:TIMEZONE}).format(dt); 
+    return `${m} ${dd}`; 
+}
+
 function getDailyTabCandidates(){
   const url=new URL(window.location.href); const o=url.searchParams.get('dailyTab'); if(o) return [o];
-  const now=getLocalDate(); const y=new Date(now.getTime()-86400000); return [fmtDailyTab(now), fmtDailyTab(y)];
+  const now=getLocalDate(); 
+  const y=new Date(now.getTime()-86400000); 
+  // Intentar hoy y ayer
+  return [fmtDailyTab(now), fmtDailyTab(y)];
 }
+
 async function readDailyApproved(){
-  const rangesFor=tab=>([`${tab}!A2:A70`,`${tab}!B2:B70`,`${tab}!C2:C70`,`${tab}!E2:E70`,`${tab}!F2:F70`,`${tab}!G2:G70`].map(encodeURIComponent));
   const tabs=getDailyTabCandidates();
-  const DAILY_IDS=[DAILY_ID_RAW];
-  for(const id of DAILY_IDS){
-    for(const tab of tabs){
-      const url=`https://sheets.googleapis.com/v4/spreadsheets/${id}/values:batchGet?`+rangesFor(tab).map(r=>`ranges=${r}`).join("&")+`&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
-      try{
-        const j=await fetchSafeJSON(url); const vr=j.valueRanges||[];
-        const A=vr[0]?.values||[], B=vr[1]?.values||[], C=vr[2]?.values||[];
-        const E=vr[3]?.values||[], F=vr[4]?.values||[], G=vr[5]?.values||[];
-        const mapByName=new Map(); const mapByID=new Map();
-        function addPair(nmCell,idCell,valCell){
-          const nm=(nmCell?.[0]??"").toString(); const id=(idCell?.[0]??"").toString().trim(); const v=parseInt((valCell?.[0]??0))||0;
-          if(nm.trim()){ const nk=normName(nm); mapByName.set(nk,(mapByName.get(nk)||0)+v); }
-          if(id){ mapByID.set(id,(mapByID.get(id)||0)+v); }
-        }
-        const rowsFK=Math.max(A.length,B.length,C.length); for(let i=0;i<rowsFK;i++) addPair(A[i],B[i],C[i]);
-        const rowsRG=Math.max(E.length,F.length,G.length); for(let i=0;i<rowsRG;i++) addPair(E[i],F[i],G[i]);
-        return {id, tab, mapByName, mapByID};
-      }catch(e){ }
-    }
+  for(const tab of tabs){
+      const url=`https://sheets.googleapis.com/v4/spreadsheets/${DAILY_ID_RAW}/values:batchGet?ranges=${encodeURIComponent(tab)}!A2:G70&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
+      try {
+          const j=await fetchSafeJSON(url); 
+          if(j && j.valueRanges){
+              const A=(j.valueRanges[0]?.values)||[]; 
+              const mapByName=new Map(), mapByID=new Map();
+              for(let i=0;i<A.length;i++){
+                  const nm=(A[i][0]??"").toString(); const v=parseInt(A[i][2]??0)||0;
+                  if(nm.trim()){ const nk=normName(nm); mapByName.set(nk,(mapByName.get(nk)||0)+v); }
+              }
+              return {tab:tab, mapByName, mapByID}; 
+          }
+      } catch (e) { console.log(`Tab ${tab} not found`); }
   }
-  return {id:DAILY_IDS[0], tab:tabs[0], mapByName:new Map(), mapByID:new Map()};
+  return {tab:'NO DATA', mapByName:new Map(), mapByID:new Map()};
 }
 
 let SCRAMBLING = false; let scrambleInterval;
