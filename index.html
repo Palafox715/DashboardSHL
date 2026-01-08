@@ -3,7 +3,7 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>MATRIX SYSTEM ROOT v5.0 (RABBIT_PROTOCOL)</title>
+<title>MATRIX SYSTEM ROOT v6.0 (CINEMATIC WIN)</title>
 <style>
   /* ===== VARIABLES MATRIX ===== */
   :root{
@@ -37,7 +37,9 @@
   }
 
   /* Lienzo Matrix (Ajustado para legibilidad) */
-  #matrix-canvas { position: fixed; top: 0; left: 0; z-index: 0; opacity: 0.15; pointer-events: none; }
+  #matrix-canvas { position: fixed; top: 0; left: 0; z-index: 0; opacity: 0.15; pointer-events: none; transition: opacity 2s; }
+  /* Cuando ganan, el código se vuelve más visible */
+  body.victory-mode #matrix-canvas { opacity: 0.6; }
 
   /* Scanlines */
   body::after {
@@ -70,12 +72,12 @@
   #white-rabbit {
       position: fixed;
       font-size: 2.5rem;
-      cursor: crosshair; /* Mira de francotirador */
+      cursor: crosshair; 
       z-index: 9999;
       filter: drop-shadow(0 0 5px #fff) drop-shadow(0 0 10px var(--matrix-bright));
       transition: top 0.2s, left 0.2s, transform 0.1s;
       user-select: none;
-      display: none; /* Oculto al inicio */
+      display: none; 
       animation: pulse-rabbit 2s infinite;
   }
   @keyframes pulse-rabbit { 0% { opacity: 0.8; } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.8; } }
@@ -89,16 +91,24 @@
       padding: 5px 10px; border: 1px solid var(--matrix-base);
   }
 
+  /* ESTILO NUEVO DE VICTORIA */
   #rabbit-win-msg {
       position: fixed; top: 50%; left: 50%; width: 100%; text-align: center;
-      transform: translate(-50%, -50%);
-      font-size: 5rem; font-weight: 900;
-      color: #fff; text-shadow: 0 0 20px #fff, 0 0 40px var(--matrix-bright);
-      background: rgba(0,0,0,0.95); padding: 40px 0; 
-      border-top: 5px solid var(--matrix-bright); border-bottom: 5px solid var(--matrix-bright);
-      display: none; z-index: 10001;
-      animation: glitch-anim 0.2s infinite;
-      letter-spacing: 10px;
+      transform: translate(-50%, -50%) scale(0.8);
+      font-size: 6vw; font-weight: 900;
+      color: #fff; 
+      /* Glow intenso sin fondo negro */
+      text-shadow: 0 0 20px #fff, 0 0 40px var(--matrix-bright), 0 0 80px var(--matrix-bright);
+      opacity: 0;
+      pointer-events: none; z-index: 10001;
+      letter-spacing: 5px;
+      transition: opacity 1.5s ease, transform 6s ease-out;
+  }
+  
+  /* Clase que activa la victoria */
+  #rabbit-win-msg.show-win {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1.2); /* Efecto Zoom lento */
   }
 
   /* CONTENEDOR PRINCIPAL */
@@ -112,7 +122,14 @@
     display:flex; flex-direction:column; gap: 15px;
     overflow-y: auto;
     text-shadow: var(--crt-glow);
-    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+    transition: opacity 1.5s ease, filter 1.5s ease; /* Transición suave para desaparecer */
+  }
+
+  /* Clase para desvanecer el tablero */
+  #board.dissolve {
+      opacity: 0;
+      filter: blur(10px);
+      pointer-events: none;
   }
   
   /* HEADER */
@@ -219,7 +236,7 @@
 
 <div id='board'>
   <div class='top-header-flex'> 
-    <h2 ondblclick="toggleInvert()" title="Double Click to Invert Phase">NEO_LEADERBOARD_V4</h2>
+    <h2 ondblclick="toggleInvert()" title="Double Click to Invert Phase">NEO_LEADERBOARD_V6</h2>
     <div id='dailyTotalDisplay' onmouseover="startScramble()" onmouseout="stopScramble()">
       <span class='label'>SYSTEM_INTEGRITY (TODAY):</span>
       <span class='value' id='totalTodayValue'>0000</span>
@@ -521,6 +538,7 @@ const rabbit = document.getElementById('white-rabbit');
 const rCounter = document.getElementById('rabbit-counter');
 const rVal = document.getElementById('hack-val');
 const rMsg = document.getElementById('rabbit-win-msg');
+const mainBoard = document.getElementById('board');
 let hacks = 0;
 
 function moveRabbitRandom() {
@@ -554,26 +572,36 @@ function catchRabbit() {
     setTimeout(() => { rabbit.textContent = "🐇"; document.getElementById('board').style.borderColor = 'var(--matrix-base)'; }, 150);
 
     if (hacks >= 10) {
-        // WIN CONDITION
+        // === SECUENCIA DE VICTORIA CINEMATICA ===
         rabbit.style.display = 'none';
-        rMsg.style.display = 'block';
         
-        // Efecto Matrix FURIOSO (Overclock)
+        // 1. Desvanecer el tablero (mostrar solo lluvia de código)
+        document.body.classList.add('victory-mode');
+        mainBoard.classList.add('dissolve');
+        rCounter.style.opacity = 0;
+
+        // 2. Mostrar Mensaje
+        rMsg.classList.add('show-win');
+        
+        // 3. Efecto Matrix FURIOSO (Overclock)
         isOverclocked = true; 
         clearInterval(matrixInterval);
         matrixInterval = setInterval(drawMatrix, 5);
         
-        // Reset del juego después de 5s
+        // 4. Reset del juego después de 6s
         setTimeout(() => {
-            rMsg.style.display = 'none';
+            document.body.classList.remove('victory-mode');
+            mainBoard.classList.remove('dissolve');
+            rMsg.classList.remove('show-win');
+            
             hacks = 0;
             rVal.textContent = 0;
-            rCounter.style.opacity = 0;
+            
             isOverclocked = false; 
             clearInterval(matrixInterval);
             matrixInterval = setInterval(drawMatrix, 33);
             scheduleRabbit();
-        }, 5000);
+        }, 6000); // 6 SEGUNDOS DE GLORIA
     } else {
         // Seguir jugando: Se mueve inmediatamente
         moveRabbitRandom();
