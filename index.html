@@ -3,11 +3,10 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>MATRIX SYSTEM ROOT</title>
+<title>MATRIX SYSTEM ROOT v4.0</title>
 <style>
   /* ===== VARIABLES MATRIX ===== */
   :root{
-    /* MODO VERDE (DEFAULT) */
     --matrix-bg: #000000;
     --matrix-base: #008F11; 
     --matrix-bright: #00FF41; 
@@ -18,12 +17,11 @@
     --text-glow-strong: 0 0 5px #fff, 0 0 10px var(--matrix-bright), 0 0 15px var(--matrix-bright);
   }
 
-  /* MODO ROJO (PASTILLA ROJA) */
-  body.red-mode {
-    --matrix-base: #8F0000; 
-    --matrix-bright: #FF0000; 
-    --matrix-pale: #FF9999;
-  }
+  /* MODO ROJO (Pastilla Roja) */
+  body.red-mode { --matrix-base: #8F0000; --matrix-bright: #FF0000; --matrix-pale: #FF9999; }
+
+  /* MODO INVERTIDO (Invert Reality) */
+  body.invert-mode { filter: invert(1); }
   
   html,body{
     margin:0; height:100%; width:100%;
@@ -34,20 +32,38 @@
     text-transform: uppercase;
     overflow: hidden;
     cursor: text;
-    transition: color 0.5s ease;
+    transition: filter 0.1s ease;
+    user-select: none;
   }
 
-  /* Lienzo para la Lluvia Digital */
-  #matrix-canvas {
-    position: fixed; top: 0; left: 0; z-index: 0;
-    opacity: 0.8; pointer-events: none;
-  }
+  /* Lienzo Matrix (Ajustado para legibilidad) */
+  #matrix-canvas { position: fixed; top: 0; left: 0; z-index: 0; opacity: 0.15; pointer-events: none; }
 
   /* Scanlines */
   body::after {
     content: " "; display: block; position: absolute; inset:0;
     background: repeating-linear-gradient(0deg, rgba(0,0,0,0.3) 0px, rgba(0,255,65,0.05) 1px, transparent 2px);
     z-index: 999; pointer-events: none;
+  }
+
+  /* OVERLAY ACCESS DENIED */
+  #access-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.9); z-index: 10000;
+      display: none; flex-direction: column; justify-content: center; align-items: center;
+      pointer-events: none;
+  }
+  .denied-text {
+      font-size: 5rem; font-weight: 900; color: #FF0000; letter-spacing: 10px;
+      text-shadow: 0 0 20px red; border: 5px solid red; padding: 20px 40px;
+      transform: rotate(-5deg);
+  }
+  .shake-violent { animation: shake-violent 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+  @keyframes shake-violent {
+    10%, 90% { transform: translate3d(-3px, 0, 0) rotate(-1deg); }
+    20%, 80% { transform: translate3d(5px, 0, 0) rotate(2deg); }
+    30%, 50%, 70% { transform: translate3d(-8px, 0, 0) rotate(-2deg); }
+    40%, 60% { transform: translate3d(8px, 0, 0) rotate(2deg); }
   }
 
   /* CONTENEDOR PRINCIPAL */
@@ -67,25 +83,24 @@
   /* HEADER */
   .top-header-flex{
     display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 2px solid var(--matrix-base);
-    padding-bottom: 15px; position: relative;
+    border-bottom: 2px solid var(--matrix-base); padding-bottom: 15px; position: relative;
   }
   .top-header-flex::after {
-      content: 'DATA_STREAM_ID: [0x5F3A1] // TARGET: SALES_NODE // STATUS: CONNECTED';
+      content: 'DATA_STREAM_ID: [0x5F3A1] // STATUS: CONNECTED';
       position: absolute; bottom: -12px; left: 0;
       font-size: 0.7rem; color: var(--matrix-base); letter-spacing: 1px;
   }
 
-  h2{ margin:0; text-align:left; font-size: 1.8rem; font-weight: bold; letter-spacing: 2px; color: var(--matrix-bright); }
+  h2{ 
+      margin:0; text-align:left; font-size: 1.8rem; font-weight: bold; letter-spacing: 2px; 
+      color: var(--matrix-bright); cursor: alias; 
+  }
   h2::before { content: "SYSTEM.ROOT > "; color: var(--matrix-base); }
 
   #dailyTotalDisplay{
-    border: 1px solid var(--matrix-bright);
-    padding: 8px 15px;
-    background: rgba(0, 255, 65, 0.1);
-    box-shadow: var(--crt-glow);
-    cursor: help; 
-    transition: background 0.3s;
+    border: 1px solid var(--matrix-bright); padding: 8px 15px;
+    background: rgba(0, 255, 65, 0.1); box-shadow: var(--crt-glow);
+    cursor: help; transition: background 0.3s;
   }
   #dailyTotalDisplay:hover{ background: rgba(0, 255, 65, 0.2); }
   #dailyTotalDisplay .label{ font-size: 0.9rem; color: var(--matrix-base); display: block; margin-bottom: 5px;}
@@ -94,16 +109,11 @@
       text-shadow: var(--text-glow-strong);
   }
 
-  /* CHIPS (PASTILLAS) */
-  .chips{
-    display:flex; gap: 20px; flex-wrap:wrap;
-    justify-content:flex-start; color: var(--matrix-pale); margin-top: 10px;
-  }
-  .chip { cursor: pointer; transition: transform 0.2s; user-select: none; }
+  .chips{ display:flex; gap: 20px; flex-wrap:wrap; justify-content:flex-start; color: var(--matrix-pale); margin-top: 10px; }
+  .chip { cursor: pointer; transition: transform 0.2s; }
   .chip:active { transform: scale(0.95); }
   .chip::before{ content: "[LOCAL_MEMORY]: "; color: var(--matrix-base); }
 
-  /* TABLA */
   .table-wrap{ flex:1; min-height:0; position:relative; overflow: auto; border: 1px solid var(--matrix-base); }
   table{ width:100%; min-width: 850px; border-collapse: collapse; border-spacing: 0; }
   
@@ -115,85 +125,61 @@
   }
   th.col-agent, td.col-agent{ text-align:left; }
 
-  tbody td{
-    border-bottom: 1px solid rgba(0, 143, 17, 0.3); padding: 8px; vertical-align: middle;
-    color: var(--matrix-bright);
-  }
-  
-  tbody tr:hover td{ 
-    background: rgba(0, 255, 65, 0.2); color: #fff;
-    text-shadow: var(--text-glow-strong); cursor: crosshair;
-  }
+  tbody td{ border-bottom: 1px solid rgba(0, 143, 17, 0.3); padding: 8px; vertical-align: middle; color: var(--matrix-bright); }
+  tbody tr:hover td{ background: rgba(0, 255, 65, 0.2); color: #fff; text-shadow: var(--text-glow-strong); cursor: crosshair; }
   tbody tr:hover .ascii-bar { color: #fff; } 
 
   .agent-wrap .name{ font-weight: bold; white-space:nowrap; letter-spacing: 1px; }
   .ascii-bar{ font-family: var(--term-font); white-space: pre; color: var(--matrix-bright); font-weight: bold; letter-spacing: -1px; font-size: 1.1rem; }
 
-  /* ===== ESTILOS DEL VIRUS SMITH (GLITCH) ===== */
+  /* ESTILOS SMITH (Glitch) */
   .infected-row .name {
-      background-color: var(--matrix-bright);
-      color: #000; /* Invertido */
-      padding: 0 5px;
-      font-weight: 900;
-      letter-spacing: 2px;
-      animation: glitch-anim 0.2s infinite;
-      box-shadow: 0 0 10px var(--matrix-bright);
+      background-color: var(--matrix-bright); color: #000; padding: 0 5px;
+      font-weight: 900; letter-spacing: 2px; animation: glitch-anim 0.2s infinite; box-shadow: 0 0 10px var(--matrix-bright);
   }
   @keyframes glitch-anim {
-      0% { transform: translate(0); }
-      20% { transform: translate(-2px, 1px); }
-      40% { transform: translate(-1px, -1px); }
-      60% { transform: translate(1px, 1px); }
-      80% { transform: translate(1px, -1px); }
-      100% { transform: translate(0); }
+      0% { transform: translate(0); } 20% { transform: translate(-2px, 1px); } 40% { transform: translate(-1px, -1px); }
+      60% { transform: translate(1px, 1px); } 80% { transform: translate(1px, -1px); } 100% { transform: translate(0); }
   }
 
   #meta{ margin-top: 10px; border-top: 1px solid var(--matrix-base); padding-top:15px; color: var(--matrix-base); font-size: 0.9rem;}
-  #diag { color: var(--matrix-pale); }
-  #diag::before { content: ">> EXEC(STATUS_CHECK); "; }
-
-  .rank-txt { color: var(--matrix-base); }
-  .rank-1 { color: #fff; text-shadow: var(--text-glow-strong); }
-
-  ::-webkit-scrollbar { width: 8px; background: #000; }
+  #diag { color: var(--matrix-pale); } #diag::before { content: ">> EXEC(STATUS_CHECK); "; }
+  .rank-txt { color: var(--matrix-base); } .rank-1 { color: #fff; text-shadow: var(--text-glow-strong); }
+  
+  /* Scrollbar Matrix */
+  ::-webkit-scrollbar { width: 8px; background: #000; } 
   ::-webkit-scrollbar-thumb { background: var(--matrix-base); border: 1px solid var(--matrix-bright); }
 
-  /* MOBILE */
   @media (max-width: 768px) {
     #board { width: 100%; height: 100%; margin: 0; border: none; background: rgba(0,10,0,0.9); }
     .top-header-flex { flex-direction: column; align-items: stretch; gap: 15px;}
     .top-header-flex::after { display: none; }
     #dailyTotalDisplay { width: 100%; text-align: center;}
-    #dailyTotalDisplay .value { text-align: center; }
     thead { display: none; }
     tbody, tr, td { display: block; width: 100%; box-sizing: border-box; border: none; }
-    
-    tbody tr { 
-      margin-bottom: 20px; padding: 15px; 
-      border: 1px solid var(--matrix-bright);
-      background: rgba(0, 50, 0, 0.4);
-      box-shadow: var(--crt-glow);
-    }
-    tbody td { 
-      padding: 4px 0; display: flex; 
-      justify-content: space-between; align-items: center; 
-      text-align: left;
-    }
+    tbody tr { margin-bottom: 20px; padding: 15px; border: 1px solid var(--matrix-bright); background: rgba(0, 50, 0, 0.4); box-shadow: var(--crt-glow); }
+    tbody td { padding: 4px 0; display: flex; justify-content: space-between; align-items: center; text-align: left; }
     th.col-day, td.col-day { display: none; }
     td.col-rank::before { content: '[NODE_RANK]:'; color: var(--matrix-base); margin-right: 10px; }
     td.col-agent::before { content: '[IDENTITY]:'; color: var(--matrix-base); margin-right: 10px; }
     td.col-today::before { content: '[TODAY_DATA]:'; color: var(--matrix-base); margin-right: 5px; }
     td.col-total::before { content: '[TOTAL_CACHE]:'; color: var(--matrix-base); margin-right: 5px; }
     .ascii-bar { text-align: right; flex-grow: 1; font-size: 1rem; letter-spacing: 0;}
+    .denied-text { font-size: 3rem; border: 3px solid red; }
   }
 </style>
 </head>
 <body>
 <canvas id="matrix-canvas"></canvas>
 
+<div id="access-overlay">
+    <div class="denied-text">ACCESS DENIED</div>
+    <div style="color:red; margin-top:10px; font-family:monospace;">SECURITY PROTOCOL ENGAGED</div>
+</div>
+
 <div id='board'>
   <div class='top-header-flex'> 
-    <h2>NEO_LEADERBOARD_V3</h2>
+    <h2 ondblclick="toggleInvert()" title="Double Click to Invert Phase">NEO_LEADERBOARD_V3</h2>
     <div id='dailyTotalDisplay' onmouseover="startScramble()" onmouseout="stopScramble()">
       <span class='label'>SYSTEM_INTEGRITY (TODAY):</span>
       <span class='value' id='totalTodayValue'>0000</span>
@@ -212,12 +198,7 @@
           <th class='col-rank'>[#] RANK_ID</th>
           <th class='col-agent'>[USER] AGENT_IDENTITY</th>
           <th class='col-today' style="width:18%">[STREAM] TODAY_FLOW</th>
-          <th class='col-day'>W</th>
-          <th class='col-day'>T</th>
-          <th class='col-day'>F</th>
-          <th class='col-day'>S</th>
-          <th class='col-day'>M</th>
-          <th class='col-day'>T</th>
+          <th class='col-day'>W</th><th class='col-day'>T</th><th class='col-day'>F</th><th class='col-day'>S</th><th class='col-day'>M</th><th class='col-day'>T</th>
           <th class='col-total' style="width:18%">[BUFFER] TOTAL_CACHE</th>
         </tr>
       </thead>
@@ -226,41 +207,43 @@
   </div>
 
   <div id='meta'>
-    <div id='diag'>INITIALIZING CONNECTION... WAIT.</div>
+    <div id='diag'>INITIALIZING...</div>
     <div style="float:right; font-size:0.8rem;">TRACE COMPLETE.</div>
   </div>
 </div>
 
 <script>
 /* =========================================
-   1. VISUAL: MATRIX RAIN (FONDO DINÁMICO)
+   1. VISUAL: MATRIX RAIN & SYSTEM OVERCLOCK
    ========================================= */
 const canvas = document.getElementById('matrix-canvas');
 const ctx = canvas.getContext('2d');
-
 function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.addEventListener('resize', resizeCanvas); resizeCanvas();
 
 const chars = ' ᚠᛃᛒアァカサタナハマヤャラワガザダバパイィキシチニヒミリギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレゲゼデベペオォコソトノホモヨョロゴゾドボポヴォン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const charArray = chars.split('');
-const fontSize = 14;
-const columns = canvas.width / fontSize;
-const drops = [];
-for (let i = 0; i < columns; i++) drops[i] = Math.random() * -100;
+const fontSize = 14; const columns = canvas.width / fontSize;
+const drops = []; for (let i = 0; i < columns; i++) drops[i] = Math.random() * -100;
+
+let isOverclocked = false;
+let matrixInterval;
 
 function drawMatrix() {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+    ctx.fillStyle = isOverclocked ? 'rgba(0,0,0,0.2)' : 'rgba(0, 0, 0, 0.05)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Detectar si el modo rojo está activo
     const isRed = document.body.classList.contains('red-mode');
-    ctx.fillStyle = isRed ? '#F00' : '#0F0'; 
+    
     ctx.font = fontSize + 'px monospace';
     
     for (let i = 0; i < drops.length; i++) {
-        // Cabezal blanco de la gota
-        if(Math.random() > 0.98) ctx.fillStyle = '#FFF'; 
-        else ctx.fillStyle = isRed ? '#F00' : '#0F0';
+        if (isOverclocked) {
+            ctx.fillStyle = '#FFF'; 
+        } else {
+            if(Math.random() > 0.98) ctx.fillStyle = '#FFF'; 
+            else ctx.fillStyle = isRed ? '#F00' : '#0F0';
+        }
         
         const text = charArray[Math.floor(Math.random() * charArray.length)];
         ctx.fillText(text, i * fontSize, drops[i] * fontSize);
@@ -268,66 +251,80 @@ function drawMatrix() {
         drops[i]++;
     }
 }
-setInterval(drawMatrix, 33);
+matrixInterval = setInterval(drawMatrix, 33);
+
+/* --- EVENTOS SYSTEM OVERCLOCK (ESPACIO) --- */
+document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && !isOverclocked) {
+        e.preventDefault();
+        isOverclocked = true;
+        clearInterval(matrixInterval);
+        matrixInterval = setInterval(drawMatrix, 5); // Velocidad extrema
+        document.getElementById('board').style.boxShadow = "0 0 50px #FFF";
+        document.getElementById('board').style.borderColor = "#FFF";
+    }
+});
+document.addEventListener('keyup', (e) => {
+    if (e.code === 'Space') {
+        isOverclocked = false;
+        clearInterval(matrixInterval);
+        matrixInterval = setInterval(drawMatrix, 33);
+        document.getElementById('board').style.boxShadow = "";
+        document.getElementById('board').style.borderColor = "";
+    }
+});
+
+/* --- EVENTO ACCESS DENIED (CLICK DERECHO) --- */
+document.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    const overlay = document.getElementById('access-overlay');
+    const board = document.getElementById('board');
+    overlay.style.display = 'flex';
+    board.classList.add('shake-violent');
+    setTimeout(() => {
+        overlay.style.display = 'none';
+        board.classList.remove('shake-violent');
+    }, 800);
+});
 
 /* =========================================
-   2. LÓGICA DE DATOS (CORREGIDA PARA 2026)
+   2. MOTOR DE DATOS (IMPORTADO DEL CLEAN VERSION)
    ========================================= */
-const BAR_LENGTH = 14; 
-const CHAR_FILL = '1'; const CHAR_EMPTY = '0';
-
-// IDs Y API
-const API_KEY        = "AIzaSyDwOqp2uizZol2et6Uqi7CnntW9Hkrinjg";
+const BAR_LENGTH = 14; const CHAR_FILL = '1'; const CHAR_EMPTY = '0';
+const API_KEY = "AIzaSyDwOqp2uizZol2et6Uqi7CnntW9Hkrinjg";
 const WEEKLY_SHEETID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
-const DAILY_ID_RAW   = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
-const TIMEZONE       = "America/Tijuana";
-const DAILY_REFRESH  = 12000; 
+const DAILY_ID_RAW = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
+const TIMEZONE = "America/Tijuana";
+const DAILY_REFRESH = 12000; 
 let ALL_DATA=[]; 
-let CURRENT_TOTAL = 0; // Para el scramble effect
+let CURRENT_TOTAL = 0;
 
 function diag(t){ document.getElementById('diag').textContent = `${t}`; }
 function setChipWeekly(t){ document.getElementById('chipWeekly').textContent = `${t}`; }
 function setChipDaily(t){ document.getElementById('chipDaily').textContent = `${t}`; }
+function getLocalDate(){ const s=new Date().toLocaleString('en-US',{timeZone:TIMEZONE}); return new Date(s); }
+function isoWeek(d){ const x=new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const n=x.getUTCDay()||7; x.setUTCDate(x.getUTCDate()+4-n); const y=new Date(Date.UTC(x.getUTCFullYear(),0,1)); return {week:Math.ceil((((x-y)/86400000)+1)/7), year:x.getUTCFullYear()}; }
+function weeksInISOYear(y){ const d=new Date(Date.UTC(y,11,31)); const day=d.getUTCDay(); return (day===4 || (d.getUTCDate()===31 && day===3))?53:52; }
 
-// FECHA ACTUAL CON ZONA HORARIA
-function getLocalDate(){ 
-    const s=new Date().toLocaleString('en-US',{timeZone:TIMEZONE}); 
-    return new Date(s); 
-}
-
-// CÁLCULO SEMANA ISO (CORREGIDO)
-function isoWeek(date) {
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
-    return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
-}
-
-// DETERMINAR PESTAÑA SEMANAL (W1, W2, etc.)
 function computeWeeklyTabName(){
-  const url=new URL(window.location.href); 
-  const override=url.searchParams.get('weeklyTab'); 
-  if(override) return override;
-  
-  const local=getLocalDate(); 
-  const hrs=local.getHours(); 
-  const dow=local.getDay(); 
-  let w = isoWeek(local); 
-  
-  // CORTE DE SEMANA (JUEVES > 14:00)
-  const afterCut = (dow > 4) || (dow === 4 && hrs >= 14); 
-  if(afterCut){ 
-      w++; 
-      // Lógica Roll-Over: Si es sem 53 y pasa corte -> W1
-      if(w > 53) w = 1; 
-  }
+  const url=new URL(window.location.href); const override=url.searchParams.get('weeklyTab'); if(override) return override;
+  const local=getLocalDate(); const hrs=local.getHours(); const dow=local.getDay(); const iw=isoWeek(local); let w=iw.week;
+  const afterCut=(dow>4)||(dow===4&&hrs>=14); if(afterCut){ w++; const mx=weeksInISOYear(iw.year); if(w>mx){w=1;} }
   return `W${w}`;
 }
 
-function normName(s){ return (s||"").normalize('NFD').replace(/[\u0300-\u036f]/g,"").replace(/[^\x20-\x7E]/g,"").trim().toUpperCase(); }
+/* === KEY FIX: LIMPIEZA ROBUSTA DE NOMBRES (EMOJIS + NORMALIZACIÓN) === */
+const emoji=/[\u{1F1E6}-\u{1F1FF}\u{1F300}-\u{1FAFF}\u{1F900}-\u{1F9FF}\u{2600}-\u{27BF}\u{FE0F}]/gu;
+function normName(s){ 
+    return (s||"").replace(emoji,"")
+                 .normalize('NFD').replace(/[\u0300-\u036f]/g,"")
+                 .replace(/[^\x20-\x7E]/g,"")
+                 .replace(/\s{2,}/g," ")
+                 .trim().toUpperCase(); 
+}
 function normID(s){ return (s||"").toString().trim(); }
 
+/* === KEY FIX: FETCH ROBUSTO === */
 async function fetchSafeJSON(url, {tries=4, baseDelay=700} = {}) {
   let lastErr;
   for (let i = 0; i < tries; i++) {
@@ -344,89 +341,94 @@ async function fetchSafeJSON(url, {tries=4, baseDelay=700} = {}) {
   throw lastErr || new Error('CONNECTION_FAILURE');
 }
 
-// LECTURA SEMANAL (ROBUSTA)
-
-  function fmtDailyTab(dt){ 
-    const m=new Intl.DateTimeFormat('en-US',{month:'short',timeZone:TIMEZONE}).format(dt); 
-    const dd=new Intl.DateTimeFormat('en-US',{day:'2-digit',timeZone:TIMEZONE}).format(dt); 
-    return `${m} ${dd}`; 
+async function readWeeklyTab(weeklyTab){
+  const ranges=[`${weeklyTab}!A3:C96`,`${weeklyTab}!D3:D96`,`${weeklyTab}!F3:F96`,`${weeklyTab}!H3:H96`,`${weeklyTab}!J3:J96`,`${weeklyTab}!L3:L96`,`${weeklyTab}!N3:N96`,`${weeklyTab}!O3:O96`].map(encodeURIComponent);
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_SHEETID}/values:batchGet?`+ranges.map(r=>`ranges=${r}`).join("&")+`&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
+  const j=await fetchSafeJSON(url); const vr=j.valueRanges||[];
+  const base=vr[0]?.values||[]; const toCol=v=>(v?.values||[]).map(r=>(r[0]??"").toString().trim());
+  const d=toCol(vr[1]), f=toCol(vr[2]), h=toCol(vr[3]), jv=toCol(vr[4]), l=toCol(vr[5]), n=toCol(vr[6]), oT=toCol(vr[7]);
+  const len=Math.max(base.length,d.length,f.length,h.length,jv.length,l.length,n.length,oT.length);
+  const out=[];
+  for(let i=0;i<len;i++){
+    const id=normID(base[i]?.[0]??""); const name=(base[i]?.[1]??"").toString().trim();
+    if(!id && !name) continue;
+    out.push({ id,idKey:id, name, nameKey:normName(name),
+      wed:parseInt(d[i]||0), thu:parseInt(f[i]||0), fri:parseInt(h[i]||0),
+      sat:parseInt(jv[i]||0), mon:parseInt(l[i]||0), tue:parseInt(n[i]||0),
+      total:parseInt(oT[i]||0), today:0 });
+  }
+  out.sort((a,b)=>(b.total||0)-(a.total||0));
+  return out;
 }
 
-function getDailyTabCandidates(){
-  const url=new URL(window.location.href); const o=url.searchParams.get('dailyTab'); if(o) return [o];
-  const now=getLocalDate(); 
-  const y=new Date(now.getTime()-86400000); 
-  // Intentar hoy y ayer
-  return [fmtDailyTab(now), fmtDailyTab(y)];
-}
+function fmtDailyTab(dt){ const m=new Intl.DateTimeFormat('en-US',{month:'short',timeZone:TIMEZONE}).format(dt); const dd=new Intl.DateTimeFormat('en-US',{day:'2-digit',timeZone:TIMEZONE}).format(dt); return `${m} ${dd}`; }
+function getDailyTabCandidates(){ const url=new URL(window.location.href); const o=url.searchParams.get('dailyTab'); if(o) return [o]; const now=getLocalDate(); const y=new Date(now.getTime()-86400000); return [fmtDailyTab(now), fmtDailyTab(y)]; }
 
 async function readDailyApproved(){
+  const rangesFor=tab=>([`${tab}!A2:A70`,`${tab}!B2:B70`,`${tab}!C2:C70`,`${tab}!E2:E70`,`${tab}!F2:F70`,`${tab}!G2:G70`].map(encodeURIComponent));
   const tabs=getDailyTabCandidates();
-  for(const tab of tabs){
-      const url=`https://sheets.googleapis.com/v4/spreadsheets/${DAILY_ID_RAW}/values:batchGet?ranges=${encodeURIComponent(tab)}!A2:G70&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
-      try {
-          const j=await fetchSafeJSON(url); 
-          if(j && j.valueRanges){
-              const A=(j.valueRanges[0]?.values)||[]; 
-              const mapByName=new Map(), mapByID=new Map();
-              for(let i=0;i<A.length;i++){
-                  const nm=(A[i][0]??"").toString(); const v=parseInt(A[i][2]??0)||0;
-                  if(nm.trim()){ const nk=normName(nm); mapByName.set(nk,(mapByName.get(nk)||0)+v); }
-              }
-              return {tab:tab, mapByName, mapByID}; 
-          }
-      } catch (e) { console.log(`Tab ${tab} not found`); }
+  const DAILY_IDS=[DAILY_ID_RAW];
+  for(const id of DAILY_IDS){
+    for(const tab of tabs){
+      const url=`https://sheets.googleapis.com/v4/spreadsheets/${id}/values:batchGet?`+rangesFor(tab).map(r=>`ranges=${r}`).join("&")+`&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
+      try{
+        const j=await fetchSafeJSON(url); const vr=j.valueRanges||[];
+        const A=vr[0]?.values||[], B=vr[1]?.values||[], C=vr[2]?.values||[];
+        const E=vr[3]?.values||[], F=vr[4]?.values||[], G=vr[5]?.values||[];
+        const mapByName=new Map(); const mapByID=new Map();
+        function addPair(nmCell,idCell,valCell){
+          const nm=(nmCell?.[0]??"").toString(); const id=(idCell?.[0]??"").toString().trim(); const v=parseInt((valCell?.[0]??0))||0;
+          if(nm.trim()){ const nk=normName(nm); mapByName.set(nk,(mapByName.get(nk)||0)+v); }
+          if(id){ mapByID.set(id,(mapByID.get(id)||0)+v); }
+        }
+        const rowsFK=Math.max(A.length,B.length,C.length); for(let i=0;i<rowsFK;i++) addPair(A[i],B[i],C[i]);
+        const rowsRG=Math.max(E.length,F.length,G.length); for(let i=0;i<rowsRG;i++) addPair(E[i],F[i],G[i]);
+        return {id, tab, mapByName, mapByID};
+      }catch(e){}
+    }
   }
-  return {tab:'NO DATA', mapByName:new Map(), mapByID:new Map()};
+  return {id:DAILY_IDS[0], tab:tabs[0], mapByName:new Map(), mapByID:new Map()};
 }
 
 let SCRAMBLING = false; let scrambleInterval;
-function updateTotalDisplay(total){ 
-    CURRENT_TOTAL = total;
-    if(!SCRAMBLING) document.getElementById('totalTodayValue').textContent = total.toString().padStart(4, '0'); 
-}
-function startScramble(){
-    SCRAMBLING = true;
-    const target = document.getElementById('totalTodayValue'); const chars = "0123456789X£¥Z";
-    scrambleInterval = setInterval(() => { target.textContent = Array(4).fill(0).map(() => chars[Math.floor(Math.random() * chars.length)]).join(''); }, 50);
-}
-function stopScramble(){
-    SCRAMBLING = false; clearInterval(scrambleInterval);
-    document.getElementById('totalTodayValue').textContent = CURRENT_TOTAL.toString().padStart(4, '0');
-}
+function updateTotalDisplay(total){ CURRENT_TOTAL = total; if(!SCRAMBLING) document.getElementById('totalTodayValue').textContent = total.toString().padStart(4, '0'); }
+function startScramble(){ SCRAMBLING = true; const target = document.getElementById('totalTodayValue'); const chars = "0123456789X£¥Z"; scrambleInterval = setInterval(() => { target.textContent = Array(4).fill(0).map(() => chars[Math.floor(Math.random() * chars.length)]).join(''); }, 50); }
+function stopScramble(){ SCRAMBLING = false; clearInterval(scrambleInterval); document.getElementById('totalTodayValue').textContent = CURRENT_TOTAL.toString().padStart(4, '0'); }
 
-function generateAsciiBar(value, max) {
-  if (max === 0) max = 1;
-  const filledCount = Math.round((value / max) * BAR_LENGTH);
-  const emptyCount = BAR_LENGTH - filledCount;
-  const barStr = CHAR_FILL.repeat(filledCount) + CHAR_EMPTY.repeat(emptyCount);
-  return `[${barStr}]_${value}`;
+function generateAsciiBar(value, max) { 
+    if (max === 0) max = 1; 
+    const filledCount = Math.round((value / max) * BAR_LENGTH); 
+    const emptyCount = BAR_LENGTH - filledCount;
+    // Protección contra negativos
+    const safeFilled = Math.max(0, filledCount);
+    const safeEmpty = Math.max(0, emptyCount);
+    const barStr = CHAR_FILL.repeat(safeFilled) + CHAR_EMPTY.repeat(safeEmpty); 
+    return `[${barStr}]_${value}`; 
 }
 
 function renderList(list){
   const tbody=document.querySelector("#tbl tbody"); tbody.innerHTML="";
+  
+  // Evitar división por cero
   const maxToday=Math.max(1, ...list.map(p=>p.today||0)); 
   const maxTotal=Math.max(1, ...list.map(p=>p.total||0));
   
   list.forEach((p,i)=>{
-    const rowIndex=i;
-    const today=p.today||0, total=p.total||0;
-
+    const rowIndex=i; const today=p.today||0, total=p.total||0;
+    
     let rankTxt = `N.${(rowIndex + 1).toString().padStart(2, '0')}`;
-    let rankClass = 'rank-txt';
+    let rankClass = 'rank-txt'; 
     if (rowIndex===0) { rankTxt = 'THE_ONE'; rankClass += ' rank-1'; } 
-    else if (rowIndex===1) { rankTxt = 'PRIORITY_2'; }
-    else if (rowIndex===2) { rankTxt = 'PRIORITY_3'; }
-
-    const asciiToday = generateAsciiBar(today, maxToday);
+    else if (rowIndex===1) rankTxt = 'PRIORITY_2'; 
+    else if (rowIndex===2) rankTxt = 'PRIORITY_3';
+    
+    const asciiToday = generateAsciiBar(today, maxToday); 
     const asciiTotal = generateAsciiBar(total, maxTotal);
-
+    
     const tr=document.createElement('tr');
     tr.innerHTML = `
       <td class="col-rank"><span class="${rankClass}">${rankTxt}</span></td>
-      <td class="col-agent">
-        <div class="agent-wrap"><div class="name">${p.name}</div></div>
-      </td>
+      <td class="col-agent"><div class="agent-wrap"><div class="name">${p.name}</div></div></td>
       <td class="col-today"><div class="ascii-bar">${asciiToday}</div></td>
       <td class="col-day">${p.wed||0}</td>
       <td class="col-day">${p.thu||0}</td>
@@ -434,115 +436,72 @@ function renderList(list){
       <td class="col-day">${p.sat||0}</td>
       <td class="col-day">${p.mon||0}</td>
       <td class="col-day">${p.tue||0}</td>
-      <td class="col-total"><div class="ascii-bar">${asciiTotal}</div></td>
-    `;
+      <td class="col-total"><div class="ascii-bar">${asciiTotal}</div></td>`;
     tbody.appendChild(tr);
   });
 }
 
 async function updateData(){
-  diag('PINGING SOURCE NODES...');
-  const weeklyTab=computeWeeklyTabName();
-  setChipWeekly(weeklyTab);
-
+  diag('PINGING SOURCE NODES...'); const weeklyTab=computeWeeklyTabName(); setChipWeekly(weeklyTab);
   const [weeklyData, dailyData] = await Promise.all([ readWeeklyTab(weeklyTab), readDailyApproved() ]);
   setChipDaily(dailyData.tab);
   
   const tempMap = new Map(); weeklyData.forEach(p => tempMap.set(p.idKey, p));
   dailyData.mapByName.forEach((score, nameKey) => { let agent = weeklyData.find(p => p.nameKey === nameKey); if (agent) agent.today = score; });
   dailyData.mapByID.forEach((score, idKey) => { let agent = tempMap.get(idKey); if (agent) agent.today = score; });
-
-  weeklyData.sort((a, b) => {
-    if ((b.today || 0) !== (a.today || 0)) return (b.today || 0) - (a.today || 0);
-    return ((b.total||0) + (b.today||0)) - ((a.total||0) + (a.today||0));
+  
+  weeklyData.sort((a, b) => { 
+      if ((b.today || 0) !== (a.today || 0)) return (b.today || 0) - (a.today || 0); 
+      return ((b.total||0) + (b.today||0)) - ((a.total||0) + (a.today||0)); 
   });
-
+  
   ALL_DATA = weeklyData.filter((p, i) => i < 3 || (p.total||0) > 0 || (p.today||0) > 0);
   updateTotalDisplay(ALL_DATA.reduce((sum, p) => sum + (p.today || 0), 0));
-
-  const now = new Date();
-  const timeStr = now.toLocaleTimeString('en-US', {timeZone: TIMEZONE, hour12: false});
-  diag(`DATA STREAM SYNCHRONIZED. [T:${timeStr}]`);
+  
+  const nowStr = new Date().toLocaleTimeString('en-US', {hour12:false});
+  diag(`DATA STREAM SYNCHRONIZED [${nowStr}]`);
 }
 
 (async function init(){ 
     await updateData(); 
     renderList(ALL_DATA); 
     setInterval(updateData, DAILY_REFRESH); 
-    startInfectionProtocol(); // INICIAR EL VIRUS
+    startInfectionProtocol(); 
 })();
 
-
-/* =========================================
-   3. EASTER EGGS: CONTAGIO & PASTILLA ROJA
-   ========================================= */
-
-// === PROTOCOLO DE CONTAGIO ===
+/* === EASTER EGGS EXTRA === */
 function startInfectionProtocol() {
-    // Se ejecuta cada 8-12 segundos (random)
     setInterval(() => {
-        const rows = document.querySelectorAll('#tbl tbody tr');
-        if (rows.length === 0) return;
-
-        const randomIndex = Math.floor(Math.random() * rows.length);
-        const row = rows[randomIndex];
-        const nameCell = row.querySelector('.name');
-        
+        const rows = document.querySelectorAll('#tbl tbody tr'); if (rows.length === 0) return;
+        const randomIndex = Math.floor(Math.random() * rows.length); const row = rows[randomIndex]; const nameCell = row.querySelector('.name');
         const originalName = nameCell.textContent;
-
-        // --- FASE 1: INFECCIÓN ---
-        row.classList.add('infected-row');
-        nameCell.textContent = "AGENT SMITH";
-
-        // --- FASE 2: CURA (Después de 2 segundos) ---
-        setTimeout(() => {
-            row.classList.remove('infected-row');
-            nameCell.textContent = originalName;
-        }, 2000);
-
+        row.classList.add('infected-row'); nameCell.textContent = "AGENT SMITH";
+        setTimeout(() => { row.classList.remove('infected-row'); nameCell.textContent = originalName; }, 2000);
     }, 8000);
 }
-
-// === INTERACCIÓN AL CLICK (DATA BURST) ===
 document.addEventListener('click', (e) => {
-    // Ignorar clic si es en un Chip (para no disparar estallido sobre el botón)
     if(e.target.closest('.chip')) return;
-
     const particleCount = 12; const symbols = '01xyZｦｧｨ';
     for(let i=0; i<particleCount; i++) {
-        const span = document.createElement('span');
-        span.textContent = symbols.charAt(Math.floor(Math.random() * symbols.length));
+        const span = document.createElement('span'); span.textContent = symbols.charAt(Math.floor(Math.random() * symbols.length));
         span.style.position = 'fixed'; span.style.left = e.clientX + 'px'; span.style.top = e.clientY + 'px';
         span.style.color = '#fff'; span.style.textShadow = '0 0 10px var(--matrix-bright)';
         span.style.fontFamily = 'monospace'; span.style.fontSize = (14 + Math.random() * 12) + 'px';
         span.style.fontWeight = 'bold'; span.style.pointerEvents = 'none'; span.style.zIndex = '9999'; span.style.userSelect = 'none';
         document.body.appendChild(span);
         const x = Math.cos(Math.random() * Math.PI * 2) * 60; const y = Math.sin(Math.random() * Math.PI * 2) * 60;
-        const anim = span.animate([
-            { transform: 'translate(-50%, -50%) scale(1)', opacity: 1, color: '#fff' },
-            { transform: `translate(calc(${x}px - 50%), calc(${y}px - 50%)) scale(0.5)`, opacity: 0, color: 'var(--matrix-base)' }
-        ], { duration: 500 + Math.random() * 300, easing: 'cubic-bezier(0, .9, .57, 1)' });
+        const anim = span.animate([ { transform: 'translate(-50%, -50%) scale(1)', opacity: 1, color: '#fff' }, { transform: `translate(calc(${x}px - 50%), calc(${y}px - 50%)) scale(0.5)`, opacity: 0, color: 'var(--matrix-base)' } ], { duration: 500, easing: 'cubic-bezier(0, .9, .57, 1)' });
         anim.onfinish = () => span.remove();
     }
     const board = document.getElementById('board');
     if(board){
         board.style.boxShadow = 'inset 0 0 60px var(--matrix-bright), 0 0 30px var(--matrix-bright)';
         board.style.borderColor = '#fff';
-        setTimeout(() => {
-            board.style.boxShadow = 'inset 0 0 30px var(--matrix-base), var(--crt-glow)';
-            board.style.borderColor = 'var(--matrix-base)';
-        }, 150);
+        setTimeout(() => { board.style.boxShadow = 'inset 0 0 30px var(--matrix-base), var(--crt-glow)'; board.style.borderColor = 'var(--matrix-base)'; }, 150);
     }
 });
-
-// === PASTILLA ROJA / AZUL (MODO DE COLOR) ===
-function setMatrixMode(mode) {
-    if (mode === 'red') {
-        document.body.classList.add('red-mode');
-    } else {
-        document.body.classList.remove('red-mode');
-    }
-}
+function setMatrixMode(mode) { if (mode === 'red') document.body.classList.add('red-mode'); else document.body.classList.remove('red-mode'); }
+function toggleInvert() { document.body.classList.toggle('invert-mode'); }
 </script>
 </body>
 </html>
