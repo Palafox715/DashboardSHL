@@ -3,7 +3,7 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>MATRIX SYSTEM ROOT v6.0 (CINEMATIC WIN)</title>
+<title>MATRIX SYSTEM ROOT v7.0 (TRANSPARENT)</title>
 <style>
   /* ===== VARIABLES MATRIX ===== */
   :root{
@@ -111,18 +111,22 @@
       transform: translate(-50%, -50%) scale(1.2); /* Efecto Zoom lento */
   }
 
-  /* CONTENEDOR PRINCIPAL */
+  /* CONTENEDOR PRINCIPAL - MODIFICADO PARA TRANSPARENCIA */
   #board{
     position:relative; z-index:1;
     width: 96%; height: 96%; margin: 2vh auto;
-    background-color: rgba(0, 10, 0, 0.85); 
+    
+    /* CAMBIO: Opacidad reducida al 60% para ver el fondo */
+    background-color: rgba(0, 10, 0, 0.60); 
+    backdrop-filter: blur(2px); /* Pequeño desenfoque para mejorar lectura */
+    
     border: 1px solid var(--matrix-base);
     box-shadow: inset 0 0 30px var(--matrix-base), var(--crt-glow);
     padding: 15px; box-sizing:border-box;
     display:flex; flex-direction:column; gap: 15px;
     overflow-y: auto;
     text-shadow: var(--crt-glow);
-    transition: opacity 1.5s ease, filter 1.5s ease; /* Transición suave para desaparecer */
+    transition: opacity 1.5s ease, filter 1.5s ease; 
   }
 
   /* Clase para desvanecer el tablero */
@@ -171,7 +175,8 @@
   
   thead th{
     position:sticky; top:0; z-index:2;
-    background: #001a00; color: var(--matrix-pale);
+    background: rgba(0, 26, 0, 0.8); /* Header un poco más oscuro para leer títulos */
+    color: var(--matrix-pale);
     text-align: center; padding: 10px 5px;
     border-bottom: 2px solid var(--matrix-base); letter-spacing: 1px;
   }
@@ -203,7 +208,7 @@
   ::-webkit-scrollbar-thumb { background: var(--matrix-base); border: 1px solid var(--matrix-bright); }
 
   @media (max-width: 768px) {
-    #board { width: 100%; height: 100%; margin: 0; border: none; background: rgba(0,10,0,0.9); }
+    #board { width: 100%; height: 100%; margin: 0; border: none; background: rgba(0,10,0,0.8); }
     .top-header-flex { flex-direction: column; align-items: stretch; gap: 15px;}
     .top-header-flex::after { display: none; }
     #dailyTotalDisplay { width: 100%; text-align: center;}
@@ -236,7 +241,7 @@
 
 <div id='board'>
   <div class='top-header-flex'> 
-    <h2 ondblclick="toggleInvert()" title="Double Click to Invert Phase">NEO_LEADERBOARD_V6</h2>
+    <h2 ondblclick="toggleInvert()" title="Double Click to Invert Phase">NEO_LEADERBOARD_V7</h2>
     <div id='dailyTotalDisplay' onmouseover="startScramble()" onmouseout="stopScramble()">
       <span class='label'>SYSTEM_INTEGRITY (TODAY):</span>
       <span class='value' id='totalTodayValue'>0000</span>
@@ -347,7 +352,11 @@ document.addEventListener('contextmenu', (e) => {
 /* =========================================
    2. MOTOR DE DATOS (FUNCIONAL)
    ========================================= */
-const BAR_LENGTH = 14; const CHAR_FILL = '1'; const CHAR_EMPTY = '0';
+const BAR_LENGTH = 14; 
+/* CAMBIO: Caracteres de carga estilo terminal */
+const CHAR_FILL = '█'; 
+const CHAR_EMPTY = '-'; 
+
 const API_KEY = "AIzaSyDwOqp2uizZol2et6Uqi7CnntW9Hkrinjg";
 const WEEKLY_SHEETID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
 const DAILY_ID_RAW = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
