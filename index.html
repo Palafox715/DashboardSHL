@@ -57,7 +57,7 @@
     z-index: 0; pointer-events: none;
   }
 
-  /* Overlay Poético (Antes Wake Up Neo) */
+  /* Overlay Poético */
   #wake-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.95); z-index: 10000;
@@ -267,15 +267,13 @@ function drawMatrix() {
 }
 setInterval(drawMatrix, 40);
 
-/* 2. LÓGICA DE DATOS (INTACTA PERO ESTILIZADA) */
+/* 2. LÓGICA DE DATOS (CORREGIDA PARA EMOTICONOS) */
 const BAR_LENGTH = 12; 
 const CHAR_FILL = '♥'; // Relleno de barra es corazón
 const CHAR_EMPTY = '.'; 
 
 // === CONFIGURACIÓN ===
-// Señor, cambie este nombre por el nombre exacto que aparece en su Excel
-// para que esa persona sea el "Trigger" del efecto especial.
-const TARGET_NAME_KEY = "CUPID"; 
+const TARGET_NAME_KEY = "CUPID"; // Cambiar por nombre especial si se desea
 
 const API_KEY = "AIzaSyDwOqp2uizZol2et6Uqi7CnntW9Hkrinjg";
 const WEEKLY_SHEETID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
@@ -304,36 +302,52 @@ async function fetchSafeJSON(url) {
   try { const r = await fetch(url); if (r.ok) return await r.json(); } catch (e) {} return null;
 }
 
+// Lectura de la Hoja Semanal (Base de datos principal)
 async function readWeeklyTab(weeklyTab){
+  // Rangos: A (ID), B (Nombre), y columnas de días
   const ranges=[`${weeklyTab}!A3:C96`,`${weeklyTab}!D3:D96`,`${weeklyTab}!F3:F96`,`${weeklyTab}!H3:H96`,`${weeklyTab}!J3:J96`,`${weeklyTab}!L3:L96`,`${weeklyTab}!N3:N96`,`${weeklyTab}!O3:O96`].map(encodeURIComponent);
   const url=`https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_SHEETID}/values:batchGet?`+ranges.map(r=>`ranges=${r}`).join("&")+`&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
   const j=await fetchSafeJSON(url); if(!j) return []; const vr=j.valueRanges||[];
   const base=vr[0]?.values||[]; const toCol=v=>(v?.values||[]).map(r=>(r[0]??"").toString().trim());
+  
   const d=toCol(vr[1]), f=toCol(vr[2]), h=toCol(vr[3]), jv=toCol(vr[4]), l=toCol(vr[5]), n=toCol(vr[6]), oT=toCol(vr[7]);
   const len=Math.max(base.length,d.length,f.length,h.length,jv.length,l.length,n.length,oT.length);
   const out=[];
   for(let i=0;i<len;i++){
-    const id=normID(base[i]?.[0]??""); const name=(base[i]?.[1]??"").toString().trim();
+    const id=normID(base[i]?.[0]??""); // Columna A es el ID en la hoja semanal
+    const name=(base[i]?.[1]??"").toString().trim(); // Columna B es el Nombre
     if(!id && !name) continue;
     out.push({ id,idKey:id, name, nameKey:normName(name), wed:parseInt(d[i]||0), thu:parseInt(f[i]||0), fri:parseInt(h[i]||0), sat:parseInt(jv[i]||0), mon:parseInt(l[i]||0), tue:parseInt(n[i]||0), total:parseInt(oT[i]||0), today:0 });
   }
   return out;
 }
+
 function fmtDailyTab(dt){ const m=new Intl.DateTimeFormat('en-US',{month:'short',timeZone:TIMEZONE}).format(dt); const dd=new Intl.DateTimeFormat('en-US',{day:'2-digit',timeZone:TIMEZONE}).format(dt); return `${m} ${dd}`; }
+
+// Lectura de la Hoja Diaria (Transfer Sheet) - CORREGIDA
 async function readDailyApproved(){
   const tabs=[fmtDailyTab(getLocalDate())];
-  const url=`https://sheets.googleapis.com/v4/spreadsheets/${DAILY_ID_RAW}/values:batchGet?ranges=${tabs[0]}!A2:G70&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
+  // Solicitamos A hasta C. Col A=Nombre raro, Col B=ID, Col C=Valor
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${DAILY_ID_RAW}/values:batchGet?ranges=${tabs[0]}!A2:C70&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
   const j=await fetchSafeJSON(url); 
+  
+  const mapByID = new Map(); // Mapa de IDs
+
   if(j && j.valueRanges){
       const A=(j.valueRanges[0]?.values)||[]; 
-      const mapByName=new Map(), mapByID=new Map();
-      for(let i=0;i<A.length;i++){
-          const nm=(A[i][0]??"").toString(); const v=parseInt(A[i][2]??0)||0;
-          if(nm.trim()){ const nk=normName(nm); mapByName.set(nk,(mapByName.get(nk)||0)+v); }
+      for(let i=0; i<A.length; i++){
+          // Columna B (index 1) es el ID numérico confiable
+          const idRaw = (A[i][1]??"").toString().trim(); 
+          // Columna C (index 2) es el valor numérico
+          const v = parseInt(A[i][2]??0) || 0;
+
+          if(idRaw){ 
+              mapByID.set(idRaw, (mapByID.get(idRaw)||0) + v); 
+          }
       }
-      return {tab:tabs[0], mapByName, mapByID}; 
+      return {tab:tabs[0], mapByID}; 
   }
-  return {tab:'OFFLINE', mapByName:new Map(), mapByID:new Map()};
+  return {tab:'OFFLINE', mapByID:new Map()};
 }
 
 let SCRAMBLING = false; let scrambleInterval;
@@ -403,9 +417,8 @@ function renderList(list){
   const maxTotal=Math.max(1, ...list.map(p=>p.total||0));
   
   list.forEach((p,i)=>{
-    // Identificar si es el "Target" (Anteriormente Smith)
-    // Se activa si el nombre contiene "SMITH" (Legacy) o el nombre especial que usted elija
-    const isTarget = (p.name && (p.name.includes("SMITH") || p.name.includes(TARGET_NAME_KEY)));
+    // Identificar si es el "Target" 
+    const isTarget = (p.name && (p.name.includes(TARGET_NAME_KEY)));
     
     let rowClass = "";
     if (isTarget) rowClass = "smith-row"; 
@@ -440,17 +453,31 @@ function renderList(list){
   });
 }
 
+// ACTUALIZACIÓN DE DATOS (CORREGIDA)
 async function updateData(){
   diag('SEARCHING FOR HEARTBEAT...');
   const weeklyTab=computeWeeklyTabName();
   setChipWeekly(weeklyTab);
 
+  // 1. Lectura
   const [weeklyData, dailyData] = await Promise.all([ readWeeklyTab(weeklyTab), readDailyApproved() ]);
   setChipDaily(dailyData.tab);
   
-  const tempMap = new Map(); weeklyData.forEach(p => tempMap.set(p.idKey, p));
-  dailyData.mapByName.forEach((score, nameKey) => { let agent = weeklyData.find(p => p.nameKey === nameKey); if (agent) agent.today = score; });
+  // 2. Mapeo Weekly -> ID (Para búsqueda rápida)
+  const tempMap = new Map(); 
+  weeklyData.forEach(p => tempMap.set(p.idKey, p));
   
+  // 3. Cruce de datos usando IDs (Columna B de Daily vs Columna A de Weekly)
+  weeklyData.forEach(agent => {
+      // Si el agente tiene ID y ese ID existe en el reporte diario
+      if(agent.idKey && dailyData.mapByID.has(agent.idKey)){
+          agent.today = dailyData.mapByID.get(agent.idKey);
+      } else {
+          agent.today = 0;
+      }
+  });
+  
+  // 4. Ordenamiento
   weeklyData.sort((a, b) => {
     if ((b.today || 0) !== (a.today || 0)) return (b.today || 0) - (a.today || 0);
     return ((b.total||0) + (b.today||0)) - ((a.total||0) + (a.today||0));
@@ -467,7 +494,7 @@ async function updateData(){
 
 /* 3. INTERACCIONES EXTRA */
 
-// Click effects (Corazones flotantes al hacer click en cualquier lado)
+// Click effects (Corazones flotantes)
 document.addEventListener('click', (e) => {
     if(e.target.closest('.chip') || e.target.closest('.smith-row')) return; 
     const particleCount = 6; 
@@ -480,13 +507,13 @@ document.addEventListener('click', (e) => {
         span.style.pointerEvents = 'none'; span.style.zIndex = '9999';
         document.body.appendChild(span);
         const x = (Math.random() - 0.5) * 100;
-        const y = (Math.random() - 1) * 100; // Subir hacia arriba
+        const y = (Math.random() - 1) * 100; 
         const anim = span.animate([ { transform: 'translate(0,0) scale(1)', opacity: 1 }, { transform: `translate(${x}px, ${y}px) scale(0)`, opacity: 0 } ], { duration: 800 });
         anim.onfinish = () => span.remove();
     }
 });
 
-// Mensaje secreto ("Wake Up Neo" transformado)
+// Mensaje secreto 
 document.addEventListener('keydown', async (e) => {
     if (e.key === 'Escape' || e.key.toLowerCase() === 'l') { // L for Love
         const overlay = document.getElementById('wake-overlay');
