@@ -6,7 +6,7 @@
 <title>PROTOCOL: VALENTINE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Share+Tech+Mono&family=Great+Vibes&display=swap" rel="stylesheet">
 
 <style>
   /* ===== PALETA ETHEREAL RED ===== */
@@ -22,6 +22,7 @@
     
     --font-header: 'Cinzel', serif;
     --font-tech: 'Share Tech Mono', monospace;
+    --font-hand: 'Great Vibes', cursive; /* Fuente para la firma */
     
     --glow-soft: 0 0 10px rgba(255, 77, 109, 0.3);
     --glow-strong: 0 0 15px var(--primary-red), 0 0 30px var(--neon-pink);
@@ -58,8 +59,8 @@
     z-index: 0; pointer-events: none;
   }
 
-  /* Overlay Poético */
-  #wake-overlay {
+  /* Overlay Poético y Modal */
+  #wake-overlay, #reward-modal {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.95); z-index: 10000;
       display: none; place-items: center; justify-content: center;
@@ -213,6 +214,38 @@
       100% { transform: scale(0) rotate(-15deg); opacity: 0; }
   }
 
+  /* ===== ESTILOS DEL MODAL DE RECOMPENSA Y FIRMA ===== */
+  #reward-content {
+      background: rgba(20, 0, 0, 0.9);
+      padding: 40px; border: 2px solid var(--gold-accent);
+      border-radius: 15px; box-shadow: 0 0 50px var(--primary-red);
+      text-align: center;
+  }
+  #reward-input {
+      background: transparent; border: none; border-bottom: 2px solid var(--neon-pink);
+      color: var(--gold-accent); font-family: var(--font-hand); font-size: 2rem;
+      text-align: center; width: 80%; outline: none; margin: 20px 0;
+  }
+  #reward-btn {
+      background: var(--primary-red); color: white; border: none; padding: 10px 30px;
+      font-family: var(--font-header); font-size: 1rem; cursor: pointer;
+      transition: 0.3s; margin-top: 10px;
+  }
+  #reward-btn:hover { background: var(--neon-pink); box-shadow: 0 0 15px var(--neon-pink); }
+
+  /* La Firma del Jugador en la Interfaz */
+  #player-signature {
+      position: absolute; bottom: 80px; left: 20px;
+      font-family: var(--font-hand);
+      font-size: 1.8rem;
+      color: var(--neon-pink);
+      transform: rotate(-5deg);
+      text-shadow: 0 0 5px var(--primary-red), 0 0 10px var(--neon-pink);
+      opacity: 0.9;
+      pointer-events: none;
+      z-index: 5;
+  }
+
   /* Móvil */
   @media (max-width: 768px) {
     #board { width: 100%; height: 100%; margin: 0; border: none; border-radius: 0; }
@@ -221,17 +254,30 @@
     tbody td { border: none; width: 100%; padding: 2px 0; display: flex; justify-content: space-between; }
     .col-day { display: none; }
     .col-rank { font-size: 0.8rem; color: var(--gold-accent); width: 100%; text-align: right; }
+    #player-signature { bottom: 120px; left: 10px; font-size: 1.2rem; }
   }
 </style>
 </head>
 <body>
 <canvas id="matrix-canvas"></canvas>
+
 <div id="wake-overlay"></div>
+
+<div id="reward-modal">
+    <div id="reward-content">
+        <h2 style="text-align:center; font-size:1.5rem">Achievement Unlocked</h2>
+        <p style="font-family:var(--font-tech); font-size:0.9rem; color:#fff;">Has cazado 100 ilusiones. Deja tu marca en el sistema.</p>
+        <input type="text" id="reward-input" placeholder="Escribe tu frase..." maxlength="30" autocomplete="off">
+        <br>
+        <button id="reward-btn" onclick="saveSignature()">GRABAR EN CÓDIGO</button>
+    </div>
+</div>
 
 <div id="mini-score-panel">
     <span class="score-label">TARGETS_HIT:</span>
     <span class="score-val" id="score-counter">00</span>
 </div>
+
 <div id="flying-cupid" onclick="hitCupid()">👼</div>
 
 <div id='board'>
@@ -263,6 +309,8 @@
       <tbody></tbody>
     </table>
   </div>
+  
+  <div id="player-signature"></div>
 
   <div id='meta'>
     <div id='diag'>INITIALIZING HEARTBEAT...</div>
@@ -505,7 +553,7 @@ async function updateData(){
 /* 3. INTERACCIONES EXTRA */
 // Click global (partículas)
 document.addEventListener('click', (e) => {
-    if(e.target.closest('.chip') || e.target.closest('.smith-row') || e.target.id === 'flying-cupid') return; 
+    if(e.target.closest('.chip') || e.target.closest('.smith-row') || e.target.id === 'flying-cupid' || e.target.closest('#reward-modal')) return; 
     const particleCount = 6; 
     for(let i=0; i<particleCount; i++) {
         const span = document.createElement('span');
@@ -522,7 +570,7 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Mensaje secreto
+// Mensaje secreto L
 document.addEventListener('keydown', async (e) => {
     if (e.key === 'Escape' || e.key.toLowerCase() === 'l') { 
         const overlay = document.getElementById('wake-overlay');
@@ -542,11 +590,12 @@ async function typeWriter(text, container) {
 }
 
 /* ================================
-   MINI JUEGO: CAZA-CUPIDOS
+   MINI JUEGO: CAZA-CUPIDOS & RECOMPENSA
    ================================ */
 let gameScore = 0;
 const cupidEl = document.getElementById('flying-cupid');
 const scoreEl = document.getElementById('score-counter');
+const TARGET_SCORE = 100; // Puntos necesarios para desbloquear
 
 function moveCupid() {
     const maxX = window.innerWidth - 100;
@@ -563,18 +612,49 @@ function moveCupid() {
 function hitCupid() {
     gameScore++;
     scoreEl.textContent = gameScore.toString().padStart(2, '0');
+    
+    // Check de Recompensa
+    if(gameScore === TARGET_SCORE) {
+        unlockReward();
+    }
+
     // Efecto visual rápido
     cupidEl.classList.add('cupid-hit');
-    setTimeout(moveCupid, 400); // Se mueve rápido tras el golpe
+    setTimeout(moveCupid, 400); 
+}
+
+// LOGICA DE RECOMPENSA
+function unlockReward() {
+    // Abrir Modal
+    document.getElementById('reward-modal').style.display = 'flex';
+}
+
+function saveSignature() {
+    const text = document.getElementById('reward-input').value;
+    if(text.trim() !== "") {
+        const sigDiv = document.getElementById('player-signature');
+        sigDiv.textContent = `"${text}"`;
+        // Guardar en LocalStorage para que persista
+        localStorage.setItem('cupid_signature', text);
+        
+        document.getElementById('reward-modal').style.display = 'none';
+    }
+}
+
+// Cargar firma guardada al inicio (si existe)
+const savedSig = localStorage.getItem('cupid_signature');
+if(savedSig) {
+    document.getElementById('player-signature').textContent = `"${savedSig}"`;
 }
 
 // Mover automáticamente cada 2.5s si no lo atrapan
 setInterval(() => {
-    if(!cupidEl.classList.contains('cupid-hit')){ moveCupid(); }
+    if(!cupidEl.classList.contains('cupid-hit') && document.getElementById('reward-modal').style.display !== 'flex'){ 
+        moveCupid(); 
+    }
 }, 2500);
 
 moveCupid(); // Inicio
 </script>
 </body>
 </html>
-
