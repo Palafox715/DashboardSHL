@@ -46,6 +46,7 @@
     font-family: var(--font-tech);
     font-size: 16px;
     overflow: hidden;
+    cursor: default;
   }
 
   #matrix-canvas { position: fixed; top: 0; left: 0; z-index: 0; opacity: 0.4; pointer-events: none; }
@@ -82,7 +83,7 @@
     transition: all 0.5s ease;
   }
   
-  /* ESTILO CUANDO "CUPIDO" ESTÁ ACTIVO */
+  /* ESTILO CUANDO "CUPIDO" ESTÁ ACTIVO (Modo Fiesta) */
   #board.infected {
       animation: heartbeat 1.5s infinite;
       border-color: var(--neon-pink);
@@ -161,8 +162,6 @@
       cursor: pointer !important;
   }
   .smith-row .name { font-weight: bold; text-shadow: var(--glow-soft); }
-  
-  /* Glitch romántico */
   .smith-glitch { animation: pulse-text 2s infinite; }
   @keyframes pulse-text { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; text-shadow: var(--glow-strong); } }
 
@@ -176,13 +175,51 @@
   ::-webkit-scrollbar-track { background: #111; }
   ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
 
+  /* ===== ESTILOS DEL MINI JUEGO ===== */
+  #mini-score-panel {
+      position: fixed; bottom: 20px; right: 20px;
+      background: rgba(15, 5, 5, 0.9);
+      border: 1px solid var(--primary-red);
+      box-shadow: 0 0 15px rgba(255, 77, 109, 0.2);
+      padding: 10px 20px; border-radius: 8px;
+      z-index: 9998; display: flex; align-items: center; gap: 10px;
+      font-family: var(--font-tech);
+      transition: transform 0.2s;
+  }
+  #mini-score-panel:hover { transform: scale(1.05); }
+  
+  .score-label { color: var(--neon-pink); font-size: 0.8rem; letter-spacing: 1px; }
+  .score-val { color: var(--gold-accent); font-size: 1.5rem; font-weight: bold; text-shadow: 0 0 10px var(--gold-accent); }
+
+  #flying-cupid {
+      position: fixed;
+      font-size: 3.5rem; /* Tamaño del cupido */
+      z-index: 9999;
+      cursor: crosshair; /* Cursor de mira para disparar */
+      user-select: none;
+      filter: drop-shadow(0 0 15px var(--neon-pink));
+      transition: top 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), 
+                  left 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), 
+                  transform 0.1s;
+  }
+  
+  /* Animación al recibir un disparo */
+  .cupid-hit {
+      animation: hit-anim 0.3s forwards;
+  }
+  @keyframes hit-anim {
+      0% { transform: scale(1) rotate(0deg); filter: hue-rotate(0deg); }
+      50% { transform: scale(1.4) rotate(15deg); filter: hue-rotate(180deg) brightness(2); }
+      100% { transform: scale(0) rotate(-15deg); opacity: 0; }
+  }
+
   /* Móvil */
   @media (max-width: 768px) {
     #board { width: 100%; height: 100%; margin: 0; border: none; border-radius: 0; }
     thead { display: none; }
     tbody tr { display: flex; flex-wrap: wrap; margin-bottom: 15px; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; }
     tbody td { border: none; width: 100%; padding: 2px 0; display: flex; justify-content: space-between; }
-    .col-day { display: none; } /* Ocultar días individuales en móvil para limpieza */
+    .col-day { display: none; }
     .col-rank { font-size: 0.8rem; color: var(--gold-accent); width: 100%; text-align: right; }
   }
 </style>
@@ -190,6 +227,12 @@
 <body>
 <canvas id="matrix-canvas"></canvas>
 <div id="wake-overlay"></div>
+
+<div id="mini-score-panel">
+    <span class="score-label">TARGETS_HIT:</span>
+    <span class="score-val" id="score-counter">00</span>
+</div>
+<div id="flying-cupid" onclick="hitCupid()">👼</div>
 
 <div id='board'>
   <div class='top-header-flex'> 
@@ -234,7 +277,6 @@ const ctx = canvas.getContext('2d');
 function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.addEventListener('resize', resizeCanvas); resizeCanvas();
 
-// Caracteres: Corazones, 1, 0, y letras rúnicas estéticas
 const chars = '♥♡10XY❤10❥'; 
 const charArray = chars.split('');
 const fontSize = 16; const columns = canvas.width / fontSize; const drops = [];
@@ -242,34 +284,29 @@ for (let i = 0; i < columns; i++) drops[i] = Math.random() * -100;
 
 function drawMatrix() {
     const isCupid = document.body.classList.contains('cupid-mode');
-    
-    // Desvanecimiento suave para dejar estela
     ctx.fillStyle = 'rgba(15, 5, 5, 0.05)'; 
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
     ctx.font = fontSize + 'px monospace';
     
     for (let i = 0; i < drops.length; i++) {
-        // Color aleatorio entre rosa, rojo y dorado tenue
         const r = Math.random();
         if (r > 0.90) ctx.fillStyle = '#FFD700'; // Dorado
         else if (r > 0.6) ctx.fillStyle = '#FF4D6D'; // Rosa
         else ctx.fillStyle = '#591018'; // Rojo oscuro
         
-        if(isCupid) ctx.fillStyle = '#FF0055'; // Todo rosa neón en modo cupido
+        if(isCupid) ctx.fillStyle = '#FF0055'; // Neón en modo cupido
 
         const text = charArray[Math.floor(Math.random() * charArray.length)];
         ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-        
         if (drops[i] * fontSize > canvas.height && Math.random() > 0.98) drops[i] = 0;
         drops[i]++;
     }
 }
 setInterval(drawMatrix, 40);
 
-/* 2. LÓGICA DE DATOS (CORREGIDA PARA EMOTICONOS) */
+/* 2. LÓGICA DE DATOS (BLINDADA POR ID) */
 const BAR_LENGTH = 12; 
-const CHAR_FILL = '♥'; // Relleno de barra es corazón
+const CHAR_FILL = '♥'; 
 const CHAR_EMPTY = '.'; 
 
 // === CONFIGURACIÓN ===
@@ -302,20 +339,18 @@ async function fetchSafeJSON(url) {
   try { const r = await fetch(url); if (r.ok) return await r.json(); } catch (e) {} return null;
 }
 
-// Lectura de la Hoja Semanal (Base de datos principal)
+// Lectura de la Hoja Semanal
 async function readWeeklyTab(weeklyTab){
-  // Rangos: A (ID), B (Nombre), y columnas de días
   const ranges=[`${weeklyTab}!A3:C96`,`${weeklyTab}!D3:D96`,`${weeklyTab}!F3:F96`,`${weeklyTab}!H3:H96`,`${weeklyTab}!J3:J96`,`${weeklyTab}!L3:L96`,`${weeklyTab}!N3:N96`,`${weeklyTab}!O3:O96`].map(encodeURIComponent);
   const url=`https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_SHEETID}/values:batchGet?`+ranges.map(r=>`ranges=${r}`).join("&")+`&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
   const j=await fetchSafeJSON(url); if(!j) return []; const vr=j.valueRanges||[];
   const base=vr[0]?.values||[]; const toCol=v=>(v?.values||[]).map(r=>(r[0]??"").toString().trim());
-  
   const d=toCol(vr[1]), f=toCol(vr[2]), h=toCol(vr[3]), jv=toCol(vr[4]), l=toCol(vr[5]), n=toCol(vr[6]), oT=toCol(vr[7]);
   const len=Math.max(base.length,d.length,f.length,h.length,jv.length,l.length,n.length,oT.length);
   const out=[];
   for(let i=0;i<len;i++){
-    const id=normID(base[i]?.[0]??""); // Columna A es el ID en la hoja semanal
-    const name=(base[i]?.[1]??"").toString().trim(); // Columna B es el Nombre
+    const id=normID(base[i]?.[0]??""); 
+    const name=(base[i]?.[1]??"").toString().trim(); 
     if(!id && !name) continue;
     out.push({ id,idKey:id, name, nameKey:normName(name), wed:parseInt(d[i]||0), thu:parseInt(f[i]||0), fri:parseInt(h[i]||0), sat:parseInt(jv[i]||0), mon:parseInt(l[i]||0), tue:parseInt(n[i]||0), total:parseInt(oT[i]||0), today:0 });
   }
@@ -324,26 +359,21 @@ async function readWeeklyTab(weeklyTab){
 
 function fmtDailyTab(dt){ const m=new Intl.DateTimeFormat('en-US',{month:'short',timeZone:TIMEZONE}).format(dt); const dd=new Intl.DateTimeFormat('en-US',{day:'2-digit',timeZone:TIMEZONE}).format(dt); return `${m} ${dd}`; }
 
-// Lectura de la Hoja Diaria (Transfer Sheet) - CORREGIDA
+// Lectura de la Hoja Diaria (Por ID, Columna B)
 async function readDailyApproved(){
   const tabs=[fmtDailyTab(getLocalDate())];
-  // Solicitamos A hasta C. Col A=Nombre raro, Col B=ID, Col C=Valor
   const url=`https://sheets.googleapis.com/v4/spreadsheets/${DAILY_ID_RAW}/values:batchGet?ranges=${tabs[0]}!A2:C70&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
   const j=await fetchSafeJSON(url); 
   
-  const mapByID = new Map(); // Mapa de IDs
-
+  const mapByID = new Map(); 
   if(j && j.valueRanges){
       const A=(j.valueRanges[0]?.values)||[]; 
       for(let i=0; i<A.length; i++){
-          // Columna B (index 1) es el ID numérico confiable
+          // Columna B (index 1) es el ID numérico
           const idRaw = (A[i][1]??"").toString().trim(); 
-          // Columna C (index 2) es el valor numérico
+          // Columna C (index 2) es el valor
           const v = parseInt(A[i][2]??0) || 0;
-
-          if(idRaw){ 
-              mapByID.set(idRaw, (mapByID.get(idRaw)||0) + v); 
-          }
+          if(idRaw){ mapByID.set(idRaw, (mapByID.get(idRaw)||0) + v); }
       }
       return {tab:tabs[0], mapByID}; 
   }
@@ -376,9 +406,8 @@ function generateAsciiBar(value, max) {
 function activateCupid() {
     CUPID_ACTIVE = !CUPID_ACTIVE; // Toggle
     const board = document.getElementById('board');
-    
     if(CUPID_ACTIVE) {
-        board.classList.add('infected'); // infected ahora es "heartbeat"
+        board.classList.add('infected');
         document.body.classList.add('cupid-mode');
         createHeartExplosion();
     } else {
@@ -398,10 +427,8 @@ function createHeartExplosion() {
             span.style.fontSize = (20 + Math.random() * 40) + 'px';
             span.style.zIndex = '9999';
             document.body.appendChild(span);
-            
             const x = (Math.random() - 0.5) * window.innerWidth;
             const y = (Math.random() - 0.5) * window.innerHeight;
-            
             const anim = span.animate([ 
                 { transform: 'translate(-50%,-50%) scale(0)', opacity: 1 }, 
                 { transform: `translate(${x}px, ${y}px) scale(1)`, opacity: 0 } 
@@ -417,28 +444,19 @@ function renderList(list){
   const maxTotal=Math.max(1, ...list.map(p=>p.total||0));
   
   list.forEach((p,i)=>{
-    // Identificar si es el "Target" 
     const isTarget = (p.name && (p.name.includes(TARGET_NAME_KEY)));
-    
     let rowClass = "";
     if (isTarget) rowClass = "smith-row"; 
-
     let nameHtml = `<div class="name">${p.name}</div>`;
-    if (isTarget) {
-        nameHtml = `<div class="name smith-glitch">${p.name} ♥</div>`;
-    }
-
+    if (isTarget) { nameHtml = `<div class="name smith-glitch">${p.name} ♥</div>`; }
     let rankTxt = `${(i + 1)}`;
     let rankClass = 'rank-txt';
     if (i===0) { rankTxt = '♛'; rankClass += ' rank-1'; } 
-
-    // Click trigger
     let clickAttr = isTarget ? 'onclick="activateCupid()"' : '';
 
     const tr=document.createElement('tr');
     if(rowClass) tr.className = rowClass;
     if(clickAttr) tr.innerHTML = `<tr ${clickAttr}>`; 
-
     tr.innerHTML = `
       <td class="col-rank"><span class="${rankClass}">${rankTxt}</span></td>
       <td class="col-agent" ${clickAttr}>
@@ -453,23 +471,17 @@ function renderList(list){
   });
 }
 
-// ACTUALIZACIÓN DE DATOS (CORREGIDA)
+// ACTUALIZACIÓN DE DATOS
 async function updateData(){
   diag('SEARCHING FOR HEARTBEAT...');
   const weeklyTab=computeWeeklyTabName();
   setChipWeekly(weeklyTab);
 
-  // 1. Lectura
   const [weeklyData, dailyData] = await Promise.all([ readWeeklyTab(weeklyTab), readDailyApproved() ]);
   setChipDaily(dailyData.tab);
   
-  // 2. Mapeo Weekly -> ID (Para búsqueda rápida)
-  const tempMap = new Map(); 
-  weeklyData.forEach(p => tempMap.set(p.idKey, p));
-  
-  // 3. Cruce de datos usando IDs (Columna B de Daily vs Columna A de Weekly)
+  // Cruce de datos por ID
   weeklyData.forEach(agent => {
-      // Si el agente tiene ID y ese ID existe en el reporte diario
       if(agent.idKey && dailyData.mapByID.has(agent.idKey)){
           agent.today = dailyData.mapByID.get(agent.idKey);
       } else {
@@ -477,14 +489,12 @@ async function updateData(){
       }
   });
   
-  // 4. Ordenamiento
   weeklyData.sort((a, b) => {
     if ((b.today || 0) !== (a.today || 0)) return (b.today || 0) - (a.today || 0);
     return ((b.total||0) + (b.today||0)) - ((a.total||0) + (a.today||0));
   });
 
   ALL_DATA = weeklyData.filter((p, i) => i < 3 || (p.total||0) > 0 || (p.today||0) > 0);
-
   updateTotalDisplay(ALL_DATA.reduce((sum, p) => sum + (p.today || 0), 0));
   diag(`CONNECTION ESTABLISHED.`);
   renderList(ALL_DATA);
@@ -493,10 +503,9 @@ async function updateData(){
 (async function init(){ await updateData(); setInterval(updateData, DAILY_REFRESH); })();
 
 /* 3. INTERACCIONES EXTRA */
-
-// Click effects (Corazones flotantes)
+// Click global (partículas)
 document.addEventListener('click', (e) => {
-    if(e.target.closest('.chip') || e.target.closest('.smith-row')) return; 
+    if(e.target.closest('.chip') || e.target.closest('.smith-row') || e.target.id === 'flying-cupid') return; 
     const particleCount = 6; 
     for(let i=0; i<particleCount; i++) {
         const span = document.createElement('span');
@@ -513,18 +522,16 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Mensaje secreto 
+// Mensaje secreto
 document.addEventListener('keydown', async (e) => {
-    if (e.key === 'Escape' || e.key.toLowerCase() === 'l') { // L for Love
+    if (e.key === 'Escape' || e.key.toLowerCase() === 'l') { 
         const overlay = document.getElementById('wake-overlay');
         overlay.style.display = 'flex'; overlay.innerHTML = '';
-        
-        await typeWriter("Love is composed ...", overlay); await new Promise(r => setTimeout(r, 1500));
+        await typeWriter("El destino...", overlay); await new Promise(r => setTimeout(r, 1500));
         overlay.innerHTML = ''; 
-        await typeWriter("of a single soul...", overlay); await new Promise(r => setTimeout(r, 1500));
+        await typeWriter("No es código...", overlay); await new Promise(r => setTimeout(r, 1500));
         overlay.innerHTML = '';
-        await typeWriter("inhabiting two bodies..", overlay); await new Promise(r => setTimeout(r, 2000));
-        
+        await typeWriter("Es sentimiento.", overlay); await new Promise(r => setTimeout(r, 2000));
         overlay.style.display = 'none';
     }
 });
@@ -533,7 +540,40 @@ async function typeWriter(text, container) {
         container.innerHTML += text.charAt(i); await new Promise(r => setTimeout(r, 100));
     }
 }
+
+/* ================================
+   MINI JUEGO: CAZA-CUPIDOS
+   ================================ */
+let gameScore = 0;
+const cupidEl = document.getElementById('flying-cupid');
+const scoreEl = document.getElementById('score-counter');
+
+function moveCupid() {
+    const maxX = window.innerWidth - 100;
+    const maxY = window.innerHeight - 100;
+    const randomX = Math.floor(Math.random() * maxX);
+    const randomY = Math.floor(Math.random() * maxY);
+    cupidEl.classList.remove('cupid-hit');
+    cupidEl.style.opacity = "1";
+    cupidEl.style.transform = "scale(1)";
+    cupidEl.style.left = randomX + 'px';
+    cupidEl.style.top = randomY + 'px';
+}
+
+function hitCupid() {
+    gameScore++;
+    scoreEl.textContent = gameScore.toString().padStart(2, '0');
+    // Efecto visual rápido
+    cupidEl.classList.add('cupid-hit');
+    setTimeout(moveCupid, 400); // Se mueve rápido tras el golpe
+}
+
+// Mover automáticamente cada 2.5s si no lo atrapan
+setInterval(() => {
+    if(!cupidEl.classList.contains('cupid-hit')){ moveCupid(); }
+}, 2500);
+
+moveCupid(); // Inicio
 </script>
 </body>
 </html>
-
