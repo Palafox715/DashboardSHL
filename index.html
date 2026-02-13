@@ -192,22 +192,22 @@
   .score-label { color: var(--neon-pink); font-size: 0.8rem; letter-spacing: 1px; }
   .score-val { color: var(--gold-accent); font-size: 1.5rem; font-weight: bold; text-shadow: 0 0 10px var(--gold-accent); }
 
-  /* ESTILO ACTUALIZADO PARA LA IMAGEN DEL PERRITO */
+  /* ESTILO ACTUALIZADO: EL PERRITO ALADO DE IMBGG */
   #flying-cupid {
       position: fixed;
-      width: 100px; /* Tamaño del perrito */
-      height: 100px;
+      width: 120px; /* Tamaño ajustado para que se vea bien el perrito */
+      height: 120px;
       z-index: 9999;
       cursor: crosshair;
       user-select: none;
       
-      /* Aquí inyectamos tu imagen de Drive */
-      background-image: url('https://drive.google.com/uc?export=view&id=1qdsSomsKIBsmNOUxf6EZhXEQyl_F8NyA');
+      /* Enlace directo a tu imagen en ImgBB */
+      background-image: url('https://i.ibb.co/N2PrLpZg/1000023341.png');
       background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
       
-      filter: drop-shadow(0 0 10px var(--neon-pink));
+      filter: drop-shadow(0 0 15px var(--neon-pink));
       
       transition: top 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), 
                   left 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), 
@@ -267,7 +267,7 @@
     #player-signature { bottom: 120px; left: 10px; font-size: 1.2rem; }
     
     /* Ajuste tamaño perrito en móvil */
-    #flying-cupid { width: 70px; height: 70px; }
+    #flying-cupid { width: 80px; height: 80px; }
   }
 </style>
 </head>
@@ -583,7 +583,7 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Mensaje secreto L
+// Mensaje secreto L (TEXTO ACTUALIZADO)
 document.addEventListener('keydown', async (e) => {
     if (e.key === 'Escape' || e.key.toLowerCase() === 'l') { 
         const overlay = document.getElementById('wake-overlay');
@@ -608,7 +608,7 @@ async function typeWriter(text, container) {
 let gameScore = 0;
 const cupidEl = document.getElementById('flying-cupid');
 const scoreEl = document.getElementById('score-counter');
-const TARGET_SCORE = 100; // Puntos necesarios para desbloquear
+const TARGET_SCORE = 100; // Puntos para el logro
 
 function moveCupid() {
     const maxX = window.innerWidth - 100;
