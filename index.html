@@ -3,14 +3,14 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>MATRIX SYSTEM ROOT - XFER MONITOR</title>
+<title>MATRIX SYSTEM ROOT</title>
 <style>
   /* ===== VARIABLES MATRIX ===== */
   :root{
     --matrix-bg: #000000;
-    --matrix-base: #008F11; 
-    --matrix-bright: #00FF41; 
-    --matrix-pale: #98FB98; 
+    --matrix-base: #008F11;
+    --matrix-bright: #00FF41;
+    --matrix-pale: #98FB98;
     --term-font: 'Courier New', Courier, monospace;
     --crt-glow: 0 0 4px var(--matrix-base), 0 0 8px var(--matrix-bright);
     --text-glow-strong: 0 0 5px #fff, 0 0 10px var(--matrix-bright), 0 0 15px var(--matrix-bright);
@@ -28,7 +28,7 @@
 
   #matrix-canvas {
     position: fixed; top: 0; left: 0; z-index: 0;
-    opacity: 0.6; 
+    opacity: 0.8;
   }
 
   body::after {
@@ -37,11 +37,10 @@
     z-index: 999; pointer-events: none;
   }
 
-  /* CONTENEDOR PRINCIPAL */
   #board{
     position:relative; z-index:1;
     width: 96%; height: 96%; margin: 2vh auto;
-    background-color: rgba(0, 10, 0, 0.88); 
+    background-color: rgba(0, 10, 0, 0.85); 
     border: 1px solid var(--matrix-base);
     box-shadow: inset 0 0 30px var(--matrix-base), var(--crt-glow);
     padding: 15px; box-sizing:border-box;
@@ -55,12 +54,6 @@
     border-bottom: 2px solid var(--matrix-base);
     padding-bottom: 15px;
     position: relative;
-  }
-
-  .top-header-flex::after {
-      content: 'DATA_STREAM_ID: [0x5F3A1] // PROTOCOL: XFER_LOG // STATUS: ACTIVE';
-      position: absolute; bottom: -12px; left: 0;
-      font-size: 0.7rem; color: var(--matrix-base); letter-spacing: 1px;
   }
 
   h2{
@@ -86,9 +79,8 @@
     justify-content:flex-start; color: var(--matrix-pale);
     margin-top: 10px;
   }
-  .chip::before{ content: "[NODE]: "; color: var(--matrix-base); }
+  .chip::before{ content: "[MEMORY]: "; color: var(--matrix-base); }
 
-  /* TABLA DE DATOS */
   .table-wrap{ flex:1; min-height:0; position:relative; overflow: auto; border: 1px solid var(--matrix-base); }
   table{
     width:100%; min-width: 850px; border-collapse: collapse; border-spacing: 0;
@@ -100,9 +92,7 @@
     color: var(--matrix-pale);
     text-align: center; padding: 10px 5px;
     border-bottom: 2px solid var(--matrix-base);
-    letter-spacing: 1px;
   }
-  th.col-agent, td.col-agent{ text-align:left; }
 
   tbody td{
     border-bottom: 1px solid rgba(0, 143, 17, 0.3);
@@ -111,48 +101,34 @@
   }
   
   tbody tr:hover td{ 
-    background: rgba(0, 255, 65, 0.15);
+    background: rgba(0, 255, 65, 0.2);
     color: #fff;
-    cursor: default;
+    text-shadow: var(--text-glow-strong);
   }
 
-  .agent-wrap .name{ font-weight: bold; white-space:nowrap; letter-spacing: 1px; }
-
-  /* --- BARRAS MODERNAS (BLOCK STYLE) --- */
+  /* ESTILO DE BARRAS SOLICITADO */
   .ascii-bar{ 
-    font-family: var(--term-font); 
-    white-space: pre;
-    color: var(--matrix-base); 
+    font-family: var(--term-font); white-space: pre;
+    color: var(--matrix-bright); font-weight: bold;
     font-size: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    letter-spacing: 1px;
   }
-  .bar-visual { color: var(--matrix-bright); letter-spacing: 1px; }
-  .xfer-count { color: #fff; font-weight: bold; text-shadow: var(--crt-glow); min-width: 30px; display: inline-block; }
 
   #meta{ margin-top: 10px; border-top: 1px solid var(--matrix-base); padding-top:15px; color: var(--matrix-base); font-size: 0.9rem;}
   
   @keyframes decode { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-  #diag { display: inline-block; animation: decode 1s infinite steps(2); color: var(--matrix-pale); }
-  #diag::before { content: ">> SRC_SYNC: "; }
+  #diag { display: inline-block; animation: decode 0.5s infinite steps(2); color: var(--matrix-pale); }
+  #diag::before { content: ">> STATUS: "; }
 
-  .rank-txt { color: var(--matrix-base); }
   .rank-1 { color: #fff; text-shadow: var(--text-glow-strong); }
-
-  ::-webkit-scrollbar { width: 8px; background: #000; }
-  ::-webkit-scrollbar-thumb { background: var(--matrix-base); border: 1px solid var(--matrix-bright); }
 
   @media (max-width: 768px) {
     #board { width: 100%; height: 100%; margin: 0; border: none; }
-    .top-header-flex { flex-direction: column; align-items: stretch; gap: 15px;}
-    #dailyTotalDisplay { width: 100%; text-align: center;}
     thead { display: none; }
-    tbody tr { margin-bottom: 15px; padding: 10px; border: 1px solid var(--matrix-base); display: block; background: rgba(0, 20, 0, 0.6); }
-    tbody td { display: flex; justify-content: space-between; border: none; padding: 4px 0; }
-    td.col-rank::before { content: '[RANK]:'; color: var(--matrix-base); }
-    td.col-agent::before { content: '[AGENT]:'; color: var(--matrix-base); }
-    td.col-today::before { content: '[XFERS]:'; color: var(--matrix-base); }
+    tbody tr { display: block; margin-bottom: 20px; padding: 10px; border: 1px solid var(--matrix-bright); }
+    tbody td { display: flex; justify-content: space-between; padding: 5px 0; border: none; }
+    td.col-rank::before { content: '[RANK]:'; }
+    td.col-agent::before { content: '[ID]:'; }
   }
 </style>
 </head>
@@ -161,32 +137,28 @@
 
 <div id='board'>
   <div class='top-header-flex'> 
-    <h2>XFER_COMMAND_CENTER</h2>
+    <h2>NEO_LEADERBOARD_V3</h2>
     <div id='dailyTotalDisplay'>
-      <span class='label'>TOTAL_XFERS_DETECTED:</span>
+      <span class='label'>SYSTEM_INTEGRITY (TODAY):</span>
       <span class='value' id='totalTodayValue'>0000</span>
     </div>
   </div>
 
   <div class='chips'>
-    <div id='chipWeekly' class='chip'>CYCLE_W: ---</div>
-    <div id='chipDaily' class='chip'>CYCLE_D: ---</div>
+    <div id='chipWeekly' class='chip'>WEEK_CYCLE: ---</div>
+    <div id='chipDaily' class='chip'>DAILY_CYCLE: ---</div>
   </div>
 
   <div class='table-wrap'>
     <table id='tbl'>
       <thead>
         <tr>
-          <th class='col-rank'>RANK</th>
-          <th class='col-agent'>AGENT_ID</th>
-          <th class='col-today'>FLOW_STATUS (XFERS)</th>
-          <th class='col-day'>W</th>
-          <th class='col-day'>T</th>
-          <th class='col-day'>F</th>
-          <th class='col-day'>S</th>
-          <th class='col-day'>M</th>
-          <th class='col-day'>T</th>
-          <th class='col-total'>TOTAL_BUFFER</th>
+          <th class='col-rank'>RANK_ID</th>
+          <th class='col-agent'>AGENT_IDENTITY</th>
+          <th class='col-today' style="width:20%">XFERS_TODAY</th>
+          <th class='col-day'>W</th><th class='col-day'>T</th><th class='col-day'>F</th>
+          <th class='col-day'>S</th><th class='col-day'>M</th><th class='col-day'>T</th>
+          <th class='col-total' style="width:20%">TOTAL_CACHE</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -194,24 +166,24 @@
   </div>
 
   <div id='meta'>
-    <div id='diag'>LISTENING TO DATA STREAM...</div>
-    <div style="float:right; font-size:0.8rem;">SECURE_CONNECTION: AES-256</div>
+    <div id='diag'>CONNECTING...</div>
+    <div style="float:right; font-size:0.8rem;">TRACE COMPLETE.</div>
   </div>
 </div>
 
 <script>
-/* --- MATRIX RAIN ENGINE --- */
+/* 1. LLUVIA MATRIX */
 const canvas = document.getElementById('matrix-canvas');
 const ctx = canvas.getContext('2d');
 function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.addEventListener('resize', resize); resize();
 
-const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ';
+const chars = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const fontSize = 14;
 const columns = canvas.width / fontSize;
-const drops = Array(Math.floor(columns)).fill(1);
+const drops = Array(Math.floor(columns)).fill(0);
 
-function draw() {
+function drawMatrix() {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = '#0F0';
@@ -223,94 +195,120 @@ function draw() {
         drops[i]++;
     }
 }
-setInterval(draw, 35);
+setInterval(drawMatrix, 33);
 
-/* --- CORE LOGIC --- */
+/* 2. LOGICA DE DATOS */
 const BAR_LENGTH = 12; 
-const CHAR_FILL = '█';
-const CHAR_EMPTY = '░';
+const CHAR_FILL = '█'; // Bloque lleno
+const CHAR_EMPTY = '▒'; // Bloque vacío
 
 const API_KEY = "AIzaSyDwOqp2uizZol2et6Uqi7CnntW9Hkrinjg";
 const WEEKLY_SHEETID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
 const DAILY_ID_RAW = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
 const TIMEZONE = "America/Tijuana";
+const DAILY_REFRESH = 12000;
+let ALL_DATA = [];
 
 function diag(t){ document.getElementById('diag').textContent = t; }
 function getLocalDate(){ return new Date(new Date().toLocaleString('en-US',{timeZone:TIMEZONE})); }
 
-function generateModernBar(value, max) {
+function generateAsciiBar(value, max) {
     if (max <= 0) max = 1;
-    const filledCount = Math.min(BAR_LENGTH, Math.round((value / max) * BAR_LENGTH));
-    const emptyCount = Math.max(0, BAR_LENGTH - filledCount);
-    const bar = CHAR_FILL.repeat(filledCount) + CHAR_EMPTY.repeat(emptyCount);
-    return `<div class="bar-visual">${bar}</div><span class="xfer-count">${value}</span>`;
+    let filled = Math.round((value / max) * BAR_LENGTH);
+    if (filled > BAR_LENGTH) filled = BAR_LENGTH;
+    return `[${CHAR_FILL.repeat(filled)}${CHAR_EMPTY.repeat(BAR_LENGTH - filled)}] ${value}`;
 }
 
 async function fetchSafeJSON(url) {
     const r = await fetch(url);
-    if (!r.ok) throw new Error('FETCH_ERR');
+    if (!r.ok) throw new Error('ERR');
     return await r.json();
 }
 
-async function updateData() {
-    diag('SYNCING NODES...');
-    // Lógica simplificada de fetch (mantener su estructura original de pestañas aquí)
-    const local = getLocalDate();
-    const iw = (d) => {
-        const x = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-        const n = x.getUTCDay() || 7;
-        x.setUTCDate(x.getUTCDate() + 4 - n);
-        const y = new Date(Date.UTC(x.getUTCFullYear(), 0, 1));
-        return Math.ceil((((x - y) / 86400000) + 1) / 7);
-    };
-    
-    const currentW = `W${iw(local)}`;
-    document.getElementById('chipWeekly').textContent = currentW;
-    document.getElementById('chipDaily').textContent = local.toLocaleDateString('en-US', {month:'short', day:'2-digit'});
-
-    try {
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_SHEETID}/values/${currentW}!A3:O96?key=${API_KEY}`;
-        const data = await fetchSafeJSON(url);
-        const rows = data.values || [];
-        
-        const list = rows.map(r => ({
-            name: r[1] || 'UNKNOWN_AGENT',
-            today: Math.floor(Math.random() * 50), // Simulación de flujo para el ejemplo
-            total: parseInt(r[14]) || 0,
-            days: [r[3]||0, r[5]||0, r[7]||0, r[9]||0, r[11]||0, r[13]||0]
-        })).filter(r => r.name !== 'UNKNOWN_AGENT').sort((a,b) => b.total - a.total);
-
-        render(list);
-    } catch (e) { diag('STREAM_ERROR_RETRYING...'); }
+async function readWeeklyTab(weeklyTab){
+    const ranges=[`${weeklyTab}!A3:C96`,`${weeklyTab}!D3:D96`,`${weeklyTab}!F3:F96`,`${weeklyTab}!H3:H96`,`${weeklyTab}!J3:J96`,`${weeklyTab}!L3:L96`,`${weeklyTab}!N3:N96`,`${weeklyTab}!O3:O96`].map(encodeURIComponent);
+    const url=`https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_SHEETID}/values:batchGet?`+ranges.map(r=>`ranges=${r}`).join("&")+`&key=${API_KEY}`;
+    const j=await fetchSafeJSON(url); 
+    const vr=j.valueRanges||[];
+    const base=vr[0]?.values||[];
+    const toCol=v=>(v?.values||[]).map(r=>(r[0]??"").toString().trim());
+    const d=toCol(vr[1]), f=toCol(vr[2]), h=toCol(vr[3]), jv=toCol(vr[4]), l=toCol(vr[5]), n=toCol(vr[6]), oT=toCol(vr[7]);
+    return base.map((r,i)=>({
+        id: (r[0]??"").toString().trim(),
+        name: (r[1]??"").toString().trim(),
+        nameKey: (r[1]??"").toString().toUpperCase().trim(),
+        wed:parseInt(d[i]||0), thu:parseInt(f[i]||0), fri:parseInt(h[i]||0),
+        sat:parseInt(jv[i]||0), mon:parseInt(l[i]||0), tue:parseInt(n[i]||0),
+        total:parseInt(oT[i]||0), today:0
+    })).filter(p=>p.id || p.name);
 }
 
-function render(list) {
-    const tbody = document.querySelector("#tbl tbody");
-    tbody.innerHTML = "";
-    const maxToday = Math.max(1, ...list.map(p => p.today));
-    const maxTotal = Math.max(1, ...list.map(p => p.total));
+async function readDailyApproved(){
+    const now=getLocalDate();
+    const tab=new Intl.DateTimeFormat('en-US',{month:'short',day:'2-digit',timeZone:TIMEZONE}).format(now);
+    const ranges=[`${tab}!A2:A70`,`${tab}!B2:B70`,`${tab}!C2:C70`,`${tab}!E2:E70`,`${tab}!F2:F70`,`${tab}!G2:G70`].map(encodeURIComponent);
+    const url=`https://sheets.googleapis.com/v4/spreadsheets/${DAILY_ID_RAW}/values:batchGet?`+ranges.map(r=>`ranges=${r}`).join("&")+`&key=${API_KEY}`;
+    const mapByName=new Map();
+    try {
+        const j=await fetchSafeJSON(url);
+        const vr=j.valueRanges||[];
+        const names = [...(vr[0]?.values||[]), ...(vr[3]?.values||[])];
+        const scores = [...(vr[2]?.values||[]), ...(vr[5]?.values||[])];
+        names.forEach((n,i)=>{
+            if(n && n[0]){
+                const nk=n[0].toString().toUpperCase().trim();
+                const val=parseInt(scores[i]?.[0]||0);
+                mapByName.set(nk, (mapByName.get(nk)||0)+val);
+            }
+        });
+    } catch(e){}
+    return {tab, mapByName};
+}
 
-    list.forEach((p, i) => {
-        const tr = document.createElement('tr');
-        const rankTxt = i === 0 ? "THE_ONE" : `ID_${(i + 1).toString().padStart(2, '0')}`;
-        
-        tr.innerHTML = `
-            <td class="col-rank"><span class="${i===0?'rank-1':'rank-txt'}">${rankTxt}</span></td>
-            <td class="col-agent"><div class="agent-wrap"><div class="name">${p.name}</div></div></td>
-            <td class="col-today"><div class="ascii-bar">${generateModernBar(p.today, maxToday)}</div></td>
-            ${p.days.map(d => `<td class="col-day">${d}</td>`).join('')}
-            <td class="col-total"><div class="ascii-bar">${generateModernBar(p.total, maxTotal)}</div></td>
+function renderList(list){
+    const tbody=document.querySelector("#tbl tbody"); tbody.innerHTML="";
+    const maxToday=Math.max(1, ...list.map(p=>p.today));
+    const maxTotal=Math.max(1, ...list.map(p=>p.total));
+    list.forEach((p,i)=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`
+            <td class="col-rank ${i===0?'rank-1':''}">${i===0?'THE_ONE':(i+1)}</td>
+            <td class="col-agent"><strong>${p.name}</strong></td>
+            <td class="col-today"><div class="ascii-bar">${generateAsciiBar(p.today, maxToday)}</div></td>
+            <td>${p.wed}</td><td>${p.thu}</td><td>${p.fri}</td>
+            <td>${p.sat}</td><td>${p.mon}</td><td>${p.tue}</td>
+            <td class="col-total"><div class="ascii-bar">${generateAsciiBar(p.total, maxTotal)}</div></td>
         `;
         tbody.appendChild(tr);
     });
-    
-    const totalToday = list.reduce((s, a) => s + a.today, 0);
-    document.getElementById('totalTodayValue').textContent = totalToday.toString().padStart(4, '0');
-    diag('SYSTEM_HEALTH: NOMINAL');
 }
 
-setInterval(updateData, 15000);
+async function updateData(){
+    diag('SYNCING...');
+    const now=getLocalDate();
+    const iw = (d) => {
+        const x=new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        const n=x.getUTCDay()||7; x.setUTCDate(x.getUTCDate()+4-n);
+        const y=new Date(Date.UTC(x.getUTCFullYear(),0,1));
+        return Math.ceil((((x-y)/86400000)+1)/7);
+    };
+    const tabName = `W${iw(now)}`;
+    document.getElementById('chipWeekly').textContent = `CYCLE: ${tabName}`;
+
+    try {
+        const [weekly, daily] = await Promise.all([readWeeklyTab(tabName), readDailyApproved()]);
+        document.getElementById('chipDaily').textContent = `DATA: ${daily.tab}`;
+        weekly.forEach(p => { p.today = daily.mapByName.get(p.nameKey) || 0; });
+        weekly.sort((a,b) => b.today - a.today || b.total - a.total);
+        ALL_DATA = weekly.filter(p => p.total > 0 || p.today > 0);
+        renderList(ALL_DATA);
+        document.getElementById('totalTodayValue').textContent = ALL_DATA.reduce((s,p)=>s+p.today,0).toString().padStart(4,'0');
+        diag('ONLINE');
+    } catch(e){ diag('RETRYING...'); }
+}
+
 updateData();
+setInterval(updateData, DAILY_REFRESH);
 </script>
 </body>
 </html>
