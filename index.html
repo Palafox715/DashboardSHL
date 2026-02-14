@@ -3,15 +3,16 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>MATRIX SYSTEM ROOT</title>
+<title>SYSTEM ROOT - BLUE CORE</title>
 <style>
-  /* ===== VARIABLES MATRIX ===== */
+  /* ===== VARIABLES MATRIX AZUL ===== */
   :root{
     --matrix-bg: #000000;
-    --matrix-base: #008F11;
-    --matrix-bright: #00FF41;
-    --matrix-pale: #98FB98;
+    --matrix-base: #005f99; /* Azul sólido base */
+    --matrix-bright: #00eaff; /* Cian neón brillante (Ice Blue) */
+    --matrix-pale: #ccf9ff; /* Azul pálido para acentos */
     --term-font: 'Courier New', Courier, monospace;
+    /* Glow azulado */
     --crt-glow: 0 0 4px var(--matrix-base), 0 0 8px var(--matrix-bright);
     --text-glow-strong: 0 0 5px #fff, 0 0 10px var(--matrix-bright), 0 0 15px var(--matrix-bright);
   }
@@ -33,14 +34,16 @@
 
   body::after {
     content: " "; display: block; position: absolute; inset:0;
-    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.3) 0px, rgba(0,255,65,0.05) 1px, transparent 2px);
+    /* Scanlines con tono cian */
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.3) 0px, rgba(0, 234, 255, 0.05) 1px, transparent 2px);
     z-index: 999; pointer-events: none;
   }
 
   #board{
     position:relative; z-index:1;
     width: 96%; height: 96%; margin: 2vh auto;
-    background-color: rgba(0, 10, 0, 0.85); 
+    /* Fondo tintado levemente de azul */
+    background-color: rgba(0, 5, 10, 0.88); 
     border: 1px solid var(--matrix-base);
     box-shadow: inset 0 0 30px var(--matrix-base), var(--crt-glow);
     padding: 15px; box-sizing:border-box;
@@ -65,7 +68,8 @@
   #dailyTotalDisplay{
     border: 1px solid var(--matrix-bright);
     padding: 8px 15px;
-    background: rgba(0, 255, 65, 0.1);
+    /* Fondo del total con tinte cian */
+    background: rgba(0, 234, 255, 0.1);
     box-shadow: var(--crt-glow);
   }
   #dailyTotalDisplay .label{ font-size: 0.9rem; color: var(--matrix-base); display: block; margin-bottom: 5px;}
@@ -88,20 +92,22 @@
   
   thead th{
     position:sticky; top:0; z-index:2;
-    background: #001a00;
+    background: #000a14; /* Azul muy oscuro para el header */
     color: var(--matrix-pale);
     text-align: center; padding: 10px 5px;
     border-bottom: 2px solid var(--matrix-base);
   }
 
   tbody td{
-    border-bottom: 1px solid rgba(0, 143, 17, 0.3);
+    /* Separadores azulados sutiles */
+    border-bottom: 1px solid rgba(0, 95, 153, 0.3);
     padding: 8px; vertical-align: middle;
     color: var(--matrix-bright);
   }
   
   tbody tr:hover td{ 
-    background: rgba(0, 255, 65, 0.2);
+    /* Hover azul cian */
+    background: rgba(0, 234, 255, 0.2);
     color: #fff;
     text-shadow: var(--text-glow-strong);
   }
@@ -172,7 +178,7 @@
 </div>
 
 <script>
-/* 1. LLUVIA MATRIX */
+/* 1. LLUVIA MATRIX (MODO AZUL) */
 const canvas = document.getElementById('matrix-canvas');
 const ctx = canvas.getContext('2d');
 function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
@@ -186,11 +192,19 @@ const drops = Array(Math.floor(columns)).fill(0);
 function drawMatrix() {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#0F0';
+    
+    /* CAMBIO: Color Cyan Neón (#00eaff) en lugar de Verde (#0F0) */
+    ctx.fillStyle = '#00eaff'; 
+    
     ctx.font = fontSize + 'px monospace';
     for (let i = 0; i < drops.length; i++) {
         const text = chars[Math.floor(Math.random() * chars.length)];
         ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+        
+        /* Gotas blancas ocasionales */
+        if(Math.random() > 0.98) ctx.fillStyle = '#FFF'; 
+        else ctx.fillStyle = '#00eaff';
+
         if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
         drops[i]++;
     }
