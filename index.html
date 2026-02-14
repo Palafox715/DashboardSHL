@@ -3,138 +3,240 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>SYSTEM ROOT - BLUE CORE</title>
+<title>Leaderboard — Matrix Construct</title>
 <style>
-  /* ===== VARIABLES MATRIX AZUL ===== */
+  /* ===== MATRIX THEME VARIABLES ===== */
   :root{
-    --matrix-bg: #000000;
-    --matrix-base: #005f99; /* Azul sólido base */
-    --matrix-bright: #00eaff; /* Cian neón brillante (Ice Blue) */
-    --matrix-pale: #ccf9ff; /* Azul pálido para acentos */
-    --term-font: 'Courier New', Courier, monospace;
-    /* Glow azulado */
-    --crt-glow: 0 0 4px var(--matrix-base), 0 0 8px var(--matrix-bright);
-    --text-glow-strong: 0 0 5px #fff, 0 0 10px var(--matrix-bright), 0 0 15px var(--matrix-bright);
+    --vh: 1vh;
+    --bg-color: #000000;
+    --matrix-green: #00FF41;
+    --matrix-dark: #003B00;
+    --matrix-dim: #008F11;
+    --matrix-glow: rgba(0, 255, 65, 0.3);
+    --glass: rgba(0, 20, 0, 0.85);
+    --border: #00FF41;
   }
   
+  /* FUENTE Y FONDO */
   html,body{
-    margin:0; height:100%; width:100%;
-    background-color: var(--matrix-bg);
-    color: var(--matrix-bright);
-    font-family: var(--term-font);
-    font-size: 16px;
-    text-transform: uppercase;
-    overflow: hidden;
+    margin:0;
+    min-height:100%;
+    width:100%;
+    background: var(--bg-color);
+    color: var(--matrix-green);
+    font-family: 'Courier New', Courier, monospace; /* Fuente estilo terminal */
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
+  /* EFECTO CRT (Scanlines) */
+  body::before {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 2;
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+  }
+
+  /* CANVAS PARA LLUVIA DIGITAL */
   #matrix-canvas {
-    position: fixed; top: 0; left: 0; z-index: 0;
-    opacity: 0.8;
-  }
-
-  body::after {
-    content: " "; display: block; position: absolute; inset:0;
-    /* Scanlines con tono cian */
-    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.3) 0px, rgba(0, 234, 255, 0.05) 1px, transparent 2px);
-    z-index: 999; pointer-events: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    opacity: 0.25; /* Sutil */
   }
 
   #board{
     position:relative; z-index:1;
-    width: 96%; height: 96%; margin: 2vh auto;
-    /* Fondo tintado levemente de azul */
-    background-color: rgba(0, 5, 10, 0.88); 
-    border: 1px solid var(--matrix-base);
-    box-shadow: inset 0 0 30px var(--matrix-base), var(--crt-glow);
-    padding: 15px; box-sizing:border-box;
-    display:flex; flex-direction:column; gap: 15px;
-    overflow-y: auto;
-    text-shadow: var(--crt-glow);
+    width:100vw;
+    min-height:100vh;
+    padding:calc(1.2*var(--vh)) calc(1.6*var(--vh)); box-sizing:border-box;
+    display:flex;flex-direction:column;gap:calc(0.8*var(--vh));
   }
   
+  /* HEADER */
   .top-header-flex{
-    display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 2px solid var(--matrix-base);
-    padding-bottom: 15px;
-    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 2px solid var(--matrix-dark);
+    padding-bottom: 10px;
+  }
+  
+  #dailyTotalDisplay{
+    background: #000;
+    padding: 8px 16px;
+    border: 1px solid var(--matrix-green);
+    box-shadow: 0 0 10px var(--matrix-glow);
+    text-align: right;
+    flex-shrink: 0;
+  }
+  #dailyTotalDisplay .label{
+    font-size: calc(1.2*var(--vh));
+    font-weight: 700;
+    color: var(--matrix-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  #dailyTotalDisplay .value{
+    font-size: calc(2.8*var(--vh));
+    font-weight: 700;
+    color: var(--matrix-green);
+    text-shadow: 0 0 8px var(--matrix-green);
   }
 
   h2{
-    margin:0; text-align:left; font-size: 1.8rem; font-weight: bold; letter-spacing: 2px;
-    color: var(--matrix-bright);
-  }
-  h2::before { content: "SYSTEM.ROOT > "; color: var(--matrix-base); }
-
-  #dailyTotalDisplay{
-    border: 1px solid var(--matrix-bright);
-    padding: 8px 15px;
-    /* Fondo del total con tinte cian */
-    background: rgba(0, 234, 255, 0.1);
-    box-shadow: var(--crt-glow);
-  }
-  #dailyTotalDisplay .label{ font-size: 0.9rem; color: var(--matrix-base); display: block; margin-bottom: 5px;}
-  #dailyTotalDisplay .value{ 
-      font-size: 1.6rem; color: #fff; font-weight: bold; display: block; text-align: right;
-      text-shadow: var(--text-glow-strong);
+    margin:0;text-align:left;font-weight:700;letter-spacing:2px;
+    font-size:calc(3.5*var(--vh)); line-height:1.1;
+    text-transform: uppercase;
+    text-shadow: 0 0 5px var(--matrix-green);
   }
 
   .chips{
-    display:flex; gap: 20px; flex-wrap:wrap;
-    justify-content:flex-start; color: var(--matrix-pale);
-    margin-top: 10px;
+    display:flex;gap:calc(.6*var(--vh));flex-wrap:wrap;
+    justify-content:center;margin-top:calc(-.3*var(--vh));
   }
-  .chip::before{ content: "[MEMORY]: "; color: var(--matrix-base); }
+  .chip{
+    padding:calc(.35*var(--vh)) calc(.8*var(--vh));
+    background: #000;
+    border: 1px solid var(--matrix-dim);
+    color: var(--matrix-dim);
+    font-weight:700; font-size:calc(1.4*var(--vh));
+    text-transform: uppercase;
+  }
 
-  .table-wrap{ flex:1; min-height:0; position:relative; overflow: auto; border: 1px solid var(--matrix-base); }
+  /* TABLA */
+  .table-wrap{ flex:1; min-height:0; position:relative; }
   table{
-    width:100%; min-width: 850px; border-collapse: collapse; border-spacing: 0;
+    width:100%;
+    min-width: 500px;
+    border-collapse:separate; border-spacing:0 4px; /* Espaciado estilo consola */
+    table-layout:fixed; font-size:calc(1.6*var(--vh));
   }
-  
   thead th{
     position:sticky; top:0; z-index:2;
-    background: #000a14; /* Azul muy oscuro para el header */
-    color: var(--matrix-pale);
-    text-align: center; padding: 10px 5px;
-    border-bottom: 2px solid var(--matrix-base);
+    background: #000;
+    color: var(--matrix-green);
+    text-transform:uppercase; letter-spacing:1px;
+    font-size:calc(1.5*var(--vh)); font-weight:700; padding:calc(.6*var(--vh)) calc(0.9*var(--vh));
+    border: 1px solid var(--matrix-dark);
+    border-bottom: 2px solid var(--matrix-green);
   }
+  
+  /* Columnas */
+  th.col-rank, td.col-rank { width:9%; text-align:center; }
+  th.col-agent,td.col-agent{ width:30%; text-align:left; }
+  th.col-today,td.col-today{ width:12%; text-align:center; }
+  th.col-day,  td.col-day  { width:7%;  text-align:center; color: var(--matrix-dim); }
+  th.col-total,td.col-total{ width:12%; text-align:center; }
 
   tbody td{
-    /* Separadores azulados sutiles */
-    border-bottom: 1px solid rgba(0, 95, 153, 0.3);
-    padding: 8px; vertical-align: middle;
-    color: var(--matrix-bright);
+    background: rgba(0, 10, 0, 0.7);
+    border: 1px solid #002200;
+    padding:calc(.7*var(--vh)) calc(0.9*var(--vh));
+    position: relative;
   }
   
-  tbody tr:hover td{ 
-    /* Hover azul cian */
-    background: rgba(0, 234, 255, 0.2);
+  /* Efecto Hover en fila estilo terminal */
+  tbody tr:hover td {
+    background: var(--matrix-dark);
     color: #fff;
-    text-shadow: var(--text-glow-strong);
+    box-shadow: inset 0 0 10px var(--matrix-green);
+    border-color: var(--matrix-green);
   }
 
-  /* ESTILO DE BARRAS SOLICITADO */
-  .ascii-bar{ 
-    font-family: var(--term-font); white-space: pre;
-    color: var(--matrix-bright); font-weight: bold;
-    font-size: 1rem;
-    letter-spacing: 1px;
+  .agent-wrap{ display:flex; align-items:center; min-width:0; }
+  .name{ 
+      font-weight:700; 
+      overflow:hidden; 
+      text-overflow:ellipsis; 
+      white-space:nowrap; 
+      font-size: 1.1em;
+      padding-left: 5px;
+      letter-spacing: -0.5px;
   }
 
-  #meta{ margin-top: 10px; border-top: 1px solid var(--matrix-base); padding-top:15px; color: var(--matrix-base); font-size: 0.9rem;}
-  
-  @keyframes decode { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-  #diag { display: inline-block; animation: decode 0.5s infinite steps(2); color: var(--matrix-pale); }
-  #diag::before { content: ">> STATUS: "; }
+  /* Barras Digitales */
+  .bar{ position:relative; height:18px; background:#001100; border:1px solid #003300; }
+  .bar > .fill{ 
+    position:absolute; left:0; top:0; bottom:0; width:0%; 
+    background: var(--matrix-green); /* Verde plano */
+    box-shadow: 0 0 8px var(--matrix-green);
+    transition: width .8s steps(10); /* Transición "escalonada" digital */
+  }
+  /* Barra Total diferente */
+  .bar.total > .fill{ 
+    background: #fff; /* Blanco brillante para resaltar */
+    box-shadow: 0 0 8px #fff;
+  }
+  .bar .value{ 
+    position:relative; z-index:1; font-weight:700; font-size:85%; 
+    color: #000; /* Texto negro sobre la barra verde */
+    mix-blend-mode: normal;
+    padding: 0 4px;
+  }
 
-  .rank-1 { color: #fff; text-shadow: var(--text-glow-strong); }
+  #meta{ 
+      display:flex;justify-content:flex-start;align-items:center; 
+      font-weight:700; font-size:calc(1.3*var(--vh)); 
+      color: var(--matrix-dim);
+      margin-top: 5px;
+      border-top: 1px dashed var(--matrix-dark);
+      padding-top: 5px;
+  }
 
+  /* ===== RANGOS ESTILO MATRIX ===== */
+  .rank-box {
+    display: inline-block;
+    width: 24px; height: 24px;
+    line-height: 24px;
+    text-align: center;
+    border: 1px solid var(--matrix-green);
+    background: #000;
+    color: var(--matrix-green);
+    font-weight: bold;
+    box-shadow: 0 0 5px var(--matrix-green);
+  }
+  .rank-1 { background: var(--matrix-green); color: #000; box-shadow: 0 0 10px var(--matrix-green); } /* El Elegido */
+  .rank-2 { border-color: #fff; color: #fff; box-shadow: 0 0 5px #fff; }
+  .rank-3 { border-color: var(--matrix-dim); color: var(--matrix-dim); }
+
+  /* MOBILE */
   @media (max-width: 768px) {
-    #board { width: 100%; height: 100%; margin: 0; border: none; }
+    #board { padding: 10px; gap: 10px; }
+    .top-header-flex { flex-direction: column; align-items: stretch; border: none; }
+    #dailyTotalDisplay { width: 100%; text-align: center; margin-top: 10px; }
+    .chips { margin-top: 10px; }
+    h2 { text-align: center; font-size: 2.5em; text-shadow: none; border-bottom: 1px solid var(--matrix-green); padding-bottom: 5px;}
+    table { table-layout: auto; min-width: unset; border-spacing: 0; }
     thead { display: none; }
-    tbody tr { display: block; margin-bottom: 20px; padding: 10px; border: 1px solid var(--matrix-bright); }
-    tbody td { display: flex; justify-content: space-between; padding: 5px 0; border: none; }
-    td.col-rank::before { content: '[RANK]:'; }
-    td.col-agent::before { content: '[ID]:'; }
+    tbody, tr, td { display: block; width: 100%; }
+    tbody tr { 
+      margin-bottom: 15px; border: 1px solid var(--matrix-green);
+      background: #000;
+      box-shadow: 0 0 5px var(--matrix-dark);
+    }
+    tbody td { 
+      padding: 8px 10px; border: none !important; display: flex; 
+      justify-content: space-between; align-items: center; 
+      background: none !important; 
+      border-bottom: 1px dashed #003300 !important;
+    }
+    th.col-day, td.col-day { display: none; }
+    th.col-rank, td.col-rank, th.col-agent, td.col-agent, th.col-today, td.col-today, th.col-total, td.col-total { width: auto; }
+    
+    td.col-rank::before { content: 'RANK_ID:'; color: var(--matrix-dim); margin-right: 10px; font-size: 0.8em;}
+    td.col-agent::before { content: 'AGENT:'; color: var(--matrix-dim); margin-right: 10px; font-size: 0.8em;}
+    td.col-today::before { content: 'DATA_TODAY:'; color: var(--matrix-dim); margin-right: 10px; font-size: 0.8em;}
+    td.col-total::before { content: 'DATA_TOTAL:'; color: var(--matrix-dim); margin-right: 10px; font-size: 0.8em;}
+    
+    .agent-wrap { display: flex; align-items: center; gap: 10px; }
+    .bar { height: 18px; flex-grow: 1; margin-left: 10px; }
   }
 </style>
 </head>
@@ -143,28 +245,32 @@
 
 <div id='board'>
   <div class='top-header-flex'> 
-    <h2>NEO_LEADERBOARD_V3</h2>
+    <h2>SYSTEM://LEADERBOARD</h2>
     <div id='dailyTotalDisplay'>
-      <span class='label'>SYSTEM_INTEGRITY (TODAY):</span>
-      <span class='value' id='totalTodayValue'>0000</span>
+      <div class='label'>INPUT_TODAY</div>
+      <div class='value' id='totalTodayValue'>0</div>
     </div>
   </div>
 
   <div class='chips'>
-    <div id='chipWeekly' class='chip'>WEEK_CYCLE: ---</div>
-    <div id='chipDaily' class='chip'>DAILY_CYCLE: ---</div>
+    <div id='chipWeekly' class='chip'>WK: --</div>
+    <div id='chipDaily' class='chip'>DAY: --</div>
   </div>
 
   <div class='table-wrap'>
     <table id='tbl'>
       <thead>
         <tr>
-          <th class='col-rank'>RANK_ID</th>
-          <th class='col-agent'>AGENT_IDENTITY</th>
-          <th class='col-today' style="width:20%">XFERS_TODAY</th>
-          <th class='col-day'>W</th><th class='col-day'>T</th><th class='col-day'>F</th>
-          <th class='col-day'>S</th><th class='col-day'>M</th><th class='col-day'>T</th>
-          <th class='col-total' style="width:20%">TOTAL_CACHE</th>
+          <th class='col-rank'>ID</th>
+          <th class='col-agent'>AGENT_NAME</th>
+          <th class='col-today'>TODAY</th>
+          <th class='col-day'>WED</th>
+          <th class='col-day'>THU</th>
+          <th class='col-day'>FRI</th>
+          <th class='col-day'>SAT</th>
+          <th class='col-day'>MON</th>
+          <th class='col-day'>TUE</th>
+          <th class='col-total'>TOTAL</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -172,157 +278,261 @@
   </div>
 
   <div id='meta'>
-    <div id='diag'>CONNECTING...</div>
-    <div style="float:right; font-size:0.8rem;">TRACE COMPLETE.</div>
+    <div id='diag'>Initializing uplink...</div>
   </div>
 </div>
 
 <script>
-/* 1. LLUVIA MATRIX (MODO AZUL) */
+/* MATRIX RAIN EFFECT */
 const canvas = document.getElementById('matrix-canvas');
 const ctx = canvas.getContext('2d');
-function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-window.addEventListener('resize', resize); resize();
-
-const chars = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-const fontSize = 14;
-const columns = canvas.width / fontSize;
-const drops = Array(Math.floor(columns)).fill(0);
-
-function drawMatrix() {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    /* CAMBIO: Color Cyan Neón (#00eaff) en lugar de Verde (#0F0) */
-    ctx.fillStyle = '#00eaff'; 
-    
-    ctx.font = fontSize + 'px monospace';
-    for (let i = 0; i < drops.length; i++) {
-        const text = chars[Math.floor(Math.random() * chars.length)];
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-        
-        /* Gotas blancas ocasionales */
-        if(Math.random() > 0.98) ctx.fillStyle = '#FFF'; 
-        else ctx.fillStyle = '#00eaff';
-
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-        drops[i]++;
-    }
+let width = canvas.width = window.innerWidth;
+let height = canvas.height = window.innerHeight;
+const cols = Math.floor(width / 20) + 1;
+const ypos = Array(cols).fill(0);
+function matrix() {
+  ctx.fillStyle = '#0001';
+  ctx.fillRect(0, 0, width, height);
+  ctx.fillStyle = '#0F0';
+  ctx.font = '15pt monospace';
+  ypos.forEach((y, ind) => {
+    const text = String.fromCharCode(Math.random() * 128);
+    const x = ind * 20;
+    ctx.fillText(text, x, y);
+    if (y > 100 + Math.random() * 10000) ypos[ind] = 0;
+    else ypos[ind] = y + 20;
+  });
 }
-setInterval(drawMatrix, 33);
+setInterval(matrix, 50);
+window.addEventListener('resize', () => { width=canvas.width=window.innerWidth; height=canvas.height=window.innerHeight; });
 
-/* 2. LOGICA DE DATOS */
-const BAR_LENGTH = 12; 
-const CHAR_FILL = '█'; // Bloque lleno
-const CHAR_EMPTY = '▒'; // Bloque vacío
+/* LOGIC */
+function setVHVar(){ const vh=window.innerHeight*0.01; document.documentElement.style.setProperty('--vh', `${vh}px`); }
+setVHVar(); window.addEventListener('resize', setVHVar);
 
-const API_KEY = "AIzaSyDwOqp2uizZol2et6Uqi7CnntW9Hkrinjg";
+const API_KEY         = "AIzaSyDwOqp2uizZol2et6Uqi7CnntW9Hkrinjg";
 const WEEKLY_SHEETID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
-const DAILY_ID_RAW = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
-const TIMEZONE = "America/Tijuana";
-const DAILY_REFRESH = 12000;
-let ALL_DATA = [];
+const DAILY_ID_RAW   = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
+const TIMEZONE        = "America/Tijuana";
+const DAILY_REFRESH  = 12000; 
+const WEEKLY_REFRESH = 5*60*1000;
 
-function diag(t){ document.getElementById('diag').textContent = t; }
-function getLocalDate(){ return new Date(new Date().toLocaleString('en-US',{timeZone:TIMEZONE})); }
+let ALL_DATA=[]; 
 
-function generateAsciiBar(value, max) {
-    if (max <= 0) max = 1;
-    let filled = Math.round((value / max) * BAR_LENGTH);
-    if (filled > BAR_LENGTH) filled = BAR_LENGTH;
-    return `[${CHAR_FILL.repeat(filled)}${CHAR_EMPTY.repeat(BAR_LENGTH - filled)}] ${value}`;
+function diag(t){ document.getElementById('diag').innerText = `> ${t}`; }
+function setChipWeekly(t){ document.getElementById('chipWeekly').textContent = `WK: ${t}`; }
+function setChipDaily(t){ document.getElementById('chipDaily').textContent = `DAY: ${t}`; }
+function getLocalDate(){ const s=new Date().toLocaleString('en-US',{timeZone:TIMEZONE}); return new Date(s); }
+function isoWeek(d){ const x=new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const n=x.getUTCDay()||7; x.setUTCDate(x.getUTCDate()+4-n); const y=new Date(Date.UTC(x.getUTCFullYear(),0,1)); return {week:Math.ceil((((x-y)/86400000)+1)/7), year:x.getUTCFullYear()}; }
+function weeksInISOYear(y){ const d=new Date(Date.UTC(y,11,31)); const day=d.getUTCDay(); return (day===4 || (d.getUTCDate()===31 && day===3))?53:52; }
+
+/* FIX: SEMANA CORREGIDA (Corte Miércoles 12PM) */
+function computeWeeklyTabName(){
+  const url=new URL(window.location.href); const override=url.searchParams.get('weeklyTab'); if(override) return override;
+  const local=getLocalDate(); const hrs=local.getHours(); const dow=local.getDay(); const iw=isoWeek(local); let w=iw.week;
+  const beforeCut = (dow === 1 || dow === 2 || (dow === 3 && hrs < 12));
+  if(beforeCut){ 
+    w--; 
+    if(w < 1) w = weeksInISOYear(iw.year - 1); 
+  }
+  return `W${w}`;
 }
 
-async function fetchSafeJSON(url) {
-    const r = await fetch(url);
-    if (!r.ok) throw new Error('ERR');
-    return await r.json();
+const emoji=/[\u{1F1E6}-\u{1F1FF}\u{1F300}-\u{1FAFF}\u{1F900}-\u{1F9FF}\u{2600}-\u{27BF}\u{FE0F}]/gu;
+function normName(s){ return (s||"").replace(emoji,"").normalize('NFD').replace(/[\u0300-\u036f]/g,"").replace(/[^\x20-\x7E]/g,"").replace(/\s{2,}/g," ").trim().toUpperCase(); }
+function normID(s){ return (s||"").toString().trim(); }
+
+/* fetch seguro */
+async function fetchSafeJSON(url, {tries=4, baseDelay=700} = {}) {
+  let lastErr;
+  for (let i = 0; i < tries; i++) {
+    try {
+      const r = await fetch(url, { cache: 'no-store' });
+      if (r.ok) return await r.json();
+      throw new Error(`HTTP ${r.status}`);
+    } catch (e) {
+      lastErr = e;
+      await new Promise(res => setTimeout(res, baseDelay * Math.pow(2, i)));
+    }
+  }
+  throw lastErr || new Error('Fetch failed');
 }
 
 async function readWeeklyTab(weeklyTab){
-    const ranges=[`${weeklyTab}!A3:C96`,`${weeklyTab}!D3:D96`,`${weeklyTab}!F3:F96`,`${weeklyTab}!H3:H96`,`${weeklyTab}!J3:J96`,`${weeklyTab}!L3:L96`,`${weeklyTab}!N3:N96`,`${weeklyTab}!O3:O96`].map(encodeURIComponent);
-    const url=`https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_SHEETID}/values:batchGet?`+ranges.map(r=>`ranges=${r}`).join("&")+`&key=${API_KEY}`;
-    const j=await fetchSafeJSON(url); 
-    const vr=j.valueRanges||[];
-    const base=vr[0]?.values||[];
-    const toCol=v=>(v?.values||[]).map(r=>(r[0]??"").toString().trim());
-    const d=toCol(vr[1]), f=toCol(vr[2]), h=toCol(vr[3]), jv=toCol(vr[4]), l=toCol(vr[5]), n=toCol(vr[6]), oT=toCol(vr[7]);
-    return base.map((r,i)=>({
-        id: (r[0]??"").toString().trim(),
-        name: (r[1]??"").toString().trim(),
-        nameKey: (r[1]??"").toString().toUpperCase().trim(),
-        wed:parseInt(d[i]||0), thu:parseInt(f[i]||0), fri:parseInt(h[i]||0),
-        sat:parseInt(jv[i]||0), mon:parseInt(l[i]||0), tue:parseInt(n[i]||0),
-        total:parseInt(oT[i]||0), today:0
-    })).filter(p=>p.id || p.name);
+  const ranges=[`${weeklyTab}!A3:C96`,`${weeklyTab}!D3:D96`,`${weeklyTab}!F3:F96`,`${weeklyTab}!H3:H96`,`${weeklyTab}!J3:J96`,`${weeklyTab}!L3:L96`,`${weeklyTab}!N3:N96`,`${weeklyTab}!O3:O96`].map(encodeURIComponent);
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_SHEETID}/values:batchGet?`+ranges.map(r=>`ranges=${r}`).join("&")+`&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
+  const j=await fetchSafeJSON(url); const vr=j.valueRanges||[];
+  const base=vr[0]?.values||[]; const toCol=v=>(v?.values||[]).map(r=>(r[0]??"").toString().trim());
+  const d=toCol(vr[1]), f=toCol(vr[2]), h=toCol(vr[3]), jv=toCol(vr[4]), l=toCol(vr[5]), n=toCol(vr[6]), oT=toCol(vr[7]);
+  const len=Math.max(base.length,d.length,f.length,h.length,jv.length,l.length,n.length,oT.length);
+  const out=[];
+  for(let i=0;i<len;i++){
+    const id=normID(base[i]?.[0]??""); const name=(base[i]?.[1]??"").toString().trim();
+    if(!id && !name) continue;
+    out.push({ id,idKey:id, name, nameKey:normName(name),
+      wed:parseInt(d[i]||0), thu:parseInt(f[i]||0), fri:parseInt(h[i]||0),
+      sat:parseInt(jv[i]||0), mon:parseInt(l[i]||0), tue:parseInt(n[i]||0),
+      total:parseInt(oT[i]||0), today:0 });
+  }
+  out.sort((a,b)=>(b.total||0)-(a.total||0));
+  return out;
+}
+
+function fmtDailyTab(dt){ 
+  // Formato estricto: "Feb 14". Asegura coincidencia con Google Sheets default.
+  const m=new Intl.DateTimeFormat('en-US',{month:'short',timeZone:TIMEZONE}).format(dt); 
+  const dd=new Intl.DateTimeFormat('en-US',{day:'2-digit',timeZone:TIMEZONE}).format(dt); 
+  return `${m} ${dd}`; 
+}
+
+function getDailyTabCandidates(){
+  const url=new URL(window.location.href); const o=url.searchParams.get('dailyTab'); if(o) return [o];
+  const now=getLocalDate(); const y=new Date(now.getTime()-86400000); 
+  return [fmtDailyTab(now), fmtDailyTab(y)];
 }
 
 async function readDailyApproved(){
-    const now=getLocalDate();
-    const tab=new Intl.DateTimeFormat('en-US',{month:'short',day:'2-digit',timeZone:TIMEZONE}).format(now);
-    const ranges=[`${tab}!A2:A70`,`${tab}!B2:B70`,`${tab}!C2:C70`,`${tab}!E2:E70`,`${tab}!F2:F70`,`${tab}!G2:G70`].map(encodeURIComponent);
-    const url=`https://sheets.googleapis.com/v4/spreadsheets/${DAILY_ID_RAW}/values:batchGet?`+ranges.map(r=>`ranges=${r}`).join("&")+`&key=${API_KEY}`;
-    const mapByName=new Map();
-    try {
-        const j=await fetchSafeJSON(url);
-        const vr=j.valueRanges||[];
-        const names = [...(vr[0]?.values||[]), ...(vr[3]?.values||[])];
-        const scores = [...(vr[2]?.values||[]), ...(vr[5]?.values||[])];
-        names.forEach((n,i)=>{
-            if(n && n[0]){
-                const nk=n[0].toString().toUpperCase().trim();
-                const val=parseInt(scores[i]?.[0]||0);
-                mapByName.set(nk, (mapByName.get(nk)||0)+val);
-            }
-        });
-    } catch(e){}
-    return {tab, mapByName};
+  const rangesFor=tab=>([`${tab}!A2:A70`,`${tab}!B2:B70`,`${tab}!C2:C70`,`${tab}!E2:E70`,`${tab}!F2:F70`,`${tab}!G2:G70`].map(encodeURIComponent));
+  const tabs=getDailyTabCandidates();
+  const DAILY_IDS=[DAILY_ID_RAW];
+  
+  let usedTab = "None";
+  
+  for(const id of DAILY_IDS){
+    for(const tab of tabs){
+      diag(`Scanning sector: ${tab}...`);
+      const url=`https://sheets.googleapis.com/v4/spreadsheets/${id}/values:batchGet?`+rangesFor(tab).map(r=>`ranges=${r}`).join("&")+`&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
+      try{
+        const j=await fetchSafeJSON(url); const vr=j.valueRanges||[];
+        const A=vr[0]?.values||[], B=vr[1]?.values||[], C=vr[2]?.values||[];
+        const E=vr[3]?.values||[], F=vr[4]?.values||[], G=vr[5]?.values||[];
+        const mapByName=new Map(); const mapByID=new Map();
+        
+        let foundData = false;
+        function addPair(nmCell,idCell,valCell){
+          const nm=(nmCell?.[0]??"").toString(); const id=(idCell?.[0]??"").toString().trim(); const v=parseInt((valCell?.[0]??0))||0;
+          if(v > 0) foundData = true;
+          if(nm.trim()){ const nk=normName(nm); mapByName.set(nk,(mapByName.get(nk)||0)+v); }
+          if(id){ mapByID.set(id,(mapByID.get(id)||0)+v); }
+        }
+        
+        const rowsFK=Math.max(A.length,B.length,C.length); for(let i=0;i<rowsFK;i++) addPair(A[i],B[i],C[i]);
+        const rowsRG=Math.max(E.length,F.length,G.length); for(let i=0;i<rowsRG;i++) addPair(E[i],F[i],G[i]);
+        
+        // Si encontramos datos o es la pestaña de hoy (aunque esté vacía), retornamos
+        if(foundData || tab === tabs[0]) {
+           return {id, tab, mapByName, mapByID};
+        }
+      }catch(e){ 
+        console.log(`Failed tab ${tab}:`, e);
+      }
+    }
+  }
+  return {id:DAILY_IDS[0], tab:tabs[0], mapByName:new Map(), mapByID:new Map()};
+}
+
+function updateTotalDisplay(total){
+  document.getElementById('totalTodayValue').textContent = total.toLocaleString('en-US');
 }
 
 function renderList(list){
-    const tbody=document.querySelector("#tbl tbody"); tbody.innerHTML="";
-    const maxToday=Math.max(1, ...list.map(p=>p.today));
-    const maxTotal=Math.max(1, ...list.map(p=>p.total));
-    list.forEach((p,i)=>{
-        const tr=document.createElement('tr');
-        tr.innerHTML=`
-            <td class="col-rank ${i===0?'rank-1':''}">${i===0?'THE_ONE':(i+1)}</td>
-            <td class="col-agent"><strong>${p.name}</strong></td>
-            <td class="col-today"><div class="ascii-bar">${generateAsciiBar(p.today, maxToday)}</div></td>
-            <td>${p.wed}</td><td>${p.thu}</td><td>${p.fri}</td>
-            <td>${p.sat}</td><td>${p.mon}</td><td>${p.tue}</td>
-            <td class="col-total"><div class="ascii-bar">${generateAsciiBar(p.total, maxTotal)}</div></td>
-        `;
-        tbody.appendChild(tr);
-    });
+  const tbody=document.querySelector("#tbl tbody"); tbody.innerHTML="";
+  
+  const maxToday=Math.max(1, ...list.map(p=>p.today||0)); 
+  const maxTotal=Math.max(1, ...list.map(p=>p.total||0));
+  const toPct=(v,max)=>Math.max(3, Math.min(100, Math.round((v/max)*100)));
+  
+  list.forEach((p,i)=>{
+    const rowIndex=i;
+    const today=p.today||0, total=p.total||0;
+
+    let rankClass = 'rank-3';
+    if(rowIndex === 0) rankClass = 'rank-1';
+    if(rowIndex === 1) rankClass = 'rank-2';
+
+    const tr=document.createElement('tr');
+    tr.innerHTML = `
+      <td class="col-rank">
+        <div class="rankwrap">
+          <div class="rank-box ${rankClass}">${rowIndex+1}</div>
+        </div>
+      </td>
+      <td class="col-agent">
+        <div class="agent-wrap">
+          <div class="name" title="${p.name}">${p.name}</div>
+        </div>
+      </td>
+      <td class="col-today">
+        <div class="bar today">
+          <div class="fill" style="width:0%"></div>
+          <div class="value">${today}</div>
+        </div>
+      </td>
+      <td class="col-day">${p.wed||0}</td>
+      <td class="col-day">${p.thu||0}</td>
+      <td class="col-day">${p.fri||0}</td>
+      <td class="col-day">${p.sat||0}</td>
+      <td class="col-day">${p.mon||0}</td>
+      <td class="col-day">${p.tue||0}</td>
+      <td class="col-total">
+        <div class="bar total">
+          <div class="fill" style="width:0%"></div>
+          <div class="value">${total}</div>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+
+    setTimeout(()=>{
+      tr.querySelector('.bar.today > .fill').style.width = toPct(today, maxToday) + '%';
+      tr.querySelector('.bar.total > .fill').style.width = toPct(total, maxTotal) + '%';
+    }, 50);
+  });
 }
 
 async function updateData(){
-    diag('SYNCING...');
-    const now=getLocalDate();
-    const iw = (d) => {
-        const x=new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-        const n=x.getUTCDay()||7; x.setUTCDate(x.getUTCDate()+4-n);
-        const y=new Date(Date.UTC(x.getUTCFullYear(),0,1));
-        return Math.ceil((((x-y)/86400000)+1)/7);
-    };
-    const tabName = `W${iw(now)}`;
-    document.getElementById('chipWeekly').textContent = `CYCLE: ${tabName}`;
+  diag('Establishing connection...');
+  const weeklyTab=computeWeeklyTabName();
+  setChipWeekly(weeklyTab);
 
-    try {
-        const [weekly, daily] = await Promise.all([readWeeklyTab(tabName), readDailyApproved()]);
-        document.getElementById('chipDaily').textContent = `DATA: ${daily.tab}`;
-        weekly.forEach(p => { p.today = daily.mapByName.get(p.nameKey) || 0; });
-        weekly.sort((a,b) => b.today - a.today || b.total - a.total);
-        ALL_DATA = weekly.filter(p => p.total > 0 || p.today > 0);
-        renderList(ALL_DATA);
-        document.getElementById('totalTodayValue').textContent = ALL_DATA.reduce((s,p)=>s+p.today,0).toString().padStart(4,'0');
-        diag('ONLINE');
-    } catch(e){ diag('RETRYING...'); }
+  const [weeklyData, dailyData] = await Promise.all([
+    readWeeklyTab(weeklyTab),
+    readDailyApproved()
+  ]);
+  
+  setChipDaily(dailyData.tab);
+  
+  const tempMap = new Map();
+  weeklyData.forEach(p => tempMap.set(p.idKey, p));
+  
+  dailyData.mapByName.forEach((score, nameKey) => {
+    let agent = weeklyData.find(p => p.nameKey === nameKey);
+    if (agent) agent.today = score;
+  });
+  
+  dailyData.mapByID.forEach((score, idKey) => {
+    let agent = tempMap.get(idKey);
+    if (agent) agent.today = score;
+  });
+
+  weeklyData.sort((a, b) => {
+    if ((b.today || 0) !== (a.today || 0)) return (b.today || 0) - (a.today || 0);
+    return ((b.total||0) + (b.today||0)) - ((a.total||0) + (a.today||0));
+  });
+
+  ALL_DATA = weeklyData.filter((p, i) => i < 3 || (p.total||0) > 0 || (p.today||0) > 0);
+  
+  const totalToday = ALL_DATA.reduce((sum, p) => sum + (p.today || 0), 0);
+  updateTotalDisplay(totalToday);
+
+  diag(`Uplink established. Data: ${weeklyTab} + ${dailyData.tab}`);
 }
 
-updateData();
-setInterval(updateData, DAILY_REFRESH);
+(async function init(){
+  await updateData();
+  renderList(ALL_DATA); 
+  setInterval(updateData, DAILY_REFRESH); 
+})();
 </script>
 </body>
 </html>
