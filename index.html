@@ -1,690 +1,995 @@
 <!DOCTYPE html>
+
 <html lang='es'>
+
 <head>
+
 <meta charset='utf-8'/>
+
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>PROTOCOL: VALENTINE</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Share+Tech+Mono&family=Great+Vibes&display=swap" rel="stylesheet">
+
+<title>MATRIX: ANOMALY DETECTED</title>
 
 <style>
-  /* ===== PALETA ETHEREAL RED ===== */
+
+  /* ===== VARIABLES MATRIX ===== */
+
   :root{
-    --bg-color: #0f0505;
-    --glass-bg: rgba(30, 10, 10, 0.6);
-    --border-color: #591018;
+
+    --matrix-bg: #000000;
+
+    --matrix-base: #008F11; 
+
+    --matrix-bright: #00FF41; 
+
+    --matrix-pale: #98FB98; 
+
+    --smith-color: #1a1a1a; /* Negro para Smith invertido */
+
+    --smith-bg: #00FF41;    /* Fondo brillante para Smith */
+
     
-    --primary-red: #D90429;   /* Rojo Sangre */
-    --neon-pink: #FF4D6D;     /* Rosa Brillante */
-    --gold-accent: #FFD700;   /* Dorado */
-    --text-main: #FFF0F5;     /* Blanco Lavanda */
-    
-    --font-header: 'Cinzel', serif;
-    --font-tech: 'Share Tech Mono', monospace;
-    --font-hand: 'Great Vibes', cursive; /* Fuente para la firma */
-    
-    --glow-soft: 0 0 10px rgba(255, 77, 109, 0.3);
-    --glow-strong: 0 0 15px var(--primary-red), 0 0 30px var(--neon-pink);
+
+    --term-font: 'Courier New', Courier, monospace;
+
+    --crt-glow: 0 0 4px var(--matrix-base), 0 0 8px var(--matrix-bright);
+
+    --text-glow-strong: 0 0 5px #fff, 0 0 10px var(--matrix-bright), 0 0 15px var(--matrix-bright);
+
   }
 
-  /* Animación de latido para el modo activo */
-  @keyframes heartbeat {
-    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(217, 4, 41, 0.7); }
-    70% { transform: scale(1.02); box-shadow: 0 0 20px 10px rgba(217, 4, 41, 0); }
-    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(217, 4, 41, 0); }
+
+
+  body.red-mode {
+
+    --matrix-base: #8F0000; --matrix-bright: #FF0000; --matrix-pale: #FF9999; --smith-bg: #FF0000;
+
   }
 
-  body.cupid-mode {
-    --primary-red: #FF0055;
-    --border-color: #FFD700;
-  }
   
+
   html,body{
+
     margin:0; height:100%; width:100%;
-    background-color: var(--bg-color);
-    color: var(--text-main);
-    font-family: var(--font-tech);
+
+    background-color: var(--matrix-bg);
+
+    color: var(--matrix-bright);
+
+    font-family: var(--term-font);
+
     font-size: 16px;
+
+    text-transform: uppercase;
+
     overflow: hidden;
-    cursor: default;
+
+    cursor: text;
+
   }
 
-  #matrix-canvas { position: fixed; top: 0; left: 0; z-index: 0; opacity: 0.4; pointer-events: none; }
-  
-  /* Gradiente viñeta para dar profundidad */
+
+
+  #matrix-canvas { position: fixed; top: 0; left: 0; z-index: 0; opacity: 0.8; pointer-events: none; }
+
   body::after {
+
     content: " "; display: block; position: absolute; inset:0;
-    background: radial-gradient(circle, transparent 40%, #000 100%);
-    z-index: 0; pointer-events: none;
+
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.3) 0px, rgba(0,255,65,0.05) 1px, transparent 2px);
+
+    z-index: 999; pointer-events: none;
+
   }
 
-  /* Overlay Poético y Modal */
-  #wake-overlay, #reward-modal {
+
+
+  /* Overlay para efecto "Wake Up" */
+
+  #wake-overlay {
+
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.95); z-index: 10000;
-      display: none; place-items: center; justify-content: center;
-      flex-direction: column;
-      text-align: center;
-      color: var(--neon-pink); font-family: var(--font-header); font-size: 2rem;
-      text-shadow: var(--glow-strong);
+
+      background: #000; z-index: 10000;
+
+      display: none; place-items: center; justify-content: flex-start;
+
+      padding: 20%; box-sizing: border-box;
+
+      color: var(--matrix-bright); font-size: 2rem; font-weight: bold;
+
+      text-shadow: var(--text-glow-strong);
+
   }
+
+  .cursor-blink { animation: blink 1s step-end infinite; }
+
+  @keyframes blink { 50% { opacity: 0; } }
+
+
 
   #board{
+
     position:relative; z-index:1;
-    width: 90%; height: 90%; margin: 5vh auto;
-    background: var(--glass-bg);
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--border-color);
-    box-shadow: 0 0 30px rgba(89, 16, 24, 0.4);
-    border-radius: 15px;
-    padding: 20px; box-sizing:border-box;
+
+    width: 96%; height: 96%; margin: 2vh auto;
+
+    background-color: rgba(0, 10, 0, 0.85); 
+
+    border: 1px solid var(--matrix-base);
+
+    box-shadow: inset 0 0 30px var(--matrix-base), var(--crt-glow);
+
+    padding: 15px; box-sizing:border-box;
+
     display:flex; flex-direction:column; gap: 15px;
+
     overflow-y: auto;
-    transition: all 0.5s ease;
+
+    text-shadow: var(--crt-glow);
+
+    transition: all 0.2s ease-out;
+
   }
+
   
-  /* ESTILO CUANDO "CUPIDO" ESTÁ ACTIVO (Modo Fiesta) */
+
+  /* ESTILO PARA CUANDO EL VIRUS ESTÁ ACTIVO */
+
   #board.infected {
-      animation: heartbeat 1.5s infinite;
-      border-color: var(--neon-pink);
-      box-shadow: inset 0 0 50px rgba(255, 0, 85, 0.2);
+
+      animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+
+      border-color: #FFF;
+
+      box-shadow: inset 0 0 50px #FFF;
+
   }
+
+  @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
+
+
 
   .top-header-flex{
+
     display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 1px solid var(--border-color); padding-bottom: 15px;
+
+    border-bottom: 2px solid var(--matrix-base); padding-bottom: 15px; position: relative;
+
   }
 
-  h2{ 
-    margin:0; text-align:left; font-size: 2rem; 
-    font-family: var(--font-header); letter-spacing: 3px; 
-    color: var(--neon-pink); text-shadow: var(--glow-soft);
-  }
-  h2::before { content: "♥ "; color: var(--primary-red); }
+  .top-header-flex::after {
 
-  /* ESTILO NUEVO: EL STICKER CENTRAL */
-  .header-sticker {
-      height: 75px; /* Tamaño pequeño pero visible */
-      width: auto;
-      filter: drop-shadow(0 0 8px var(--neon-pink));
-      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      cursor: pointer;
+      content: 'DATA_STREAM_ID: [0x5F3A1] // TARGET: SALES_NODE // STATUS: CONNECTED';
+
+      position: absolute; bottom: -12px; left: 0;
+
+      font-size: 0.7rem; color: var(--matrix-base); letter-spacing: 1px;
+
   }
-  .header-sticker:hover {
-      transform: scale(1.15) rotate(5deg);
-  }
+
+
+
+  h2{ margin:0; text-align:left; font-size: 1.8rem; font-weight: bold; letter-spacing: 2px; color: var(--matrix-bright); }
+
+  h2::before { content: "SYSTEM.ROOT > "; color: var(--matrix-base); }
+
+
 
   #dailyTotalDisplay{
-    border: 1px solid var(--border-color); padding: 10px 20px;
-    border-radius: 50px;
-    background: rgba(0, 0, 0, 0.3);
-    cursor: help; transition: all 0.3s;
+
+    border: 1px solid var(--matrix-bright); padding: 8px 15px;
+
+    background: rgba(0, 255, 65, 0.1); box-shadow: var(--crt-glow);
+
+    cursor: help; transition: background 0.3s;
+
   }
-  #dailyTotalDisplay:hover{ border-color: var(--neon-pink); box-shadow: var(--glow-soft); }
-  #dailyTotalDisplay .label{ font-size: 0.8rem; color: #aaa; text-transform: uppercase; letter-spacing: 2px;}
+
+  #dailyTotalDisplay:hover{ background: rgba(0, 255, 65, 0.2); }
+
+  #dailyTotalDisplay .label{ font-size: 0.9rem; color: var(--matrix-base); display: block; margin-bottom: 5px;}
+
   #dailyTotalDisplay .value{ 
-      font-size: 1.5rem; color: var(--gold-accent); font-weight: bold; 
-      font-family: var(--font-header);
+
+      font-size: 1.6rem; color: #fff; font-weight: bold; display: block; text-align: right;
+
+      text-shadow: var(--text-glow-strong);
+
   }
 
-  .chips{ display:flex; gap: 15px; margin-top: 5px; }
-  .chip { 
-    cursor: pointer; padding: 5px 15px; border-radius: 20px;
-    border: 1px solid rgba(255,255,255,0.1); font-size: 0.8rem;
-    color: #cca; transition: 0.3s; 
-  }
-  .chip:hover { background: rgba(255, 77, 109, 0.1); border-color: var(--neon-pink); }
-  .chip::before{ content: ">> "; color: var(--primary-red); }
 
-  .table-wrap{ flex:1; min-height:0; position:relative; overflow: auto; margin-top:10px; }
-  table{ width:100%; border-collapse: separate; border-spacing: 0 5px; }
+
+  .chips{ display:flex; gap: 20px; flex-wrap:wrap; justify-content:flex-start; color: var(--matrix-pale); margin-top: 10px; }
+
+  .chip { cursor: pointer; transition: transform 0.2s; user-select: none; }
+
+  .chip:active { transform: scale(0.95); }
+
+  .chip::before{ content: "[LOCAL_MEMORY]: "; color: var(--matrix-base); }
+
+
+
+  .table-wrap{ flex:1; min-height:0; position:relative; overflow: auto; border: 1px solid var(--matrix-base); }
+
+  table{ width:100%; min-width: 850px; border-collapse: collapse; border-spacing: 0; }
+
   
+
   thead th{
+
     position:sticky; top:0; z-index:2;
-    background: rgba(15, 5, 5, 0.9); color: var(--neon-pink);
-    text-align: center; padding: 10px;
-    font-family: var(--font-header); letter-spacing: 1px;
-    font-size: 0.9rem;
-    border-bottom: 1px solid var(--border-color);
+
+    background: #001a00; color: var(--matrix-pale);
+
+    text-align: center; padding: 10px 5px;
+
+    border-bottom: 2px solid var(--matrix-base); letter-spacing: 1px;
+
   }
+
   th.col-agent, td.col-agent{ text-align:left; }
 
-  tbody tr {
-    background: rgba(255, 255, 255, 0.02);
-    transition: transform 0.2s, background 0.2s;
-  }
+
+
   tbody td{
-    padding: 12px 8px; vertical-align: middle;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-  }
-  tbody tr:hover { 
-    background: rgba(217, 4, 41, 0.1); 
-    transform: scale(1.01);
-  }
-  tbody tr:hover td { color: #fff; text-shadow: 0 0 8px white; }
 
-  .agent-wrap .name{ font-size: 1.1rem; letter-spacing: 0.5px; color: #fff; }
-  .ascii-bar{ font-family: var(--font-tech); font-size: 0.8rem; color: var(--neon-pink); opacity: 0.8; }
+    border-bottom: 1px solid rgba(0, 143, 17, 0.3); padding: 8px; vertical-align: middle;
 
-  /* ===== ESTILOS DEL "ELEGIDO" (Target/Cupid) ===== */
+    color: var(--matrix-bright);
+
+  }
+
+  tbody tr:hover td{ 
+
+    background: rgba(0, 255, 65, 0.2); color: #fff;
+
+    text-shadow: var(--text-glow-strong); cursor: crosshair;
+
+  }
+
+  tbody tr:hover .ascii-bar { color: #fff; } 
+
+
+
+  .agent-wrap .name{ font-weight: bold; white-space:nowrap; letter-spacing: 1px; }
+
+  .ascii-bar{ font-family: var(--term-font); white-space: pre; color: var(--matrix-bright); font-weight: bold; letter-spacing: -1px; font-size: 1.1rem; }
+
+
+
+  /* ===== ESTILOS DE LA ANOMALÍA (SMITH) ===== */
+
+  /* Smith se ve diferente: Invertido, fuente distinta, glitch */
+
   .smith-row td {
-      background: linear-gradient(90deg, transparent, rgba(255, 77, 109, 0.1), transparent) !important;
-      color: var(--neon-pink) !important;
-      border-bottom: 1px solid var(--primary-red);
-      cursor: pointer !important;
-  }
-  .smith-row .name { font-weight: bold; text-shadow: var(--glow-soft); }
-  .smith-glitch { animation: pulse-text 2s infinite; }
-  @keyframes pulse-text { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; text-shadow: var(--glow-strong); } }
 
-  #meta{ margin-top: 10px; border-top: 1px solid var(--border-color); padding-top:10px; color: #666; font-size: 0.8rem; display:flex; justify-content:space-between;}
+      background-color: var(--smith-bg) !important;
+
+      color: var(--smith-color) !important;
+
+      text-shadow: none !important;
+
+      border-bottom: 1px solid #000;
+
+      cursor: pointer !important; /* Mano para indicar click */
+
+  }
+
+  .smith-row .ascii-bar { color: #000 !important; font-weight: 900; }
+
   
-  .rank-txt { color: #666; font-family: var(--font-header); }
-  .rank-1 { color: var(--gold-accent); text-shadow: 0 0 10px var(--gold-accent); font-size: 1.2rem;}
 
-  /* Scrollbar elegante */
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: #111; }
-  ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+  .smith-glitch {
 
-  /* ===== ESTILOS DEL MINI JUEGO ===== */
-  #mini-score-panel {
-      position: fixed; bottom: 20px; right: 20px;
-      background: rgba(15, 5, 5, 0.9);
-      border: 1px solid var(--primary-red);
-      box-shadow: 0 0 15px rgba(255, 77, 109, 0.2);
-      padding: 10px 20px; border-radius: 8px;
-      z-index: 9998; display: flex; align-items: center; gap: 10px;
-      font-family: var(--font-tech);
-      transition: transform 0.2s;
-  }
-  #mini-score-panel:hover { transform: scale(1.05); }
-  
-  .score-label { color: var(--neon-pink); font-size: 0.8rem; letter-spacing: 1px; }
-  .score-val { color: var(--gold-accent); font-size: 1.5rem; font-weight: bold; text-shadow: 0 0 10px var(--gold-accent); }
+      font-family: "Impact", sans-serif; /* Letra distinta y pesada */
 
-  /* EL PERRITO ALADO DE IMBGG */
-  #flying-cupid {
-      position: fixed;
-      width: 120px; 
-      height: 120px;
-      z-index: 9999;
-      cursor: crosshair;
-      user-select: none;
-      
-      background-image: url('https://i.ibb.co/N2PrLpZg/1000023341.png');
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center;
-      
-      filter: drop-shadow(0 0 15px var(--neon-pink));
-      
-      transition: top 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), 
-                  left 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), 
-                  transform 0.1s;
-  }
-  
-  /* Animación al recibir un disparo */
-  .cupid-hit {
-      animation: hit-anim 0.3s forwards;
-  }
-  @keyframes hit-anim {
-      0% { transform: scale(1) rotate(0deg); filter: hue-rotate(0deg) brightness(1); }
-      50% { transform: scale(1.3) rotate(15deg); filter: hue-rotate(90deg) brightness(2); }
-      100% { transform: scale(0) rotate(-15deg); opacity: 0; }
+      letter-spacing: 2px;
+
+      animation: glitch-text 0.3s infinite;
+
+      display: inline-block;
+
   }
 
-  /* ===== ESTILOS DEL MODAL DE RECOMPENSA Y FIRMA ===== */
-  #reward-content {
-      background: rgba(20, 0, 0, 0.9);
-      padding: 40px; border: 2px solid var(--gold-accent);
-      border-radius: 15px; box-shadow: 0 0 50px var(--primary-red);
-      text-align: center;
-  }
-  #reward-input {
-      background: transparent; border: none; border-bottom: 2px solid var(--neon-pink);
-      color: var(--gold-accent); font-family: var(--font-hand); font-size: 2rem;
-      text-align: center; width: 80%; outline: none; margin: 20px 0;
-  }
-  #reward-btn {
-      background: var(--primary-red); color: white; border: none; padding: 10px 30px;
-      font-family: var(--font-header); font-size: 1rem; cursor: pointer;
-      transition: 0.3s; margin-top: 10px;
-  }
-  #reward-btn:hover { background: var(--neon-pink); box-shadow: 0 0 15px var(--neon-pink); }
+  @keyframes glitch-text {
 
-  /* La Firma del Jugador en la Interfaz */
-  #player-signature {
-      position: absolute; bottom: 80px; left: 20px;
-      font-family: var(--font-hand);
-      font-size: 1.8rem;
-      color: var(--neon-pink);
-      transform: rotate(-5deg);
-      text-shadow: 0 0 5px var(--primary-red), 0 0 10px var(--neon-pink);
-      opacity: 0.9;
-      pointer-events: none;
-      z-index: 5;
+      0% { transform: translate(0); }
+
+      20% { transform: translate(-2px, 2px); }
+
+      40% { transform: translate(-2px, -2px); }
+
+      60% { transform: translate(2px, 2px); }
+
+      80% { transform: translate(2px, -2px); }
+
+      100% { transform: translate(0); }
+
   }
 
-  /* Móvil */
+
+
+  #meta{ margin-top: 10px; border-top: 1px solid var(--matrix-base); padding-top:15px; color: var(--matrix-base); font-size: 0.9rem;}
+
+  #diag { color: var(--matrix-pale); }
+
+  #diag::before { content: ">> EXEC(STATUS_CHECK); "; }
+
+
+
+  .rank-txt { color: var(--matrix-base); }
+
+  .rank-1 { color: #fff; text-shadow: var(--text-glow-strong); }
+
+
+
+  ::-webkit-scrollbar { width: 8px; background: #000; }
+
+  ::-webkit-scrollbar-thumb { background: var(--matrix-base); border: 1px solid var(--matrix-bright); }
+
+
+
   @media (max-width: 768px) {
-    #board { width: 100%; height: 100%; margin: 0; border: none; border-radius: 0; }
-    
-    /* Ajuste de cabecera en móvil: Pila vertical */
-    .top-header-flex { flex-direction: column; gap: 15px; text-align: center; }
-    
+
+    #board { width: 100%; height: 100%; margin: 0; border: none; background: rgba(0,10,0,0.9); }
+
+    .top-header-flex { flex-direction: column; align-items: stretch; gap: 15px;}
+
+    .top-header-flex::after { display: none; }
+
+    #dailyTotalDisplay { width: 100%; text-align: center;}
+
     thead { display: none; }
-    tbody tr { display: flex; flex-wrap: wrap; margin-bottom: 15px; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; }
-    tbody td { border: none; width: 100%; padding: 2px 0; display: flex; justify-content: space-between; }
-    .col-day { display: none; }
-    .col-rank { font-size: 0.8rem; color: var(--gold-accent); width: 100%; text-align: right; }
-    #player-signature { bottom: 120px; left: 10px; font-size: 1.2rem; }
-    #flying-cupid { width: 80px; height: 80px; }
+
+    tbody, tr, td { display: block; width: 100%; box-sizing: border-box; border: none; }
+
+    tbody tr { margin-bottom: 20px; padding: 15px; border: 1px solid var(--matrix-bright); background: rgba(0, 50, 0, 0.4); box-shadow: var(--crt-glow); }
+
+    tbody td { padding: 4px 0; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+
+    th.col-day, td.col-day { display: none; }
+
+    td.col-rank::before { content: '[NODE_RANK]:'; color: var(--matrix-base); margin-right: 10px; }
+
+    td.col-agent::before { content: '[IDENTITY]:'; color: var(--matrix-base); margin-right: 10px; }
+
+    td.col-today::before { content: '[TODAY_DATA]:'; color: var(--matrix-base); margin-right: 5px; }
+
+    td.col-total::before { content: '[TOTAL_CACHE]:'; color: var(--matrix-base); margin-right: 5px; }
+
+    .ascii-bar { text-align: right; flex-grow: 1; font-size: 1rem; letter-spacing: 0;}
+
+    
+
+    /* Ajuste Smith Móvil */
+
+    .smith-row td { background-color: var(--smith-bg) !important; color: #000 !important; }
+
+    .smith-row td::before { color: #000 !important; }
+
   }
+
 </style>
+
 </head>
+
 <body>
+
 <canvas id="matrix-canvas"></canvas>
 
 <div id="wake-overlay"></div>
 
-<div id="reward-modal">
-    <div id="reward-content">
-        <h2 style="text-align:center; font-size:1.5rem">Achievement Unlocked</h2>
-        <p style="font-family:var(--font-tech); font-size:0.9rem; color:#fff;">Fate is not written... yet. <br>Prove your devotion to the code.</p>
-        <input type="text" id="reward-input" placeholder="Tu firma aquí..." maxlength="30" autocomplete="off">
-        <br>
-        <button id="reward-btn" onclick="saveSignature()">GRABAR EN CÓDIGO</button>
-    </div>
-</div>
 
-<div id="mini-score-panel">
-    <span class="score-label">TARGETS_HIT:</span>
-    <span class="score-val" id="score-counter">00</span>
-</div>
-
-<div id="flying-cupid" onclick="hitCupid()"></div>
 
 <div id='board'>
+
   <div class='top-header-flex'> 
-    <h2>AFINITY_V14</h2>
-    
-    <img src="https://i.ibb.co/fVKm2nnt/Gemini-Generated-Image-vr2d3svr2d3svr2d-1.png" class="header-sticker" alt="Cupid Sticker">
-    
+
+    <h2>NEO_LEADERBOARD_V3</h2>
+
     <div id='dailyTotalDisplay' onmouseover="startScramble()" onmouseout="stopScramble()">
-      <span class='label'>LOVE_FREQUENCY (TODAY):</span>
+
+      <span class='label'>SYSTEM_INTEGRITY (TODAY):</span>
+
       <span class='value' id='totalTodayValue'>0000</span>
+
     </div>
+
   </div>
+
+
 
   <div class='chips'>
-    <div id='chipWeekly' class='chip'>CYCLE: ???</div>
-    <div id='chipDaily' class='chip'>SYNC: ???</div>
+
+    <div id='chipWeekly' class='chip' onclick="setMatrixMode('blue')">WEEK_CYCLE: ???</div>
+
+    <div id='chipDaily' class='chip' onclick="setMatrixMode('red')">DAILY_CYCLE: ???</div>
+
   </div>
+
+
 
   <div class='table-wrap'>
+
     <table id='tbl'>
+
       <thead>
+
         <tr>
-          <th class='col-rank'>#</th>
-          <th class='col-agent'>ENTITY / NAME</th>
-          <th class='col-today' style="width:20%">AFFECTION FLOW</th>
+
+          <th class='col-rank'>[#] RANK_ID</th>
+
+          <th class='col-agent'>[USER] AGENT_IDENTITY</th>
+
+          <th class='col-today' style="width:18%">[STREAM] TODAY_FLOW</th>
+
           <th class='col-day'>W</th><th class='col-day'>T</th><th class='col-day'>F</th>
+
           <th class='col-day'>S</th><th class='col-day'>M</th><th class='col-day'>T</th>
-          <th class='col-total' style="width:20%">TOTAL DEVOTION</th>
+
+          <th class='col-total' style="width:18%">[BUFFER] TOTAL_CACHE</th>
+
         </tr>
+
       </thead>
+
       <tbody></tbody>
+
     </table>
+
   </div>
-  
-  <div id="player-signature"></div>
+
+
 
   <div id='meta'>
-    <div id='diag'>INITIALIZING HEARTBEAT...</div>
-    <div>V14.02.2026</div>
+
+    <div id='diag'>INITIALIZING CONNECTION... WAIT.</div>
+
+    <div style="float:right; font-size:0.8rem;">TRACE COMPLETE.</div>
+
   </div>
+
 </div>
 
+
+
 <script>
-/* 1. VISUAL: RAIN OF HEARTS & BINARY */
+
+/* 1. VISUAL: MATRIX RAIN */
+
 const canvas = document.getElementById('matrix-canvas');
+
 const ctx = canvas.getContext('2d');
+
 function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+
 window.addEventListener('resize', resizeCanvas); resizeCanvas();
 
-const chars = '♥♡10XY❤10❥'; 
+const chars = ' ᚠᛃᛒアァカサタナハマヤャラワガザダバパイィキシチニヒミリギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレゲゼデベペオォコソトノホモヨョロゴゾドボポヴォン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
 const charArray = chars.split('');
-const fontSize = 16; const columns = canvas.width / fontSize; const drops = [];
+
+const fontSize = 14; const columns = canvas.width / fontSize; const drops = [];
+
 for (let i = 0; i < columns; i++) drops[i] = Math.random() * -100;
 
 function drawMatrix() {
-    const isCupid = document.body.classList.contains('cupid-mode');
-    ctx.fillStyle = 'rgba(15, 5, 5, 0.05)'; 
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.font = fontSize + 'px monospace';
-    
+
+    const isRed = document.body.classList.contains('red-mode');
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.05)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = isRed ? '#F00' : '#0F0'; ctx.font = fontSize + 'px monospace';
+
     for (let i = 0; i < drops.length; i++) {
-        const r = Math.random();
-        if (r > 0.90) ctx.fillStyle = '#FFD700'; // Dorado
-        else if (r > 0.6) ctx.fillStyle = '#FF4D6D'; // Rosa
-        else ctx.fillStyle = '#591018'; // Rojo oscuro
-        
-        if(isCupid) ctx.fillStyle = '#FF0055'; // Neón en modo cupido
+
+        if(Math.random() > 0.98) ctx.fillStyle = '#FFF'; else ctx.fillStyle = isRed ? '#F00' : '#0F0';
 
         const text = charArray[Math.floor(Math.random() * charArray.length)];
+
         ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.98) drops[i] = 0;
+
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+
         drops[i]++;
+
     }
+
 }
-setInterval(drawMatrix, 40);
 
-/* 2. LÓGICA DE DATOS (BLINDADA POR ID) */
-const BAR_LENGTH = 12; 
-const CHAR_FILL = '♥'; 
-const CHAR_EMPTY = '.'; 
+setInterval(drawMatrix, 33);
 
-// === CONFIGURACIÓN ===
-const TARGET_NAME_KEY = "CUPID"; // Cambiar por nombre especial si se desea
+
+
+/* 2. LÓGICA DE DATOS */
+
+const BAR_LENGTH = 14; const CHAR_FILL = '1'; const CHAR_EMPTY = '0';
 
 const API_KEY = "AIzaSyDwOqp2uizZol2et6Uqi7CnntW9Hkrinjg";
+
 const WEEKLY_SHEETID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
+
 const DAILY_ID_RAW = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
+
 const TIMEZONE = "America/Tijuana";
+
 const DAILY_REFRESH = 12000; 
+
 let ALL_DATA=[]; 
+
 let CURRENT_TOTAL = 0;
-let CUPID_ACTIVE = false;
 
-function diag(t){ document.getElementById('diag').textContent = `>> ${t}`; }
-function setChipWeekly(t){ document.getElementById('chipWeekly').textContent = `CYCLE: ${t}`; }
-function setChipDaily(t){ document.getElementById('chipDaily').textContent = `SYNC: ${t}`; }
+let VIRUS_ACTIVE = false; // Estado de la infección
+
+
+
+function diag(t){ document.getElementById('diag').textContent = `${t}`; }
+
+function setChipWeekly(t){ document.getElementById('chipWeekly').textContent = `${t}`; }
+
+function setChipDaily(t){ document.getElementById('chipDaily').textContent = `${t}`; }
+
 function getLocalDate(){ const s=new Date().toLocaleString('en-US',{timeZone:TIMEZONE}); return new Date(s); }
+
 function isoWeek(d){ const x=new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const n=x.getUTCDay()||7; x.setUTCDate(x.getUTCDate()+4-n); const y=new Date(Date.UTC(x.getUTCFullYear(),0,1)); return {week:Math.ceil((((x-y)/86400000)+1)/7), year:x.getUTCFullYear()}; }
+
 function weeksInISOYear(y){ const d=new Date(Date.UTC(y,11,31)); const day=d.getUTCDay(); return (day===4 || (d.getUTCDate()===31 && day===3))?53:52; }
-function computeWeeklyTabName(){
-  const url=new URL(window.location.href); const o=url.searchParams.get('weeklyTab'); if(o) return o;
-  const local=getLocalDate(); const hrs=local.getHours(); const dow=local.getDay(); const iw=isoWeek(local); let w=iw.week;
-  const afterCut=(dow>4)||(dow===4&&hrs>=14); if(afterCut){ w++; const mx=weeksInISOYear(iw.year); if(w>mx){w=1;} } return `W${w}`;
-}
-function normName(s){ return (s||"").normalize('NFD').replace(/[\u0300-\u036f]/g,"").replace(/[^\x20-\x7E]/g,"").trim().toUpperCase(); }
-function normID(s){ return (s||"").toString().trim(); }
 
-async function fetchSafeJSON(url) {
-  try { const r = await fetch(url); if (r.ok) return await r.json(); } catch (e) {} return null;
-}
+function computeWeeklyTabName() {
 
-// Lectura de la Hoja Semanal
-async function readWeeklyTab(weeklyTab){
-  const ranges=[`${weeklyTab}!A3:C96`,`${weeklyTab}!D3:D96`,`${weeklyTab}!F3:F96`,`${weeklyTab}!H3:H96`,`${weeklyTab}!J3:J96`,`${weeklyTab}!L3:L96`,`${weeklyTab}!N3:N96`,`${weeklyTab}!O3:O96`].map(encodeURIComponent);
-  const url=`https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_SHEETID}/values:batchGet?`+ranges.map(r=>`ranges=${r}`).join("&")+`&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
-  const j=await fetchSafeJSON(url); if(!j) return []; const vr=j.valueRanges||[];
-  const base=vr[0]?.values||[]; const toCol=v=>(v?.values||[]).map(r=>(r[0]??"").toString().trim());
-  const d=toCol(vr[1]), f=toCol(vr[2]), h=toCol(vr[3]), jv=toCol(vr[4]), l=toCol(vr[5]), n=toCol(vr[6]), oT=toCol(vr[7]);
-  const len=Math.max(base.length,d.length,f.length,h.length,jv.length,l.length,n.length,oT.length);
-  const out=[];
-  for(let i=0;i<len;i++){
-    const id=normID(base[i]?.[0]??""); 
-    const name=(base[i]?.[1]??"").toString().trim(); 
-    if(!id && !name) continue;
-    out.push({ id,idKey:id, name, nameKey:normName(name), wed:parseInt(d[i]||0), thu:parseInt(f[i]||0), fri:parseInt(h[i]||0), sat:parseInt(jv[i]||0), mon:parseInt(l[i]||0), tue:parseInt(n[i]||0), total:parseInt(oT[i]||0), today:0 });
+  const url = new URL(window.location.href);
+
+  const o = url.searchParams.get('weeklyTab');
+
+  if (o) return o;
+
+
+
+  const local = getLocalDate();
+
+  
+
+  // Creamos una copia para no alterar la fecha original
+
+  const d = new Date(local.getTime());
+
+  
+
+  /**
+
+   * LÓGICA DE DESPLAZAMIENTO:
+
+   * Restamos 3 días a la fecha actual. 
+
+   * De esta forma, el Jueves (4) se convierte en Lunes (1).
+
+   * El Miércoles (3) se convierte en Domingo (0) de la semana anterior.
+
+   */
+
+  d.setDate(d.getDate() - 3);
+
+  
+
+  // Ahora calculamos la semana ISO sobre esta fecha desplazada
+
+  const iw = isoWeek(d);
+
+  let w = iw.week;
+
+
+
+  // Ajuste de hora de corte (14:00 hrs)
+
+  // Si es jueves y ya pasaron las 14:00, sumamos 1 para saltar a la siguiente
+
+  const dow = local.getDay(); // 4 = Jueves
+
+  const hrs = local.getHours();
+
+  if (dow === 4 && hrs >= 14) {
+
+    w++;
+
+    const mx = weeksInISOYear(iw.year);
+
+    if (w > mx) w = 1;
+
   }
+
+
+
+  return `W${w}`;
+
+}
+
+
+
+
+
+/* LECTURA DATOS (Full) */
+
+async function readWeeklyTab(weeklyTab){
+
+  const ranges=[`${weeklyTab}!A3:C96`,`${weeklyTab}!D3:D96`,`${weeklyTab}!F3:F96`,`${weeklyTab}!H3:H96`,`${weeklyTab}!J3:J96`,`${weeklyTab}!L3:L96`,`${weeklyTab}!N3:N96`,`${weeklyTab}!O3:O96`].map(encodeURIComponent);
+
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_SHEETID}/values:batchGet?`+ranges.map(r=>`ranges=${r}`).join("&")+`&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
+
+  const j=await fetchSafeJSON(url); if(!j) return []; const vr=j.valueRanges||[];
+
+  const base=vr[0]?.values||[]; const toCol=v=>(v?.values||[]).map(r=>(r[0]??"").toString().trim());
+
+  const d=toCol(vr[1]), f=toCol(vr[2]), h=toCol(vr[3]), jv=toCol(vr[4]), l=toCol(vr[5]), n=toCol(vr[6]), oT=toCol(vr[7]);
+
+  const len=Math.max(base.length,d.length,f.length,h.length,jv.length,l.length,n.length,oT.length);
+
+  const out=[];
+
+  for(let i=0;i<len;i++){
+
+    const id=normID(base[i]?.[0]??""); const name=(base[i]?.[1]??"").toString().trim();
+
+    if(!id && !name) continue;
+
+    out.push({ id,idKey:id, name, nameKey:normName(name), wed:parseInt(d[i]||0), thu:parseInt(f[i]||0), fri:parseInt(h[i]||0), sat:parseInt(jv[i]||0), mon:parseInt(l[i]||0), tue:parseInt(n[i]||0), total:parseInt(oT[i]||0), today:0 });
+
+  }
+
   return out;
+
 }
 
 function fmtDailyTab(dt){ const m=new Intl.DateTimeFormat('en-US',{month:'short',timeZone:TIMEZONE}).format(dt); const dd=new Intl.DateTimeFormat('en-US',{day:'2-digit',timeZone:TIMEZONE}).format(dt); return `${m} ${dd}`; }
 
-// Lectura de la Hoja Diaria (Por ID, Columna B)
 async function readDailyApproved(){
+
   const tabs=[fmtDailyTab(getLocalDate())];
-  const url=`https://sheets.googleapis.com/v4/spreadsheets/${DAILY_ID_RAW}/values:batchGet?ranges=${tabs[0]}!A2:C70&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
+
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${DAILY_ID_RAW}/values:batchGet?ranges=${tabs[0]}!A2:G70&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
+
   const j=await fetchSafeJSON(url); 
-  
-  const mapByID = new Map(); 
+
   if(j && j.valueRanges){
+
       const A=(j.valueRanges[0]?.values)||[]; 
-      for(let i=0; i<A.length; i++){
-          // Columna B (index 1) es el ID numérico
-          const idRaw = (A[i][1]??"").toString().trim(); 
-          // Columna C (index 2) es el valor
-          const v = parseInt(A[i][2]??0) || 0;
-          if(idRaw){ mapByID.set(idRaw, (mapByID.get(idRaw)||0) + v); }
+
+      const mapByName=new Map(), mapByID=new Map();
+
+      for(let i=0;i<A.length;i++){
+
+          const nm=(A[i][0]??"").toString(); const v=parseInt(A[i][2]??0)||0;
+
+          if(nm.trim()){ const nk=normName(nm); mapByName.set(nk,(mapByName.get(nk)||0)+v); }
+
       }
-      return {tab:tabs[0], mapByID}; 
+
+      return {tab:tabs[0], mapByName, mapByID}; 
+
   }
-  return {tab:'OFFLINE', mapByID:new Map()};
+
+  return {tab:'OFFLINE', mapByName:new Map(), mapByID:new Map()};
+
 }
+
+
 
 let SCRAMBLING = false; let scrambleInterval;
+
 function updateTotalDisplay(total){ 
+
     CURRENT_TOTAL = total;
+
     if(!SCRAMBLING) document.getElementById('totalTodayValue').textContent = total.toString().padStart(4, '0'); 
+
 }
+
 function startScramble(){
+
     SCRAMBLING = true;
-    const target = document.getElementById('totalTodayValue'); const chars = "0123456789♥";
+
+    const target = document.getElementById('totalTodayValue'); const chars = "0123456789X£¥Z";
+
     scrambleInterval = setInterval(() => { target.textContent = Array(4).fill(0).map(() => chars[Math.floor(Math.random() * chars.length)]).join(''); }, 50);
+
 }
+
 function stopScramble(){
+
     SCRAMBLING = false; clearInterval(scrambleInterval);
+
     document.getElementById('totalTodayValue').textContent = CURRENT_TOTAL.toString().padStart(4, '0');
+
 }
+
+
 
 function generateAsciiBar(value, max) {
+
   if (max === 0) max = 1;
+
   const filledCount = Math.round((value / max) * BAR_LENGTH);
+
   const barStr = CHAR_FILL.repeat(filledCount) + CHAR_EMPTY.repeat(BAR_LENGTH - filledCount);
-  return `${barStr} ${value}`;
+
+  return `[${barStr}]_${value}`;
+
 }
 
-// === ACTIVAR CUPIDO ===
-function activateCupid() {
-    CUPID_ACTIVE = !CUPID_ACTIVE; // Toggle
+
+
+// === ACTIVAR EL VIRUS (CLICK EN SMITH) ===
+
+function activateVirus() {
+
+    VIRUS_ACTIVE = true;
+
     const board = document.getElementById('board');
-    if(CUPID_ACTIVE) {
-        board.classList.add('infected');
-        document.body.classList.add('cupid-mode');
-        createHeartExplosion();
-    } else {
+
+    // Efecto de terremoto
+
+    board.classList.add('infected');
+
+    // Flash Rojo
+
+    document.body.classList.add('red-mode');
+
+    setTimeout(() => {
+
         board.classList.remove('infected');
-        document.body.classList.remove('cupid-mode');
-    }
+
+        renderList(ALL_DATA); // Re-renderizar con todos siendo Smith
+
+    }, 500);
+
 }
 
-function createHeartExplosion() {
-    for(let i=0; i<30; i++){
-        setTimeout(() => {
-            const span = document.createElement('span');
-            span.textContent = Math.random() > 0.5 ? '♥' : '❤';
-            span.style.position = 'fixed'; 
-            span.style.left = '50%'; span.style.top = '50%';
-            span.style.color = '#FF0055'; 
-            span.style.fontSize = (20 + Math.random() * 40) + 'px';
-            span.style.zIndex = '9999';
-            document.body.appendChild(span);
-            const x = (Math.random() - 0.5) * window.innerWidth;
-            const y = (Math.random() - 0.5) * window.innerHeight;
-            const anim = span.animate([ 
-                { transform: 'translate(-50%,-50%) scale(0)', opacity: 1 }, 
-                { transform: `translate(${x}px, ${y}px) scale(1)`, opacity: 0 } 
-            ], { duration: 1500, easing: 'ease-out' });
-            anim.onfinish = () => span.remove();
-        }, i * 50);
-    }
-}
+
 
 function renderList(list){
+
   const tbody=document.querySelector("#tbl tbody"); tbody.innerHTML="";
+
   const maxToday=Math.max(1, ...list.map(p=>p.today||0)); 
+
   const maxTotal=Math.max(1, ...list.map(p=>p.total||0));
+
   
+
   list.forEach((p,i)=>{
-    const isTarget = (p.name && (p.name.includes(TARGET_NAME_KEY)));
+
+    const rowIndex=i;
+
+    // Si el virus está activo, todos son Smith
+
+    const displayName = VIRUS_ACTIVE ? "AGENT SMITH" : p.name;
+
+    // Detectar si ESTA fila específica es el Smith Original (para estilo)
+
+    const isOriginalSmith = p.name && p.name.includes("SMITH");
+
+    
+
     let rowClass = "";
-    if (isTarget) rowClass = "smith-row"; 
-    let nameHtml = `<div class="name">${p.name}</div>`;
-    if (isTarget) { nameHtml = `<div class="name smith-glitch">${p.name} ♥</div>`; }
-    let rankTxt = `${(i + 1)}`;
+
+    if (isOriginalSmith) rowClass = "smith-row"; // Clase especial para Smith
+
+
+
+    // Estilo especial de texto para Smith (o todos si hay virus)
+
+    let nameHtml = `<div class="name">${displayName}</div>`;
+
+    if (isOriginalSmith || VIRUS_ACTIVE) {
+
+        nameHtml = `<div class="name smith-glitch">${displayName}</div>`;
+
+    }
+
+
+
+    let rankTxt = `N.${(rowIndex + 1).toString().padStart(2, '0')}`;
+
     let rankClass = 'rank-txt';
-    if (i===0) { rankTxt = '♛'; rankClass += ' rank-1'; } 
-    let clickAttr = isTarget ? 'onclick="activateCupid()"' : '';
+
+    if (rowIndex===0) { rankTxt = 'THE_ONE'; rankClass += ' rank-1'; } 
+
+
+
+    // Evento Click solo en el Smith Original
+
+    let clickAttr = isOriginalSmith ? 'onclick="activateVirus()"' : '';
+
+
 
     const tr=document.createElement('tr');
+
     if(rowClass) tr.className = rowClass;
-    if(clickAttr) tr.innerHTML = `<tr ${clickAttr}>`; 
+
+    if(clickAttr) tr.innerHTML = `<tr ${clickAttr}>`; // Hack simple para insertar atributo
+
+
+
     tr.innerHTML = `
+
       <td class="col-rank"><span class="${rankClass}">${rankTxt}</span></td>
+
       <td class="col-agent" ${clickAttr}>
+
         <div class="agent-wrap">${nameHtml}</div>
+
       </td>
+
       <td class="col-today"><div class="ascii-bar">${generateAsciiBar(p.today||0, maxToday)}</div></td>
+
       <td class="col-day">${p.wed||0}</td><td class="col-day">${p.thu||0}</td><td class="col-day">${p.fri||0}</td>
+
       <td class="col-day">${p.sat||0}</td><td class="col-day">${p.mon||0}</td><td class="col-day">${p.tue||0}</td>
+
       <td class="col-total"><div class="ascii-bar">${generateAsciiBar(p.total||0, maxTotal)}</div></td>
+
     `;
+
     tbody.appendChild(tr);
+
   });
+
 }
 
-// ACTUALIZACIÓN DE DATOS
+
+
 async function updateData(){
-  diag('SEARCHING FOR HEARTBEAT...');
+
+  diag('PINGING SOURCE NODES...');
+
   const weeklyTab=computeWeeklyTabName();
+
   setChipWeekly(weeklyTab);
 
+
+
+  // Lógica completa de datos
+
   const [weeklyData, dailyData] = await Promise.all([ readWeeklyTab(weeklyTab), readDailyApproved() ]);
+
   setChipDaily(dailyData.tab);
+
   
-  // Cruce de datos por ID
-  weeklyData.forEach(agent => {
-      if(agent.idKey && dailyData.mapByID.has(agent.idKey)){
-          agent.today = dailyData.mapByID.get(agent.idKey);
-      } else {
-          agent.today = 0;
-      }
-  });
+
+  const tempMap = new Map(); weeklyData.forEach(p => tempMap.set(p.idKey, p));
+
+  dailyData.mapByName.forEach((score, nameKey) => { let agent = weeklyData.find(p => p.nameKey === nameKey); if (agent) agent.today = score; });
+
   
+
+  // Ordenamiento Estándar
+
   weeklyData.sort((a, b) => {
+
     if ((b.today || 0) !== (a.today || 0)) return (b.today || 0) - (a.today || 0);
+
     return ((b.total||0) + (b.today||0)) - ((a.total||0) + (a.today||0));
+
   });
 
+
+
   ALL_DATA = weeklyData.filter((p, i) => i < 3 || (p.total||0) > 0 || (p.today||0) > 0);
+
+
+
+  // === LÓGICA DE EXILIO DE SMITH ===
+
+  // Si encontramos a Smith, lo movemos al final, sin importar su score
+
+  const smithIndex = ALL_DATA.findIndex(p => p.name && p.name.includes("SMITH"));
+
+  if (smithIndex > -1) {
+
+      const smithAgent = ALL_DATA.splice(smithIndex, 1)[0];
+
+      ALL_DATA.push(smithAgent); // Empujar al fondo
+
+  }
+
+
+
   updateTotalDisplay(ALL_DATA.reduce((sum, p) => sum + (p.today || 0), 0));
-  diag(`CONNECTION ESTABLISHED.`);
+
+  diag(`DATA STREAM SYNCHRONIZED.`);
+
   renderList(ALL_DATA);
+
 }
+
+
 
 (async function init(){ await updateData(); setInterval(updateData, DAILY_REFRESH); })();
 
+
+
 /* 3. INTERACCIONES EXTRA */
-// Click global (partículas)
+
+
+
+function setMatrixMode(mode) {
+
+    if (mode === 'red') { document.body.classList.add('red-mode'); } 
+
+    else { document.body.classList.remove('red-mode'); }
+
+}
+
+
+
 document.addEventListener('click', (e) => {
-    if(e.target.closest('.chip') || e.target.closest('.smith-row') || e.target.id === 'flying-cupid' || e.target.closest('#reward-modal')) return; 
-    const particleCount = 6; 
+
+    if(e.target.closest('.chip') || e.target.closest('.smith-row')) return; // Ignorar si es interacción específica
+
+    const particleCount = 8; const symbols = '01xyZ';
+
     for(let i=0; i<particleCount; i++) {
+
         const span = document.createElement('span');
-        span.textContent = Math.random() > 0.5 ? '♥' : '♡';
+
+        span.textContent = symbols.charAt(Math.floor(Math.random() * symbols.length));
+
         span.style.position = 'fixed'; span.style.left = e.clientX + 'px'; span.style.top = e.clientY + 'px';
-        span.style.color = '#FF4D6D'; span.style.textShadow = '0 0 5px #fff';
-        span.style.fontSize = (10 + Math.random() * 15) + 'px';
+
+        span.style.color = '#fff'; span.style.textShadow = '0 0 10px var(--matrix-bright)';
+
+        span.style.fontFamily = 'monospace'; span.style.fontSize = (12 + Math.random() * 10) + 'px';
+
         span.style.pointerEvents = 'none'; span.style.zIndex = '9999';
+
         document.body.appendChild(span);
-        const x = (Math.random() - 0.5) * 100;
-        const y = (Math.random() - 1) * 100; 
-        const anim = span.animate([ { transform: 'translate(0,0) scale(1)', opacity: 1 }, { transform: `translate(${x}px, ${y}px) scale(0)`, opacity: 0 } ], { duration: 800 });
+
+        const x = Math.cos(Math.random() * Math.PI * 2) * 100;
+
+        const y = Math.sin(Math.random() * Math.PI * 2) * 100;
+
+        const anim = span.animate([ { transform: 'translate(0,0) scale(1)', opacity: 1 }, { transform: `translate(${x}px, ${y}px) scale(0)`, opacity: 0 } ], { duration: 600 });
+
         anim.onfinish = () => span.remove();
+
     }
+
 });
 
-// Mensaje secreto L
+
+
+// Wake Up Neo Keybinds
+
 document.addEventListener('keydown', async (e) => {
-    if (e.key === 'Escape' || e.key.toLowerCase() === 'l') { 
+
+    if (e.key === 'Escape' || e.key.toLowerCase() === 'w') {
+
         const overlay = document.getElementById('wake-overlay');
+
         overlay.style.display = 'flex'; overlay.innerHTML = '';
-        await typeWriter("Not to be loved is ...", overlay); await new Promise(r => setTimeout(r, 1500));
-        overlay.innerHTML = ''; 
-        await typeWriter("a simple misfortune...", overlay); await new Promise(r => setTimeout(r, 1500));
-        overlay.innerHTML = '';
-        await typeWriter("the true misfortune is not to love..", overlay); await new Promise(r => setTimeout(r, 3000));
+
+        await typeWriter("Wake up, Neo...", overlay); await new Promise(r => setTimeout(r, 2000));
+
+        overlay.innerHTML = ''; await typeWriter("The Matrix has you...", overlay); await new Promise(r => setTimeout(r, 2000));
+
         overlay.style.display = 'none';
+
     }
+
 });
+
 async function typeWriter(text, container) {
+
     for (let i = 0; i < text.length; i++) {
-        container.innerHTML += text.charAt(i); await new Promise(r => setTimeout(r, 100));
-    }
-}
 
-/* ================================
-   MINI JUEGO: CAZA-CUPIDOS & RECOMPENSA
-   ================================ */
-let gameScore = 0;
-const cupidEl = document.getElementById('flying-cupid');
-const scoreEl = document.getElementById('score-counter');
-const TARGET_SCORE = 100; // Puntos para el logro
+        container.innerHTML += text.charAt(i); await new Promise(r => setTimeout(r, 150));
 
-function moveCupid() {
-    const maxX = window.innerWidth - 100;
-    const maxY = window.innerHeight - 100;
-    const randomX = Math.floor(Math.random() * maxX);
-    const randomY = Math.floor(Math.random() * maxY);
-    cupidEl.classList.remove('cupid-hit');
-    cupidEl.style.opacity = "1";
-    cupidEl.style.transform = "scale(1)";
-    cupidEl.style.left = randomX + 'px';
-    cupidEl.style.top = randomY + 'px';
-}
-
-function hitCupid() {
-    gameScore++;
-    scoreEl.textContent = gameScore.toString().padStart(2, '0');
-    
-    // Check de Recompensa
-    if(gameScore === TARGET_SCORE) {
-        unlockReward();
     }
 
-    // Efecto visual rápido
-    cupidEl.classList.add('cupid-hit');
-    setTimeout(moveCupid, 400); 
 }
 
-// LOGICA DE RECOMPENSA
-function unlockReward() {
-    // Abrir Modal
-    document.getElementById('reward-modal').style.display = 'flex';
-}
-
-function saveSignature() {
-    const text = document.getElementById('reward-input').value;
-    if(text.trim() !== "") {
-        const sigDiv = document.getElementById('player-signature');
-        sigDiv.textContent = `"${text}"`;
-        // Guardar en LocalStorage para que persista
-        localStorage.setItem('cupid_signature', text);
-        
-        document.getElementById('reward-modal').style.display = 'none';
-    }
-}
-
-// Cargar firma guardada al inicio (si existe)
-const savedSig = localStorage.getItem('cupid_signature');
-if(savedSig) {
-    document.getElementById('player-signature').textContent = `"${savedSig}"`;
-}
-
-// Mover automáticamente cada 2.5s si no lo atrapan
-setInterval(() => {
-    if(!cupidEl.classList.contains('cupid-hit') && document.getElementById('reward-modal').style.display !== 'flex'){ 
-        moveCupid(); 
-    }
-}, 2500);
-
-moveCupid(); // Inicio
 </script>
-</body>
-</html>
 
+</body>
+
+</html>
