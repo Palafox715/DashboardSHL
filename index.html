@@ -3,133 +3,160 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>Leaderboard — Employee of the Month</title>
+<title>Leaderboard — Total Roster</title>
 <style>
-  /* ===== MATRIX THEME VARIABLES ===== */
-  :root{
-    --vh: 1vh;
-    --bg-color: #000000;
-    --matrix-green: #00FF41;
-    --matrix-dark: #003B00;
-    --matrix-dim: #008F11;
-    --matrix-glow: rgba(0, 255, 65, 0.3);
-    --border: #00FF41;
-  }
-  
-  html,body{
-    margin:0; min-height:100%; width:100%;
-    background: var(--bg-color); color: var(--matrix-green);
-    font-family: 'Courier New', Courier, monospace;
-    overflow-x: hidden; overflow-y: auto;
-  }
+    /* ===== MATRIX THEME VARIABLES ===== */
+    :root{
+        --vh: 1vh;
+        --bg-color: #000000;
+        --matrix-green: #00FF41;
+        --matrix-dark: #003B00;
+        --matrix-dim: #008F11;
+        --matrix-glow: rgba(0, 255, 65, 0.3);
+        --winner-glow: rgba(0, 255, 65, 0.6);
+    }
+    
+    html,body{
+        margin:0; min-height:100%; width:100%;
+        background: var(--bg-color); color: var(--matrix-green);
+        font-family: 'Courier New', Courier, monospace;
+        overflow-x: hidden; overflow-y: auto;
+    }
 
-  body::before {
-    content: " "; display: block; position: fixed;
-    top: 0; left: 0; bottom: 0; right: 0;
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-    z-index: 2; background-size: 100% 2px, 3px 100%; pointer-events: none;
-  }
+    body::before {
+        content: " "; display: block; position: fixed;
+        top: 0; left: 0; bottom: 0; right: 0;
+        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+        z-index: 2; background-size: 100% 2px, 3px 100%; pointer-events: none;
+    }
 
-  #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.20; }
+    #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.15; }
 
-  #board{
-    position:relative; z-index:1; width:100vw; min-height:100vh;
-    padding:calc(1.2*var(--vh)) calc(1.6*var(--vh)); box-sizing:border-box;
-    display:flex; flex-direction:column; gap:calc(0.8*var(--vh));
-  }
-  
-  .top-header-flex{
-    display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 2px solid var(--matrix-dark); padding-bottom: 10px;
-  }
+    #board{
+        position:relative; z-index:1; width:100vw; min-height:100vh;
+        padding:calc(1.2*var(--vh)) calc(1.6*var(--vh)); box-sizing:border-box;
+        display:flex; flex-direction:column; gap:calc(0.8*var(--vh));
+    }
+    
+    .top-header-flex{
+        display: flex; justify-content: space-between; align-items: center;
+        border-bottom: 2px solid var(--matrix-dark); padding-bottom: 10px;
+    }
 
-  h2{
-    margin:0; font-weight:700; letter-spacing:2px; font-size:calc(3.5*var(--vh));
-    text-transform: uppercase; text-shadow: 0 0 5px var(--matrix-green);
-  }
+    h2{
+        margin:0; font-weight:700; letter-spacing:2px; font-size:calc(3.5*var(--vh));
+        text-transform: uppercase; text-shadow: 0 0 10px var(--matrix-green);
+    }
 
-  /* CHIPS / STATUS */
-  .chips{ display:flex; gap:10px; }
-  .chip{
-    padding: 5px 10px; background: #000; border: 1px solid var(--matrix-dim);
-    color: var(--matrix-dim); font-size: calc(1.4*var(--vh)); text-transform: uppercase;
-  }
+    .chips{ display:flex; gap:10px; }
+    .chip{
+        padding: 5px 10px; background: #000; border: 1px solid var(--matrix-dim);
+        color: var(--matrix-dim); font-size: calc(1.4*var(--vh)); text-transform: uppercase;
+    }
 
-  /* TABLE */
-  .table-wrap{ flex:1; min-height:0; position:relative; margin-top: 20px;}
-  table{
-    width:100%; border-collapse:separate; border-spacing:0 8px;
-    table-layout:fixed; font-size:calc(1.8*var(--vh));
-  }
-  thead th{
-    text-align: center; color: var(--matrix-green); text-transform:uppercase;
-    border-bottom: 2px solid var(--matrix-green); padding: 10px;
-  }
-  
-  th.col-rank { width: 10%; }
-  th.col-agent { width: 40%; text-align: left; }
-  th.col-hours { width: 20%; }
-  th.col-score { width: 30%; }
+    /* TABLE */
+    .table-wrap{ flex:1; min-height:0; position:relative; margin-top: 20px;}
+    table{
+        width:100%; border-collapse:separate; border-spacing:0 8px;
+        table-layout:fixed; font-size:calc(1.8*var(--vh));
+    }
+    thead th{
+        text-align: center; color: var(--matrix-green); text-transform:uppercase;
+        border-bottom: 2px solid var(--matrix-green); padding: 10px;
+    }
+    
+    th.col-rank { width: 10%; }
+    th.col-agent { width: 40%; text-align: left; }
+    th.col-hours { width: 20%; }
+    th.col-score { width: 30%; }
 
-  tbody td{
-    background: rgba(0, 15, 0, 0.8); border: 1px solid #004400;
-    padding: 15px; text-align: center;
-  }
-  td.col-agent { text-align: left; font-weight: bold; }
+    tbody td{
+        background: rgba(0, 10, 0, 0.6); border: 1px solid #003300;
+        padding: 12px; text-align: center; transition: all 0.3s;
+    }
 
-  /* BARRAS */
-  .bar{ position:relative; height:20px; background:#001100; border:1px solid #00FF41; margin-top:5px;}
-  .fill{
-    position:absolute; left:0; top:0; bottom:0; width:0%;
-    background: var(--matrix-green); box-shadow: 0 0 10px var(--matrix-green);
-    transition: width 1.5s cubic-bezier(0.1, 0, 0.1, 1);
-  }
+    /* ESTILOS DE GANADORES */
+    tr.winner-group td {
+        border-color: var(--matrix-green);
+        background: rgba(0, 40, 0, 0.4);
+        box-shadow: inset 0 0 10px var(--matrix-glow);
+    }
+    
+    tr.winner-group .col-score {
+        color: #fff;
+        text-shadow: 0 0 8px var(--matrix-green);
+        font-weight: 900;
+    }
 
-  .rank-box {
-    display: inline-block; width: 35px; height: 35px; line-height: 35px;
-    border: 1px solid var(--matrix-green); background: #000;
-    font-weight: bold; box-shadow: 0 0 8px var(--matrix-green);
-  }
-  .rank-1 { background: var(--matrix-green); color: #000; transform: scale(1.1); }
+    td.col-agent { text-align: left; font-weight: bold; }
 
-  #meta { color: var(--matrix-dim); font-size: 12px; margin-top: 10px; border-top: 1px dashed var(--matrix-dark); padding-top: 5px; }
+    /* BARRAS */
+    .bar{ position:relative; height:16px; background:#001100; border:1px solid #004400; margin-top:5px;}
+    .fill{
+        position:absolute; left:0; top:0; bottom:0; width:0%;
+        background: var(--matrix-dim);
+        transition: width 1.5s cubic-bezier(0.1, 0, 0.1, 1);
+    }
+    tr.winner-group .fill {
+        background: var(--matrix-green);
+        box-shadow: 0 0 15px var(--matrix-green);
+    }
 
-  @media (max-width: 768px) {
-    h2 { font-size: 2em; }
-    th.col-hours, td.col-hours { display: none; }
-  }
+    .rank-box {
+        display: inline-block; width: 35px; height: 35px; line-height: 35px;
+        border: 1px solid var(--matrix-dim); background: #000;
+        font-weight: bold;
+    }
+
+    /* Resaltado especial Top 5 */
+    tr.winner-group .rank-box {
+        border-color: var(--matrix-green);
+        box-shadow: 0 0 10px var(--matrix-green);
+        color: #fff;
+    }
+
+    .rank-1 { 
+        background: var(--matrix-green) !important; 
+        color: #000 !important; 
+        transform: scale(1.2);
+    }
+
+    #meta { color: var(--matrix-dim); font-size: 12px; margin-top: 10px; border-top: 1px dashed var(--matrix-dark); padding-top: 5px; }
+
+    @media (max-width: 768px) {
+        th.col-hours, td.col-hours { display: none; }
+    }
 </style>
 </head>
 <body>
 <canvas id="matrix-canvas"></canvas>
 
 <div id='board'>
-  <div class='top-header-flex'> 
-    <h2>MARCH://EMPLOYEE_OF_THE_MONTH</h2>
-    <div class='chips'>
-        <div id='status' class='chip'>SCANNING_PERSONNEL...</div>
-        <div id='currentWk' class='chip'>WK: --</div>
+    <div class='top-header-flex'> 
+        <h2>MARCH://FULL_ROSTER_DEPL</h2>
+        <div class='chips'>
+            <div id='status' class='chip'>SCANNING_AGENTS...</div>
+            <div id='currentWk' class='chip'>WK: --</div>
+        </div>
     </div>
-  </div>
 
-  <div class='table-wrap'>
-    <table id='tbl'>
-      <thead>
-        <tr>
-          <th class='col-rank'>RANK</th>
-          <th class='col-agent'>AGENT_IDENTIFIER</th>
-          <th class='col-hours'>HOURS</th>
-          <th class='col-score'>POWER_SCORE</th>
-        </tr>
-      </thead>
-      <tbody>
-        </tbody>
-    </table>
-  </div>
+    <div class='table-wrap'>
+        <table id='tbl'>
+            <thead>
+                <tr>
+                    <th class='col-rank'>RNK</th>
+                    <th class='col-agent'>AGENT_IDENTIFIER</th>
+                    <th class='col-hours'>HOURS</th>
+                    <th class='col-score'>POWER_SCORE</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 
-  <div id='meta'>
-    <div id='diag'>Uplink status: Pending...</div>
-  </div>
+    <div id='meta'>
+        <div id='diag'>Uplink status: Active. Listening for packets...</div>
+    </div>
 </div>
 
 <script>
@@ -141,32 +168,29 @@ let height = canvas.height = window.innerHeight;
 const cols = Math.floor(width / 20) + 1;
 const ypos = Array(cols).fill(0);
 function matrix() {
-  ctx.fillStyle = '#0001'; ctx.fillRect(0, 0, width, height);
-  ctx.fillStyle = '#0F0'; ctx.font = '15pt monospace';
-  ypos.forEach((y, ind) => {
-    const text = String.fromCharCode(Math.random() * 128);
-    const x = ind * 20; ctx.fillText(text, x, y);
-    if (y > 100 + Math.random() * 10000) ypos[ind] = 0;
-    else ypos[ind] = y + 20;
-  });
+    ctx.fillStyle = '#0001'; ctx.fillRect(0, 0, width, height);
+    ctx.fillStyle = '#0F0'; ctx.font = '15pt monospace';
+    ypos.forEach((y, ind) => {
+        const text = String.fromCharCode(Math.random() * 128);
+        const x = ind * 20; ctx.fillText(text, x, y);
+        if (y > 100 + Math.random() * 10000) ypos[ind] = 0;
+        else ypos[ind] = y + 20;
+    });
 }
 setInterval(matrix, 50);
 
 /* CONFIGURATION */
-const API_KEY = "AIzaSyAKPtFgfRsBVSAajVBjF2V-H4pFo0ivGks"; // REEMPLAZAR AQUÍ
+const API_KEY = "AIzaSyAKPtFgfRsBVSAajVBjF2V-H4pFo0ivGks";
 const SHEET_ID = "1FRwPAtQ-BUOG9uiBti63dWuJW6JWaY8SisvuXtLM5h0";
-const REFRESH_RATE = 30000; // 30 segundos
+const REFRESH_RATE = 30000; 
 
-/* LOGIC */
 function diag(t){ document.getElementById('diag').innerText = `> ${t}`; }
 
 async function fetchData() {
-    diag('Accessing mainframe...');
-    // Definimos la pestaña (W7 según su ejemplo)
+    diag('Querying personnel database...');
     const tabName = "W7"; 
     document.getElementById('currentWk').innerText = `SECTOR: ${tabName}`;
 
-    // Rangos: A-B (ID/Name), C-M (Pulls/Xfers), O (Transfers Totales), P (Hours)
     const ranges = [`${tabName}!A3:B96`, `${tabName}!C3:M96`, `${tabName}!O3:P96`].map(encodeURIComponent);
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values:batchGet?` + 
                 ranges.map(r => `ranges=${r}`).join("&") + `&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
@@ -176,9 +200,9 @@ async function fetchData() {
         const data = await response.json();
         const vr = data.valueRanges;
 
-        const baseInfo = vr[0].values || []; // IDs y Nombres
-        const dailyData = vr[1].values || []; // C hasta M
-        const totals = vr[2].values || []; // O y P
+        const baseInfo = vr[0].values || [];
+        const dailyData = vr[1].values || [];
+        const totals = vr[2].values || [];
 
         let agents = [];
 
@@ -188,16 +212,13 @@ async function fetchData() {
 
             const hours = parseFloat(totals[i]?.[1] || 0);
             
-            // FILTRO CRÍTICO: 40 HORAS
+            // EL FILTRO SIGUE ACTIVO (Requisito de participación)
             if (hours < 40) continue;
 
-            // SUMA DE CREDIT PULLS (Columnas C, E, G, I, K, M en el rango C:M son indices 0, 2, 4, 6, 8, 10)
             const row = dailyData[i] || [];
             const crPulls = [0, 2, 4, 6, 8, 10].reduce((sum, idx) => sum + (parseInt(row[idx]) || 0), 0);
-            
             const totalXfers = parseInt(totals[i]?.[0] || 0);
 
-            // CÁLCULO DE POWER SCORE
             const powerScore = (totalXfers * 10) + (crPulls * 1);
 
             agents.push({
@@ -207,16 +228,15 @@ async function fetchData() {
             });
         }
 
-        // RANKING TOP 5
+        // ORDENAR PERO NO CORTAR
         agents.sort((a, b) => b.score - a.score);
-        const top5 = agents.slice(0, 5);
 
-        render(top5);
-        diag('Synchronization complete.');
+        render(agents);
+        diag('Sync complete. High-priority targets identified.');
         document.getElementById('status').innerText = 'SYSTEM_ONLINE';
 
     } catch (e) {
-        diag('ERROR: Connection refused or Access Denied.');
+        diag('CRITICAL ERROR: Data stream interrupted.');
         console.error(e);
     }
 }
@@ -231,28 +251,32 @@ function render(list) {
         const tr = document.createElement('tr');
         const pct = (agent.score / maxScore) * 100;
         
+        // Determinar si pertenece al grupo ganador (Top 5)
+        const isWinnerGroup = i < 5;
+        if(isWinnerGroup) tr.classList.add('winner-group');
+        
         tr.innerHTML = `
-            <td class="col-rank"><div class="rank-box ${i===0?'rank-1':''}">${i+1}</div></td>
+            <td class="col-rank">
+                <div class="rank-box ${i===0?'rank-1':''}">${i+1}</div>
+            </td>
             <td class="col-agent">
                 ${agent.name}
                 <div class="bar"><div class="fill" style="width: 0%"></div></div>
             </td>
             <td class="col-hours">${agent.hours}h</td>
-            <td class="col-score">${agent.score.toLocaleString()} pts</td>
+            <td class="col-score">${agent.score.toLocaleString()} PTS</td>
         `;
         tbody.appendChild(tr);
 
-        // Animación de la barra
         setTimeout(() => {
-            tr.querySelector('.fill').style.width = pct + '%';
-        }, 100);
+            const fill = tr.querySelector('.fill');
+            if(fill) fill.style.width = pct + '%';
+        }, 100 + (i * 50)); // Efecto de cascada al cargar
     });
 }
 
-// Initialize
 fetchData();
 setInterval(fetchData, REFRESH_RATE);
 </script>
 </body>
 </html>
-
