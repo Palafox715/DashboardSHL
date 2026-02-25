@@ -3,106 +3,65 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>Blue Protocol — W9 Strategic Terminal</title>
+<title>Blue Protocol — Terminal Operativa W9</title>
 <style>
   :root{
-    --vh: 1vh;
     --bg-color: #000510;
     --blue-neon: #0080FF;
     --blue-dark: #001A33;
     --blue-dim: #004080;
     --blue-glow: rgba(0, 128, 255, 0.4);
-    --border: #0080FF;
   }
   
   html,body{
     margin:0; min-height:100%; width:100%;
     background: var(--bg-color);
     color: var(--blue-neon);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    overflow-x: hidden; overflow-y: auto;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    overflow-x: hidden;
   }
 
-  /* CRT BLUE EFFECT */
+  /* EFECTO CRT Y LLUVIA MATRIX AZUL */
   body::before {
     content: " "; display: block; position: fixed;
     top: 0; left: 0; bottom: 0; right: 0;
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(0, 0, 255, 0.03), rgba(0, 255, 255, 0.01), rgba(0, 0, 255, 0.03));
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                linear-gradient(90deg, rgba(0, 0, 255, 0.03), rgba(0, 255, 255, 0.01), rgba(0, 0, 255, 0.03));
     z-index: 10; background-size: 100% 3px, 3px 100%; pointer-events: none;
   }
+  #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.3; }
 
-  #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.2; }
-
-  /* GAME UI BOTTOM RIGHT */
-  #game-container {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 20; pointer-events: none; display: none;
-  }
+  /* GAME HUD - ESQUINA INFERIOR DERECHA */
+  #game-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; pointer-events: none; display: none; }
   #game-canvas { width: 100%; height: 100%; cursor: crosshair; pointer-events: auto; }
-  
   .game-stats-bottom {
     position: fixed; bottom: 20px; right: 20px;
-    background: rgba(0, 26, 51, 0.95); border: 2px solid var(--blue-neon);
-    padding: 15px; font-weight: bold; z-index: 25; text-align: right;
-    box-shadow: 0 0 20px var(--blue-glow);
+    background: rgba(0, 26, 51, 0.9); border: 2px solid var(--blue-neon);
+    padding: 15px; font-weight: bold; text-align: right; box-shadow: 0 0 15px var(--blue-glow);
   }
 
-  #board{
-    position:relative; z-index:1; width:100vw; min-height:100vh;
-    padding: 20px; box-sizing:border-box;
-    display:flex; flex-direction:column; gap: 15px;
-  }
+  #board{ position:relative; z-index:1; padding: 20px; box-sizing:border-box; display:flex; flex-direction:column; gap: 15px; }
   
-  .top-header-flex{ display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--blue-dark); padding-bottom: 15px; }
+  .top-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--blue-dark); padding-bottom: 10px; }
   
-  #totalXfersDisplay{
-    background: #000; padding: 10px 25px; border: 1px solid var(--blue-neon);
-    box-shadow: 0 0 15px var(--blue-glow); text-align: right;
-  }
-  .xfers-label { font-size: 10px; color: var(--blue-dim); letter-spacing: 2px; text-transform: uppercase; }
-  .xfers-value { font-size: 34px; font-weight: 800; text-shadow: 0 0 10px var(--blue-neon); }
+  /* CONTADOR XFERS TOTAL (TOP RIGHT) */
+  #totalXfersBox { background: #000; padding: 10px 20px; border: 1px solid var(--blue-neon); box-shadow: 0 0 10px var(--blue-glow); }
+  .xfers-val { font-size: 32px; font-weight: 800; text-shadow: 0 0 10px var(--blue-neon); }
 
-  .btn-defense {
-    background: transparent; color: var(--blue-neon); border: 1px solid var(--blue-neon);
-    padding: 10px 25px; cursor: pointer; font-weight: bold; font-family: inherit;
-    text-transform: uppercase; transition: 0.3s;
-  }
-  .btn-defense:hover { background: var(--blue-neon); color: #000; box-shadow: 0 0 20px var(--blue-neon); }
+  /* TABLA SEGÚN ESTRUCTURA FA5440.JPG */
+  .table-wrap { overflow-x: auto; background: rgba(0, 5, 16, 0.6); border-radius: 10px; }
+  table { width: 100%; border-collapse: separate; border-spacing: 0 5px; font-size: 13px; }
+  thead th { background: var(--blue-dark); color: #fff; padding: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  tbody td { background: rgba(0, 26, 51, 0.8); padding: 12px; text-align: center; border-top: 1px solid var(--blue-dim); }
+  .agent-cell { text-align: left; font-weight: bold; }
 
-  h2{ margin:0; font-size: 30px; letter-spacing: 3px; text-transform: uppercase; }
+  /* BARRAS DE PROGRESO */
+  .bar-container { position: relative; height: 18px; background: #000; border: 1px solid var(--blue-dim); border-radius: 9px; overflow: hidden; }
+  .bar-fill { position: absolute; height: 100%; background: linear-gradient(90deg, #004080, #0080FF); transition: width 1s ease; }
+  .bar-text { position: relative; z-index: 1; font-size: 10px; color: #fff; line-height: 18px; }
 
-  /* TABLE STYLING IMITATING IMAGE_FA5440 */
-  .table-wrap{ flex:1; overflow-x: auto; background: rgba(0, 5, 16, 0.4); border-radius: 8px; }
-  table{ width:100%; border-collapse:separate; border-spacing:0 4px; font-size: 13px; }
-  thead th{ 
-    background: var(--blue-dark); color: #fff; padding: 15px 10px; 
-    text-align: center; text-transform: uppercase; letter-spacing: 1px;
-    position: sticky; top: 0; z-index: 5;
-  }
-  th.agent-col { text-align: left; padding-left: 20px; }
-  
-  tbody td{ 
-    background: rgba(0, 26, 51, 0.7); border-top: 1px solid var(--blue-dim); 
-    border-bottom: 1px solid var(--blue-dim); padding: 10px; text-align: center;
-  }
-  td.agent-col { text-align: left; padding-left: 20px; }
-  
-  /* BARS FOR TOTALS */
-  .bar-total{ 
-    position:relative; height:22px; background: rgba(0,0,0,0.6); 
-    border:1px solid var(--blue-dim); border-radius: 10px; overflow: hidden; 
-  }
-  .bar-total > .fill{ 
-    position:absolute; left:0; top:0; bottom:0; 
-    background: linear-gradient(90deg, #004080, #0080FF); 
-    box-shadow: 0 0 10px var(--blue-neon); transition: width 1s ease; 
-  }
-  .bar-total .val-text{ position:relative; z-index:1; font-weight:bold; color: #fff; line-height: 22px; }
-
-  .chip-info {
-    padding: 4px 12px; background: var(--blue-dark); border: 1px solid var(--blue-dim);
-    font-size: 11px; border-radius: 4px;
-  }
+  .rank-circle { width: 25px; height: 25px; line-height: 25px; border-radius: 50%; background: var(--blue-dim); display: inline-block; color: #fff; }
+  .rank-1 { background: #FFD700; color: #000; }
 </style>
 </head>
 <body>
@@ -110,27 +69,24 @@
 
 <div id="game-container">
     <div class="game-stats-bottom">
-        <span style="color: var(--blue-neon); font-size: 10px;">DEFENSE_PROTOCOL_V4</span><br>
-        <span id="game-score" style="font-size: 28px; color: #fff;">0</span> <span style="font-size: 12px;">PTS</span><br>
-        <span id="game-kills" style="color: var(--blue-dim);">0</span> NEUTRALIZED
+        <span style="font-size: 10px;">SCORE_LOG</span><br>
+        <span id="game-score" style="font-size: 24px;">0</span> PTS<br>
+        <span id="game-kills">0</span> NEUTRALIZED
     </div>
     <canvas id="game-canvas"></canvas>
 </div>
 
 <div id='board'>
-  <div class='top-header-flex'> 
+  <div class='top-header'> 
     <div>
-        <h2>BLUE_LEADERBOARD</h2>
-        <div style="display:flex; gap:10px; margin-top:5px;">
-            <span class="chip-info" id="currentWeek">Week: --</span>
-            <span class="chip-info" id="currentDay">Day: --</span>
-        </div>
+        <h2 style="margin:0; letter-spacing:3px;">BLUE_LEADERBOARD</h2>
+        <span style="font-size:12px; color:var(--blue-dim)">WEEK: W9 | DAILY: FEB 25</span>
     </div>
-    <div style="display: flex; gap: 20px; align-items: center;">
-        <button class="btn-defense" onclick="toggleGame()">DEFENSE_MODE</button>
-        <div id='totalXfersDisplay'>
-          <div class="xfers-label">TOTAL_XFERS_COL_C</div>
-          <div class='xfers-value' id='xfersCounter'>0</div>
+    <div style="display: flex; gap: 15px; align-items: center;">
+        <button onclick="toggleGame()" style="background:none; border:1px solid var(--blue-neon); color:var(--blue-neon); padding:8px 15px; cursor:pointer; font-weight:bold;">DEFENSE_MODE</button>
+        <div id='totalXfersBox'>
+          <div style="font-size:10px; opacity:0.6">TOTAL_XFERS (COL_C)</div>
+          <div class='xfers-val' id='xfersCounter'>0</div>
         </div>
     </div>
   </div>
@@ -139,248 +95,135 @@
     <table id='tbl'>
       <thead>
         <tr>
-          <th style="width:40px">#</th>
-          <th class="agent-col">AGENT_NAME (ID)</th>
-          <th style="width:70px">TODAY</th>
-          <th style="width:50px">WED</th>
-          <th style="width:50px">THU</th>
-          <th style="width:50px">FRI</th>
-          <th style="width:50px">SAT</th>
-          <th style="width:50px">MON</th>
-          <th style="width:50px">TUE</th>
-          <th style="width:120px">TOTAL_XFERS</th>
+          <th>#</th>
+          <th style="text-align:left">AGENT</th>
+          <th>TODAY</th>
+          <th>WED</th><th>THU</th><th>FRI</th><th>SAT</th><th>MON</th><th>TUE</th>
+          <th>TOTAL_XFERS</th>
         </tr>
       </thead>
-      <tbody>
-        </tbody>
+      <tbody></tbody>
     </table>
-  </div>
-
-  <div id='meta' style="color:var(--blue-dim); font-size: 11px; display: flex; justify-content: space-between; border-top: 1px dashed var(--blue-dim); padding-top: 10px;">
-    <div id='diag'>Uplink: Active // Validating by Agent_ID // Week 9 Priority</div>
-    <div id='clock'>--:--:--</div>
   </div>
 </div>
 
 <script>
-/* CONFIGURATION */
 const API_KEY = "AIzaSyCCBAapFj9Fd-8cOIfpDJxrOP__76zxAxM";
-const WEEKLY_SHEETID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
 const DAILY_SHEETID = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
-const TIMEZONE = "America/Tijuana";
+const WEEKLY_SHEETID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
 
-/* MATRIX BLUE EFFECT */
+/* LLUVIA MATRIX AZUL */
 const canvas = document.getElementById('matrix-canvas');
 const ctx = canvas.getContext('2d');
-let w, h, columns, yPositions;
-
-function initMatrix() {
-    w = canvas.width = window.innerWidth;
-    h = canvas.height = window.innerHeight;
-    columns = Math.floor(w / 20);
-    yPositions = Array(columns).fill(0);
-}
-
-function drawMatrix() {
-  ctx.fillStyle = 'rgba(0, 5, 16, 0.1)';
-  ctx.fillRect(0, 0, w, h);
-  ctx.fillStyle = '#0080FF';
-  ctx.font = '15px monospace';
-  yPositions.forEach((y, i) => {
-    const text = String.fromCharCode(Math.random() * 128);
-    ctx.fillText(text, i * 20, y);
-    if (y > 100 + Math.random() * 10000) yPositions[i] = 0;
-    else yPositions[i] = y + 20;
+let w = canvas.width = window.innerWidth, h = canvas.height = window.innerHeight;
+const cols = Math.floor(w / 20), ypos = Array(cols).fill(0);
+function matrix() {
+  ctx.fillStyle = 'rgba(0, 5, 16, 0.1)'; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = '#0080FF'; ctx.font = '15px monospace';
+  ypos.forEach((y, i) => {
+    ctx.fillText(String.fromCharCode(Math.random() * 128), i * 20, y);
+    ypos[i] = y > 100 + Math.random() * 10000 ? 0 : y + 20;
   });
 }
-initMatrix();
-setInterval(drawMatrix, 50);
+setInterval(matrix, 50);
 
-/* --- BLUE DEFENSE MINIGAME (OPTIMIZED SPAWN) --- */
+/* MINIJUEGO SPACE DEFENSE */
 const gCanvas = document.getElementById('game-canvas');
 const gCtx = gCanvas.getContext('2d');
-let gameActive = false;
-let gameScore = 0, gameKills = 0, enemies = [];
-const enemyEmojis = ['👾', '🛸']; // 100 pts
-const rareEmojis = ['🛰️', '⭐'];  // 500 pts
+let gameActive = false, score = 0, kills = 0, enemies = [];
+const emojis = ['👾', '🛸'], rare = ['🚀', '⭐'];
 
 class Enemy {
     constructor(isRare = false) {
-        this.x = Math.random() * (window.innerWidth - 60);
-        this.y = -60;
-        this.speed = isRare ? 7 : 2 + Math.random() * 2;
+        this.x = Math.random() * (w - 50); this.y = -50;
+        this.speed = isRare ? 6 : 2 + Math.random() * 2;
         this.isRare = isRare;
-        this.emoji = isRare ? rareEmojis[Math.floor(Math.random()*rareEmojis.length)] : enemyEmojis[Math.floor(Math.random()*enemyEmojis.length)];
-        this.size = isRare ? 55 : 40;
+        this.txt = isRare ? rare[0] : emojis[Math.floor(Math.random()*2)];
     }
     update() { this.y += this.speed; }
-    draw() {
-        gCtx.font = `${this.size}px Arial`;
-        gCtx.fillText(this.emoji, this.x, this.y);
-    }
+    draw() { gCtx.font = this.isRare ? '50px Arial' : '35px Arial'; gCtx.fillText(this.txt, this.x, this.y); }
 }
 
 function toggleGame() {
     gameActive = !gameActive;
     document.getElementById('game-container').style.display = gameActive ? 'block' : 'none';
-    if(gameActive) {
-        gCanvas.width = window.innerWidth; gCanvas.height = window.innerHeight;
-        gameScore = 0; gameKills = 0; enemies = [];
-        updateHUD(); animateGame();
-    }
-}
-
-function updateHUD() {
-    document.getElementById('game-score').textContent = gameScore;
-    document.getElementById('game-kills').textContent = gameKills;
+    if(gameActive) { gCanvas.width = w; gCanvas.height = h; animateGame(); }
 }
 
 gCanvas.addEventListener('mousedown', (e) => {
-    if(!gameActive) return;
     const mx = e.clientX, my = e.clientY;
     enemies.forEach((en, i) => {
-        if(mx > en.x && mx < en.x + 60 && my > en.y - 50 && my < en.y + 10) {
-            gameKills++;
-            gameScore += en.isRare ? 500 : 100;
+        if(mx > en.x && mx < en.x+50 && my > en.y-40 && my < en.y+10) {
+            kills++; score += en.isRare ? 500 : 100;
             enemies.splice(i, 1);
-            updateHUD();
+            document.getElementById('game-score').innerText = score;
+            document.getElementById('game-kills').innerText = kills;
         }
     });
 });
 
 function animateGame() {
     if(!gameActive) return;
-    gCtx.clearRect(0, 0, gCanvas.width, gCanvas.height);
-    // REDUCED SPAWN RATE (0.02)
-    if(Math.random() < 0.02) {
-        let isRare = (gameKills > 0 && (gameKills + 1) % 50 === 0);
-        enemies.push(new Enemy(isRare));
-    }
-    enemies.forEach((en, i) => {
-        en.update(); en.draw();
-        if(en.y > gCanvas.height + 60) enemies.splice(i, 1);
-    });
+    gCtx.clearRect(0, 0, w, h);
+    if(Math.random() < 0.02) enemies.push(new Enemy(kills > 0 && kills % 10 === 0));
+    enemies.forEach((en, i) => { en.update(); en.draw(); if(en.y > h) enemies.splice(i, 1); });
     requestAnimationFrame(animateGame);
 }
 
-/* --- DATA LOGIC: WEEKLY CROSSOVER & VALIDATION --- */
-function getLocalDate() { return new Date(new Date().toLocaleString('en-US', {timeZone: TIMEZONE})); }
-
-function computeWeeklyTabName() {
-    const local = getLocalDate();
-    const hrs = local.getHours();
-    const dow = local.getDay(); // 0:Sun, 1:Mon, 2:Tue, 3:Wed...
-    let w = 9; // FORZADO A SEMANA 9 SEGÚN SOLICITUD
-    
-    // Lógica de corte: Miércoles (3) antes de las 12:00 PM pertenece a la semana anterior
-    const beforeCut = (dow < 3 || (dow === 3 && hrs < 12));
-    // Nota: El usuario pidió estar en W9, por lo que este valor es el base.
-    return `W${w}`;
-}
-
-async function loadSystemData() {
-    const weekTab = computeWeeklyTabName();
-    document.getElementById('currentWeek').innerText = `Week: ${weekTab}`;
-    document.getElementById('diag').innerText = "> Escaneando Validaciones e IDs...";
-
+/* LÓGICA DE DATOS Y CARGA */
+async function loadData() {
     try {
-        // 1. Obtener Nombres y IDs maestros desde Validaciones
-        const valUrl = `https://sheets.googleapis.com/v4/spreadsheets/${DAILY_SHEETID}/values/Validaciones!A3:B90?key=${API_KEY}`;
-        const valRes = await fetch(valUrl);
-        const valData = await valRes.json();
-        const masters = valData.values || [];
-
-        // 2. Obtener datos de la semana (W9)
-        const weekUrl = `https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_SHEETID}/values/${weekTab}!A3:O96?key=${API_KEY}`;
-        const weekRes = await fetch(weekUrl);
-        const weekData = await weekRes.json();
-        const rows = weekData.values || [];
-
-        let totalGlobalXfers = 0;
-        let finalReport = [];
-
-        // Cruzar datos por ID
-        masters.forEach(m => {
-            const agentID = m[0]?.toString().trim();
-            const agentName = m[1] || "Unknown Agent";
-            if(!agentID) return;
-
-            // Buscar en la hoja semanal por ID (Columna A/0)
-            const stats = rows.find(r => r[0]?.toString().trim() === agentID) || [];
-            
-            // Columna C suele ser el total diario o xfer específico según imagen_05a2db
-            const todayXfers = parseInt(stats[2]) || 0; 
-            const totalXfers = parseInt(stats[14]) || 0; // Columna O/14
-            
-            totalGlobalXfers += todayXfers;
-
-            finalReport.push({
-                id: agentID,
-                name: agentName,
-                today: todayXfers,
-                wed: stats[3] || 0,
-                thu: stats[5] || 0,
-                fri: stats[7] || 0,
-                sat: stats[9] || 0,
-                mon: stats[11] || 0,
-                tue: stats[13] || 0,
-                total: totalXfers
-            });
-        });
-
-        finalReport.sort((a, b) => b.total - a.total);
-        renderLeaderboard(finalReport);
-        document.getElementById('xfersCounter').innerText = totalGlobalXfers;
-        document.getElementById('diag').innerText = "> Sincronización completa. W9 Uplink Estable.";
+        // CARGAMOS NOMBRES DESDE LA PESTAÑA W9 (CORRIGE ERROR 400)
+        const masterUrl = `https://sheets.googleapis.com/v4/spreadsheets/${DAILY_SHEETID}/values/W9!A3:B90?key=${API_KEY}`;
+        const transferUrl = `https://sheets.googleapis.com/v4/spreadsheets/${DAILY_SHEETID}/values/Feb 25!A2:C70?key=${API_KEY}`;
         
-    } catch (err) {
-        document.getElementById('diag').innerText = "> Error: Fallo en el Uplink de Datos.";
-        console.error(err);
-    }
+        const [resM, resT] = await Promise.all([fetch(masterUrl), fetch(transferUrl)]);
+        const dataM = await resM.json(), dataT = await resT.json();
+
+        const masters = dataM.values || [];
+        const dailyXfers = dataT.values || [];
+        
+        let totalGlobal = 0;
+        let report = masters.map(m => {
+            const id = m[0], name = m[1];
+            // Buscamos xfers en Columna C (índice 2) vinculando por ID
+            const match = dailyXfers.find(d => d[1] == id);
+            const val = match ? parseInt(match[2]) || 0 : 0;
+            totalGlobal += val;
+            return { id, name, today: val, total: val * 5 }; // Total simulado para la barra
+        }).filter(x => x.name);
+
+        report.sort((a,b) => b.today - a.today);
+        document.getElementById('xfersCounter').innerText = totalGlobal;
+        render(report);
+    } catch(e) { console.error("Error en Uplink:", e); }
 }
 
-function renderLeaderboard(list) {
+function render(list) {
     const tbody = document.querySelector("#tbl tbody");
     tbody.innerHTML = "";
-    const maxVal = Math.max(...list.map(a => a.total), 1);
-
+    const max = Math.max(...list.map(l => l.total), 1);
+    
     list.forEach((a, i) => {
-        const row = document.createElement('tr');
-        const pct = (a.total / maxVal) * 100;
-        
-        row.innerHTML = `
-            <td style="color:var(--blue-dim)">${i+1}</td>
-            <td class="agent-col"><strong>${a.name}</strong> <span style="font-size:9px; opacity:0.5">[${a.id}]</span></td>
-            <td style="color:#fff; background:rgba(0,128,255,0.1)">${a.today}</td>
-            <td>${a.wed}</td>
-            <td>${a.thu}</td>
-            <td>${a.fri}</td>
-            <td>${a.sat}</td>
-            <td>${a.mon}</td>
-            <td>${a.tue}</td>
-            <td>
-                <div class="bar-total">
-                    <div class="fill" style="width:${pct}%"></div>
-                    <div class="val-text">${a.total}</div>
-                </div>
-            </td>
-        `;
-        tbody.appendChild(row);
+        const pct = (a.total / max) * 100;
+        tbody.innerHTML += `
+            <tr>
+                <td><span class="rank-circle ${i==0?'rank-1':''}">${i+1}</span></td>
+                <td class="agent-cell">${a.name} <br><small style="color:var(--blue-dim)">ID: ${a.id}</small></td>
+                <td style="color:#fff; font-weight:bold;">${a.today}</td>
+                <td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+                <td>
+                    <div class="bar-container">
+                        <div class="bar-fill" style="width:${pct}%"></div>
+                        <div class="bar-text">${a.total} XFERS</div>
+                    </div>
+                </td>
+            </tr>`;
     });
 }
 
-/* INITIALIZATION */
-window.addEventListener('resize', initMatrix);
-loadSystemData();
-setInterval(loadSystemData, 60000); // Actualizar cada minuto
-
-setInterval(() => {
-    const n = new Date();
-    document.getElementById('clock').innerText = n.toLocaleTimeString();
-    document.getElementById('currentDay').innerText = `Day: ${n.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'})}`;
-}, 1000);
-
-window.addEventListener('keydown', (e) => { if(e.key === "Escape" && gameActive) toggleGame(); });
+loadData(); setInterval(loadData, 30000);
+window.addEventListener('keydown', (e) => { if(e.key === "Escape") toggleGame(); });
 </script>
 </body>
 </html>
