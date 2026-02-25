@@ -3,95 +3,93 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>Blue Protocol — Epic Defense W9</title>
+<title>Leaderboard — Blue Protocol Final Señor</title>
 <style>
   :root {
     --bg: #0b0a1a;
+    --card-bg: rgba(20, 20, 35, 0.9);
     --blue-neon: #00d4ff;
     --pink-neon: #ff00ff;
-    --gold: #ffd700;
+    --text: #ffffff;
   }
   
-  html, body { margin: 0; padding: 0; background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
   
-  /* DASHBOARD UI CLONE (image_fa5440.jpg) */
-  #board { position: relative; z-index: 5; padding: 20px; transition: filter 0.5s; }
-  .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-  .total-box { background: rgba(0,0,0,0.8); border: 2px solid var(--blue-neon); padding: 10px 25px; border-radius: 12px; text-align: right; }
-  .total-box .val { font-size: 38px; font-weight: 900; color: var(--pink-neon); }
+  /* ESTILO MATRIX AZUL */
+  #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.2; pointer-events: none; }
 
-  .table-wrap { background: rgba(20, 20, 35, 0.9); border-radius: 15px; padding: 15px; overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { text-transform: uppercase; color: #666; padding: 10px; font-size: 10px; border-bottom: 1px solid #333; }
-  td { padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center; }
+  /* UI DASHBOARD (CLON EXACTO image_fa5440.jpg) */
+  #board { position: relative; z-index: 5; padding: 25px; max-width: 1200px; margin: auto; }
+  .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+  .title-area h1 { margin: 0; font-size: 36px; text-transform: uppercase; letter-spacing: 2px; }
+  
+  .total-box { background: rgba(0,0,0,0.6); border: 2px solid var(--blue-neon); padding: 10px 25px; border-radius: 12px; text-align: right; box-shadow: 0 0 15px var(--blue-glow); }
+  .total-box .val { font-size: 42px; font-weight: 900; color: var(--pink-neon); line-height: 1; }
+
+  .table-wrap { background: var(--card-bg); border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-transform: uppercase; color: #777; padding: 15px 5px; font-size: 11px; letter-spacing: 1px; border-bottom: 1px solid #333; }
+  td { padding: 15px 5px; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center; }
+
+  /* RANKING CIRCLES */
+  .rank-circle { width: 35px; height: 35px; line-height: 35px; border-radius: 50%; display: inline-block; font-weight: bold; color: #000; }
+  .rank-1 { background: #ffcc00; box-shadow: 0 0 20px #ffcc00; }
+  .rank-2 { background: #e0e0e0; box-shadow: 0 0 15px #e0e0e0; }
+  .rank-3 { background: #ff8800; box-shadow: 0 0 15px #ff8800; }
+
+  /* BARS */
+  .bar-ui { height: 20px; background: #000; border-radius: 10px; position: relative; overflow: hidden; min-width: 90px; border: 1px solid #222; }
+  .fill-blue { background: linear-gradient(90deg, #0066ff, #00d4ff); }
+  .fill-pink { background: linear-gradient(90deg, #cc00ff, #ff00ff); }
+  .bar-text { position: absolute; width: 100%; z-index: 2; font-size: 11px; font-weight: bold; line-height: 20px; color: #fff; text-align: center; }
 
   /* GAME OVERLAY */
   #game-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; display: none; }
   #game-canvas { width: 100%; height: 100%; pointer-events: auto; cursor: crosshair; }
-  
-  /* HUD */
-  .game-hud { position: fixed; bottom: 20px; left: 20px; background: rgba(0,0,0,0.8); padding: 15px; border: 2px solid var(--blue-neon); border-radius: 10px; z-index: 110; }
-
-  /* NEW: CINEMATIC GAME OVER SCREEN */
-  #final-screen {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(11, 10, 26, 0.95); z-index: 200;
-    display: none; flex-direction: column; align-items: center; justify-content: center;
-    text-align: center; animation: fadeIn 0.8s ease;
-  }
-  .score-card {
-    background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(255,0,255,0.1));
-    border: 3px solid var(--blue-neon); padding: 50px; border-radius: 30px;
-    box-shadow: 0 0 50px var(--blue-glow);
-  }
-  .final-points { font-size: 80px; font-weight: 900; color: var(--pink-neon); text-shadow: 0 0 20px var(--pink-neon); margin: 20px 0; }
-  .btn-action { 
-    background: var(--blue-neon); color: #000; border: none; padding: 15px 40px; 
-    font-weight: bold; border-radius: 10px; cursor: pointer; text-transform: uppercase; margin-top: 20px;
-  }
-
-  @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+  .game-hud { position: fixed; bottom: 30px; right: 30px; background: rgba(0,0,0,0.9); padding: 20px; border: 2px solid var(--blue-neon); border-radius: 15px; z-index: 110; text-align: right; }
+  .btn-defense { background: none; border: 2px solid var(--blue-neon); color: var(--blue-neon); padding: 10px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase; }
 </style>
 </head>
 <body>
 
-<div id="final-screen">
-    <div class="score-card">
-        <h2 style="letter-spacing: 5px; color: var(--blue-neon);">MISIÓN COMPLETADA</h2>
-        <div style="font-size: 14px; opacity: 0.8;">PUNTUACIÓN TÁCTICA FINAL</div>
-        <div class="final-points" id="final-score-val">0</div>
-        <div id="final-stats" style="font-size: 18px; color: var(--gold);"></div>
-        <button class="btn-action" onclick="closeFinalScreen()">VOLVER A LA TERMINAL</button>
-    </div>
-</div>
+<canvas id="matrix-canvas"></canvas>
 
 <div id="game-container">
     <div class="game-hud">
-        <div id="lives-hud" style="font-size: 20px;">❤️❤️❤️❤️❤️</div>
-        <div id="score-hud" style="font-size: 32px; font-weight: bold; color: var(--blue-neon);">0</div>
-        <div style="font-size: 10px; opacity: 0.6;">KILLS: <span id="kills-hud">0</span></div>
+        <div style="font-size: 11px; color: #ff4444; margin-bottom: 5px;">INTEGRIDAD DEL NÚCLEO</div>
+        <div id="lives-display" style="font-size: 24px;">❤️❤️❤️❤️❤️</div>
+        <hr style="border:0; border-top:1px solid #333; margin: 15px 0;">
+        <div id="score-display" style="font-size: 32px; font-weight: bold; color: var(--blue-neon);">0</div>
+        <div style="font-size: 10px; opacity: 0.6;">PUNTOS TÁCTICOS</div>
     </div>
     <canvas id="game-canvas"></canvas>
 </div>
 
 <div id='board'>
   <div class='header-flex'> 
-    <div>
-        <h1 style="margin:0; text-shadow: 0 0 10px var(--blue-neon);">Blue Leaderboard</h1>
-        <div style="margin-top:10px;">
-            <button class="btn-action" style="padding: 8px 20px; font-size: 11px;" onclick="startGame()">ACTIVAR DEFENSA</button>
+    <div class="title-area">
+        <h1>Leaderboard</h1>
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <span style="background:#000; padding:5px 15px; border-radius:20px; font-size:12px; font-weight:bold; border:1px solid #333;">Week: W9</span>
+            <button class="btn-defense" onclick="startDefense()">Defense_Mode</button>
         </div>
     </div>
     <div class="total-box">
-        <div style="font-size: 11px; opacity: 0.7;">TOTAL XFERS (TODAY)</div>
-        <div class="val" id="totalValue">0</div>
+        <div style="font-size: 11px; opacity: 0.6; margin-bottom:5px;">TOTAL DIARIO (TODAY)</div>
+        <div class="val" id="globalTotal">0</div>
     </div>
   </div>
 
   <div class='table-wrap'>
-    <table id='mainTable'>
+    <table id='leaderTable'>
       <thead>
-        <tr><th>#</th><th style="text-align:left">AGENT</th><th>TODAY</th><th>WED</th><th>THU</th><th>FRI</th><th>SAT</th><th>MON</th><th>TUE</th><th>TOTAL</th></tr>
+        <tr>
+          <th>#</th>
+          <th style="text-align: left;">AGENT</th>
+          <th>TODAY</th>
+          <th>WED</th><th>THU</th><th>FRI</th><th>SAT</th><th>MON</th><th>TUE</th>
+          <th>TOTAL</th>
+        </tr>
       </thead>
       <tbody></tbody>
     </table>
@@ -100,144 +98,141 @@
 
 <script>
 const API_KEY = "AIzaSyCCBAapFj9Fd-8cOIfpDJxrOP__76zxAxM";
-const WEEKLY_ID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
+const WEEKLY_ID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo"; 
 const DAILY_ID = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
 
-/* --- SINCRONIZACIÓN DE DATOS (image_fa5420.png + image_05a2db.png) --- */
-async function loadData() {
-    try {
-        const mRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_ID}/values/W9!A3:O96?key=${API_KEY}`);
-        const dRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${DAILY_ID}/values/Tabla_25!A2:C70?key=${API_KEY}`);
-        
-        const mData = await mRes.json();
-        const dData = await dRes.json();
+/* MATRIX BACKGROUND */
+const mCanvas = document.getElementById('matrix-canvas');
+const mCtx = mCanvas.getContext('2d');
+let mw, mh, mCols, mYpos;
+function initMatrix() {
+    mw = mCanvas.width = window.innerWidth; mh = mCanvas.height = window.innerHeight;
+    mCols = Math.floor(mw / 20); mYpos = Array(mCols).fill(0);
+}
+function drawMatrix() {
+    mCtx.fillStyle = 'rgba(11, 10, 26, 0.1)'; mCtx.fillRect(0, 0, mw, mh);
+    mCtx.fillStyle = '#0080FF'; mCtx.font = '15px monospace';
+    mYpos.forEach((y, i) => {
+        mCtx.fillText(String.fromCharCode(Math.random() * 128), i * 20, y);
+        mYpos[i] = y > 100 + Math.random() * 10000 ? 0 : y + 20;
+    });
+}
+initMatrix(); setInterval(drawMatrix, 50);
 
-        const agents = mData.values || [];
-        const daily = dData.values || [];
-        let totalSum = 0;
+/* --- SINCRONIZACIÓN DE DATOS (FIX ERROR 400) --- */
+async function syncData() {
+    try {
+        // Master List: Weekly File, tab W9
+        const mUrl = `https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_ID}/values/W9!A3:O96?key=${API_KEY}`;
+        // Daily Data: Transfer sheet, tab Tabla_25
+        const dUrl = `https://sheets.googleapis.com/v4/spreadsheets/${DAILY_ID}/values/Tabla_25!A2:C70?key=${API_KEY}`;
+
+        const [mRes, dRes] = await Promise.all([fetch(mUrl), fetch(dUrl)]);
+        const masterData = await mRes.json();
+        const dailyData = await dRes.json();
+
+        const agents = masterData.values || [];
+        const dailyXfers = dailyData.values || [];
+        let totalGlobal = 0;
 
         let report = agents.map(a => {
             const id = a[0], name = a[1];
             if(!id) return null;
-            const match = daily.find(d => d[1] == id);
-            const todayVal = match ? parseInt(match[2]) || 0 : 0;
-            totalSum += todayVal;
-            return { id, name, today: todayVal, w: a[3], th: a[5], f: a[7], s: a[9], m: a[11], t: a[13], total: a[14] };
+            
+            // Vincular con Tabla_25 por ID para el Today
+            const dMatch = dailyXfers.find(d => d[1] == id);
+            const todayVal = dMatch ? parseInt(dMatch[2]) || 0 : 0;
+            totalGlobal += todayVal;
+
+            return {
+                id, name, today: todayVal,
+                wed: a[3] || 0, thu: a[5] || 0, fri: a[7] || 0,
+                sat: a[9] || 0, mon: a[11] || 0, tue: a[13] || 0,
+                total: parseInt(a[14]) || 0
+            };
         }).filter(x => x && x.name);
 
         report.sort((a,b) => b.today - a.today);
-        document.getElementById('totalValue').innerText = totalSum;
-        renderTable(report);
-    } catch(e) { console.error("Error en Uplink", e); }
+        document.getElementById('globalTotal').innerText = totalGlobal;
+        render(report);
+    } catch(e) { console.error("Fallo de Uplink:", e); }
 }
 
-function renderTable(data) {
-    const tbody = document.querySelector("#mainTable tbody");
-    tbody.innerHTML = data.map((a, i) => `
-        <tr>
-            <td>${i+1}</td>
-            <td style="text-align:left; font-weight:bold;">${a.name}</td>
-            <td style="color:var(--blue-neon); font-weight:bold;">${a.today}</td>
-            <td>${a.w||0}</td><td>${a.th||0}</td><td>${a.f||0}</td><td>${a.s||0}</td><td>${a.m||0}</td><td>${a.t||0}</td>
-            <td style="color:var(--pink-neon); font-weight:bold;">${a.total||0}</td>
-        </tr>`).join('');
+function render(data) {
+    const tbody = document.querySelector("#leaderTable tbody");
+    tbody.innerHTML = "";
+    const maxToday = Math.max(...data.map(d => d.today), 1);
+    const maxTotal = Math.max(...data.map(d => d.total), 1);
+
+    data.forEach((a, i) => {
+        const rank = i < 3 ? `rank-${i+1}` : '';
+        tbody.innerHTML += `
+            <tr>
+                <td><span class="rank-circle ${rank}">${i+1}</span></td>
+                <td style="text-align:left; font-weight:bold;">${a.name}</td>
+                <td>
+                    <div class="bar-ui"><div class="fill-blue" style="width:${(a.today/maxToday)*100}%; height:100%;"></div>
+                    <div class="bar-text">${a.today}</div></div>
+                </td>
+                <td>${a.wed}</td><td>${a.thu}</td><td>${a.fri}</td><td>${a.sat}</td><td>${a.mon}</td><td>${a.tue}</td>
+                <td>
+                    <div class="bar-ui"><div class="fill-pink" style="width:${(a.total/maxTotal)*100}%; height:100%;"></div>
+                    <div class="bar-text">${a.total}</div></div>
+                </td>
+            </tr>`;
+    });
 }
 
-/* --- MOTOR DE JUEGO EPIC V3 --- */
+/* --- MOTOR DEL VIDEOJUEGO --- */
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
-let gameActive = false, score = 0, lives = 5, kills = 0, enemies = [], particles = [], nextBoss = 1000;
+let gameActive = false, score = 0, lives = 5, enemies = [], particles = [], nextHeart = 5000;
 
-class Enemy {
-    constructor(type) {
-        this.x = Math.random() * (canvas.width - 100); this.y = -80;
-        this.type = type; // 'normal', 'rocket', 'boss', 'heart'
-        this.hits = (type === 'boss') ? 3 : 1;
-        this.s = (type === 'boss') ? 1.5 : (type === 'rocket' ? 8 : 2 + Math.random() * 2);
-        this.size = (type === 'boss') ? 120 : (type === 'rocket' ? 60 : 45);
-        this.txt = { normal: '👾', rocket: '🚀', boss: '🛸', heart: '❤️' }[type];
-    }
+class Particle {
+    constructor(x,y) { this.x=x; this.y=y; this.vx=(Math.random()-0.5)*12; this.vy=(Math.random()-0.5)*12; this.a=1; }
+    draw() { ctx.globalAlpha=this.a; ctx.fillStyle='#00d4ff'; ctx.fillRect(this.x,this.y,4,4); ctx.globalAlpha=1; }
 }
 
-function startGame() {
+function startDefense() {
     gameActive = true; document.getElementById('game-container').style.display = 'block';
-    document.getElementById('board').style.filter = 'blur(10px)';
     canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-    score = 0; lives = 5; kills = 0; enemies = []; particles = []; nextBoss = 1000;
-    updateHUD(); loop();
+    score = 0; lives = 5; enemies = []; particles = []; nextHeart = 5000;
+    updateHUD(); run();
 }
 
 function updateHUD() {
-    document.getElementById('score-hud').innerText = score;
-    document.getElementById('kills-hud').innerText = kills;
-    document.getElementById('lives-hud').innerText = "❤️".repeat(lives);
+    document.getElementById('score-display').innerText = score;
+    document.getElementById('lives-display').innerText = "❤️".repeat(lives);
 }
 
 canvas.addEventListener('mousedown', (e) => {
-    const mx = e.clientX, my = e.clientY;
     enemies.forEach((en, i) => {
-        if(mx > en.x && mx < en.x + en.size && my > en.y - en.size && my < en.y + 20) {
-            en.hits--;
-            // Partículas de impacto
-            for(let j=0; j<8; j++) particles.push({x:mx, y:my, vx:(Math.random()-0.5)*10, vy:(Math.random()-0.5)*10, a:1});
-            
-            if(en.hits <= 0) {
-                if(en.type === 'heart') { if(lives < 5) lives++; }
-                else { 
-                    kills++;
-                    score += (en.type === 'boss' ? 1500 : (en.type === 'rocket' ? 500 : 100)); 
-                }
-                enemies.splice(i, 1);
-                checkSpawns();
-            }
+        if(e.clientX > en.x && e.clientX < en.x+60 && e.clientY > en.y-50 && e.clientY < en.y+10) {
+            if(en.isH) { if(lives < 5) lives++; } else { score += en.r ? 500 : 100; }
+            for(let j=0; j<15; j++) particles.push(new Particle(en.x+30, en.y-20));
+            enemies.splice(i,1);
+            if(score >= nextHeart) { enemies.push({x: Math.random()*(mw-60), y:-50, s:4, isH:true}); nextHeart+=5000; }
             updateHUD();
         }
     });
 });
 
-function checkSpawns() {
-    if(kills > 0 && kills % 10 === 0) enemies.push(new Enemy('rocket'));
-    if(score >= nextBoss) { enemies.push(new Enemy('boss')); nextBoss += 1000; }
-}
-
-function loop() {
+function run() {
     if(!gameActive) return;
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    
-    if(Math.random() < 0.018) enemies.push(new Enemy('normal'));
-    if(Math.random() < 0.002 && lives < 5) enemies.push(new Enemy('heart'));
-
+    ctx.clearRect(0,0,mw,mh);
+    if(Math.random() < 0.02) enemies.push({x: Math.random()*(mw-60), y:-60, s:2+Math.random()*3, r:Math.random()<0.1});
     enemies.forEach((en, i) => {
-        en.y += en.s; ctx.font = `${en.size}px Arial`;
-        if(en.type === 'boss') { // Barra de vida del Boss
-            ctx.fillStyle = 'red'; ctx.fillRect(en.x, en.y - en.size - 10, en.size * (en.hits/3), 5);
-        }
-        ctx.fillText(en.txt, en.x, en.y);
-        if(en.y > canvas.height) { if(en.type !== 'heart') lives--; enemies.splice(i,1); updateHUD(); }
+        en.y += en.s; ctx.font = en.isH ? '50px Arial' : (en.r ? '55px Arial' : '40px Arial');
+        ctx.fillText(en.isH ? '❤️' : (en.r ? '🛸' : '👾'), en.x, en.y);
+        if(en.y > mh) { if(!en.isH) lives--; enemies.splice(i,1); updateHUD(); }
     });
-
-    particles.forEach((p,i) => { p.x+=p.vx; p.y+=p.vy; p.a-=0.04; ctx.globalAlpha=p.a; ctx.fillStyle=var(--blue-neon); ctx.fillRect(p.x,p.y,4,4); if(p.a<=0) particles.splice(i,1); });
-    ctx.globalAlpha = 1;
-
-    if(lives <= 0) showFinalScreen();
-    else requestAnimationFrame(loop);
+    particles.forEach((p,i) => { p.x+=p.vx; p.y+=p.vy; p.a-=0.03; p.draw(); if(p.a<=0) particles.splice(i,1); });
+    if(lives <= 0) { gameActive = false; alert(`DERROTA CRÍTICA\nPuntaje: ${score} PTS`); startDefense(); }
+    else requestAnimationFrame(run);
 }
 
-function showFinalScreen() {
-    gameActive = false;
-    document.getElementById('final-score-val').innerText = score;
-    document.getElementById('final-stats').innerText = `UNIDADES NEUTRALIZADAS: ${kills}`;
-    document.getElementById('final-screen').style.display = 'flex';
-}
-
-function closeFinalScreen() {
-    document.getElementById('final-screen').style.display = 'none';
-    document.getElementById('game-container').style.display = 'none';
-    document.getElementById('board').style.filter = 'none';
-}
-
-loadData(); setInterval(loadData, 60000);
-window.addEventListener('keydown', (e) => { if(e.key === "Escape") closeFinalScreen(); });
+syncData(); setInterval(syncData, 30000);
+window.addEventListener('keydown', (e) => { if(e.key === "Escape") { gameActive=false; document.getElementById('game-container').style.display='none'; }});
 </script>
 </body>
 </html>
