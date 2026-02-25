@@ -11,14 +11,13 @@
     --blue-neon: #00d4ff;
     --pink-neon: #ff00ff;
     --text: #ffffff;
+    --blue-glow: rgba(0, 212, 255, 0.5);
   }
   
   html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
   
-  /* ESTILO MATRIX AZUL */
   #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.2; pointer-events: none; }
 
-  /* UI DASHBOARD (CLON EXACTO image_fa5440.jpg) */
   #board { position: relative; z-index: 5; padding: 25px; max-width: 1200px; margin: auto; }
   .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
   .title-area h1 { margin: 0; font-size: 36px; text-transform: uppercase; letter-spacing: 2px; }
@@ -31,19 +30,16 @@
   th { text-transform: uppercase; color: #777; padding: 15px 5px; font-size: 11px; letter-spacing: 1px; border-bottom: 1px solid #333; }
   td { padding: 15px 5px; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center; }
 
-  /* RANKING CIRCLES */
   .rank-circle { width: 35px; height: 35px; line-height: 35px; border-radius: 50%; display: inline-block; font-weight: bold; color: #000; }
   .rank-1 { background: #ffcc00; box-shadow: 0 0 20px #ffcc00; }
   .rank-2 { background: #e0e0e0; box-shadow: 0 0 15px #e0e0e0; }
   .rank-3 { background: #ff8800; box-shadow: 0 0 15px #ff8800; }
 
-  /* BARS */
   .bar-ui { height: 20px; background: #000; border-radius: 10px; position: relative; overflow: hidden; min-width: 90px; border: 1px solid #222; }
-  .fill-blue { background: linear-gradient(90deg, #0066ff, #00d4ff); }
-  .fill-pink { background: linear-gradient(90deg, #cc00ff, #ff00ff); }
+  .fill-blue { background: linear-gradient(90deg, #0066ff, #00d4ff); transition: width 0.5s ease; }
+  .fill-pink { background: linear-gradient(90deg, #cc00ff, #ff00ff); transition: width 0.5s ease; }
   .bar-text { position: absolute; width: 100%; z-index: 2; font-size: 11px; font-weight: bold; line-height: 20px; color: #fff; text-align: center; }
 
-  /* GAME OVERLAY */
   #game-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; display: none; }
   #game-canvas { width: 100%; height: 100%; pointer-events: auto; cursor: crosshair; }
   .game-hud { position: fixed; bottom: 30px; right: 30px; background: rgba(0,0,0,0.9); padding: 20px; border: 2px solid var(--blue-neon); border-radius: 15px; z-index: 110; text-align: right; }
@@ -86,9 +82,9 @@
         <tr>
           <th>#</th>
           <th style="text-align: left;">AGENT</th>
-          <th>TODAY</th>
+          <th>TODAY XFERS</th>
           <th>WED</th><th>THU</th><th>FRI</th><th>SAT</th><th>MON</th><th>TUE</th>
-          <th>TOTAL</th>
+          <th>WEEK TOTAL</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -105,10 +101,14 @@ const DAILY_ID = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
 const mCanvas = document.getElementById('matrix-canvas');
 const mCtx = mCanvas.getContext('2d');
 let mw, mh, mCols, mYpos;
+
 function initMatrix() {
-    mw = mCanvas.width = window.innerWidth; mh = mCanvas.height = window.innerHeight;
-    mCols = Math.floor(mw / 20); mYpos = Array(mCols).fill(0);
+    mw = mCanvas.width = window.innerWidth; 
+    mh = mCanvas.height = window.innerHeight;
+    mCols = Math.floor(mw / 20); 
+    mYpos = Array(mCols).fill(0);
 }
+
 function drawMatrix() {
     mCtx.fillStyle = 'rgba(11, 10, 26, 0.1)'; mCtx.fillRect(0, 0, mw, mh);
     mCtx.fillStyle = '#0080FF'; mCtx.font = '15px monospace';
@@ -119,65 +119,83 @@ function drawMatrix() {
 }
 initMatrix(); setInterval(drawMatrix, 50);
 
-/* --- SINCRONIZACIÓN DE DATOS (FIX ERROR 400) --- */
+/* --- SINCRONIZACIÓN DE DATOS --- */
 async function syncData() {
     try {
-        // Master List: Weekly File, tab W9
+        // Master List: Weekly File (Referencial)
         const mUrl = `https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_ID}/values/W9!A3:O96?key=${API_KEY}`;
-        // Daily Data: Transfer sheet, tab Tabla_25
-        const dUrl = `https://sheets.googleapis.com/v4/spreadsheets/${DAILY_ID}/values/Tabla_25!A2:C70?key=${API_KEY}`;
+        // Daily Data: El que define el Ranking (Xfers y CP) - Rango extendido hasta D para Credit Pulls
+        const dUrl = `https://sheets.googleapis.com/v4/spreadsheets/${DAILY_ID}/values/Tabla_25!A2:D100?key=${API_KEY}`;
 
         const [mRes, dRes] = await Promise.all([fetch(mUrl), fetch(dUrl)]);
         const masterData = await mRes.json();
         const dailyData = await dRes.json();
 
         const agents = masterData.values || [];
-        const dailyXfers = dailyData.values || [];
-        let totalGlobal = 0;
+        const dailyRows = dailyData.values || [];
+        let totalGlobalToday = 0;
 
         let report = agents.map(a => {
-            const id = a[0], name = a[1];
-            if(!id) return null;
+            const id = a[0]; 
+            const name = a[1];
+            if(!id || !name) return null;
+
+            // Buscamos en el documento diario usando el ID (Columna B de la sheet diaria es índice 1)
+            // Columna C es Xfers (índice 2), Columna D es CP (índice 3)
+            const dMatch = dailyRows.find(d => d[1] == id);
             
-            // Vincular con Tabla_25 por ID para el Today
-            const dMatch = dailyXfers.find(d => d[1] == id);
-            const todayVal = dMatch ? parseInt(dMatch[2]) || 0 : 0;
-            totalGlobal += todayVal;
+            const xfersToday = dMatch ? parseInt(dMatch[2]) || 0 : 0;
+            const cpToday = dMatch ? parseInt(dMatch[3]) || 0 : 0;
+            
+            totalGlobalToday += xfersToday;
 
             return {
-                id, name, today: todayVal,
+                id, name, 
+                today: xfersToday,
+                cp: cpToday, // Usado para desempates
                 wed: a[3] || 0, thu: a[5] || 0, fri: a[7] || 0,
                 sat: a[9] || 0, mon: a[11] || 0, tue: a[13] || 0,
-                total: parseInt(a[14]) || 0
+                totalWeekly: parseInt(a[14]) || 0
             };
-        }).filter(x => x && x.name);
+        }).filter(x => x !== null);
 
-        report.sort((a,b) => b.today - a.today);
-        document.getElementById('globalTotal').innerText = totalGlobal;
+        // ORDENAMIENTO: 1. Por Xfers hoy, 2. Por Credit Pulls (desempate)
+        report.sort((a, b) => {
+            if (b.today !== a.today) {
+                return b.today - a.today;
+            }
+            return b.cp - a.cp; // Si empatan en Xfers, el de más CP va arriba
+        });
+
+        document.getElementById('globalTotal').innerText = totalGlobalToday;
         render(report);
-    } catch(e) { console.error("Fallo de Uplink:", e); }
+    } catch(e) { console.error("Error de Uplink:", e); }
 }
 
 function render(data) {
     const tbody = document.querySelector("#leaderTable tbody");
     tbody.innerHTML = "";
     const maxToday = Math.max(...data.map(d => d.today), 1);
-    const maxTotal = Math.max(...data.map(d => d.total), 1);
+    const maxTotal = Math.max(...data.map(d => d.totalWeekly), 1);
 
     data.forEach((a, i) => {
-        const rank = i < 3 ? `rank-${i+1}` : '';
+        const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
         tbody.innerHTML += `
             <tr>
-                <td><span class="rank-circle ${rank}">${i+1}</span></td>
-                <td style="text-align:left; font-weight:bold;">${a.name}</td>
+                <td><span class="rank-circle ${rankClass}">${i+1}</span></td>
+                <td style="text-align:left; font-weight:bold;">${a.name} <small style="color:#555; font-size:9px;">[${a.id}]</small></td>
                 <td>
-                    <div class="bar-ui"><div class="fill-blue" style="width:${(a.today/maxToday)*100}%; height:100%;"></div>
-                    <div class="bar-text">${a.today}</div></div>
+                    <div class="bar-ui">
+                        <div class="fill-blue" style="width:${(a.today/maxToday)*100}%;"></div>
+                        <div class="bar-text">${a.today} <span style="font-size:8px; opacity:0.7">(${a.cp} CP)</span></div>
+                    </div>
                 </td>
                 <td>${a.wed}</td><td>${a.thu}</td><td>${a.fri}</td><td>${a.sat}</td><td>${a.mon}</td><td>${a.tue}</td>
                 <td>
-                    <div class="bar-ui"><div class="fill-pink" style="width:${(a.total/maxTotal)*100}%; height:100%;"></div>
-                    <div class="bar-text">${a.total}</div></div>
+                    <div class="bar-ui">
+                        <div class="fill-pink" style="width:${(a.totalWeekly/maxTotal)*100}%;"></div>
+                        <div class="bar-text">${a.totalWeekly}</div>
+                    </div>
                 </td>
             </tr>`;
     });
@@ -231,8 +249,17 @@ function run() {
     else requestAnimationFrame(run);
 }
 
-syncData(); setInterval(syncData, 30000);
-window.addEventListener('keydown', (e) => { if(e.key === "Escape") { gameActive=false; document.getElementById('game-container').style.display='none'; }});
+// Ejecución inicial
+syncData(); 
+// Refresco automático cada 30 segundos
+setInterval(syncData, 30000);
+
+window.addEventListener('keydown', (e) => { 
+    if(e.key === "Escape") { 
+        gameActive=false; 
+        document.getElementById('game-container').style.display='none'; 
+    }
+});
 </script>
 </body>
 </html>
