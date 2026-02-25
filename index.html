@@ -3,7 +3,7 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>Blue Protocol — Integrity Guard W9</title>
+<title>Blue Protocol — Tactical Integrity W9</title>
 <style>
   :root{
     --bg-color: #000510;
@@ -21,7 +21,7 @@
     overflow-x: hidden;
   }
 
-  /* BLUE MATRIX RAIN */
+  /* EFECTO MATRIX AZUL */
   body::before {
     content: " "; display: block; position: fixed;
     top: 0; left: 0; bottom: 0; right: 0;
@@ -29,9 +29,9 @@
                 linear-gradient(90deg, rgba(0, 0, 255, 0.03), rgba(0, 255, 255, 0.01), rgba(0, 0, 255, 0.03));
     z-index: 10; background-size: 100% 3px, 3px 100%; pointer-events: none;
   }
-  #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.3; }
+  #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.25; }
 
-  /* GAME OVERLAY */
+  /* GAME UI */
   #game-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; pointer-events: none; display: none; }
   #game-canvas { width: 100%; height: 100%; cursor: crosshair; pointer-events: auto; }
   
@@ -39,24 +39,21 @@
     position: fixed; bottom: 20px; right: 20px;
     background: rgba(0, 26, 51, 0.95); border: 2px solid var(--blue-neon);
     padding: 15px; font-weight: bold; text-align: right; box-shadow: 0 0 15px var(--blue-glow);
-    z-index: 25;
+    z-index: 25; min-width: 180px;
   }
 
   #board{ position:relative; z-index:1; padding: 20px; box-sizing:border-box; display:flex; flex-direction:column; gap: 15px; }
-  
   .top-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--blue-dark); padding-bottom: 10px; }
   #totalXfersBox { background: #000; padding: 10px 20px; border: 1px solid var(--blue-neon); box-shadow: 0 0 10px var(--blue-glow); }
-  .xfers-val { font-size: 32px; font-weight: 800; text-shadow: 0 0 10px var(--blue-neon); }
 
-  /* TABLE UI */
+  /* TABLA SEGÚN ESTRUCTURA FA5440 */
   .table-wrap { overflow-x: auto; background: rgba(0, 5, 16, 0.6); border-radius: 10px; }
   table { width: 100%; border-collapse: separate; border-spacing: 0 5px; font-size: 13px; }
-  thead th { background: var(--blue-dark); color: #fff; padding: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  thead th { background: var(--blue-dark); color: #fff; padding: 12px; text-transform: uppercase; }
   tbody td { background: rgba(0, 26, 51, 0.8); padding: 12px; text-align: center; border-top: 1px solid var(--blue-dim); }
   
   .bar-container { position: relative; height: 18px; background: #000; border: 1px solid var(--blue-dim); border-radius: 9px; overflow: hidden; }
   .bar-fill { position: absolute; height: 100%; background: linear-gradient(90deg, #004080, #0080FF); transition: width 1s ease; }
-  .bar-text { position: relative; z-index: 1; font-size: 10px; color: #fff; line-height: 18px; }
 </style>
 </head>
 <body>
@@ -64,9 +61,9 @@
 
 <div id="game-container">
     <div class="game-stats-bottom">
-        <span style="font-size: 10px; color: #ff4444;">SYSTEM INTEGRITY</span><br>
+        <span style="font-size: 10px; color: #ff4444;">BIOSPHAERE_INTEGRITY</span><br>
         <span id="game-lives" style="font-size: 20px; color: #fff;">❤️❤️❤️❤️❤️</span><br>
-        <hr style="border: 0; border-top: 1px solid var(--blue-dim); margin: 5px 0;">
+        <hr style="border:0; border-top:1px solid var(--blue-dim); margin:5px 0;">
         <span style="font-size: 10px;">TACTICAL_SCORE</span><br>
         <span id="game-score" style="font-size: 24px; color: var(--blue-neon);">0</span> PTS
     </div>
@@ -77,13 +74,13 @@
   <div class='top-header'> 
     <div>
         <h2 style="margin:0; letter-spacing:3px;">BLUE_PROTOCOL_LEADERBOARD</h2>
-        <span style="font-size:12px; color:var(--blue-dim)">WEEK: W9 | OPERATIONAL UPLINK</span>
+        <span style="font-size:12px; color:var(--blue-dim)">WEEK: W9 | UPLINK ACTIVE</span>
     </div>
     <div style="display: flex; gap: 15px; align-items: center;">
         <button onclick="toggleGame()" style="background:none; border:1px solid var(--blue-neon); color:var(--blue-neon); padding:8px 15px; cursor:pointer; font-weight:bold; text-transform:uppercase;">Defense_Mode</button>
         <div id='totalXfersBox'>
           <div style="font-size:10px; opacity:0.6">TOTAL_XFERS (COL_C)</div>
-          <div class='xfers-val' id='xfersCounter'>0</div>
+          <div class='xfers-val' id='xfersCounter' style="font-size: 32px; font-weight:800;">0</div>
         </div>
     </div>
   </div>
@@ -95,7 +92,7 @@
           <th>RANK</th>
           <th style="text-align:left">AGENT_IDENTIFIER</th>
           <th>TODAY</th>
-          <th>TOTAL_UPLINK (ESTIMATED)</th>
+          <th>TOTAL_XFERS</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -107,46 +104,69 @@
 const API_KEY = "AIzaSyCCBAapFj9Fd-8cOIfpDJxrOP__76zxAxM";
 const DAILY_SHEETID = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
 
-/* MATRIX EFFECT */
-const canvas = document.getElementById('matrix-canvas');
-const ctx = canvas.getContext('2d');
-let w = canvas.width = window.innerWidth, h = canvas.height = window.innerHeight;
-const cols = Math.floor(w / 20), ypos = Array(cols).fill(0);
-function matrix() {
-  ctx.fillStyle = 'rgba(0, 5, 16, 0.1)'; ctx.fillRect(0, 0, w, h);
-  ctx.fillStyle = '#0080FF'; ctx.font = '15px monospace';
-  ypos.forEach((y, i) => {
-    ctx.fillText(String.fromCharCode(Math.random() * 128), i * 20, y);
-    ypos[i] = y > 100 + Math.random() * 10000 ? 0 : y + 20;
-  });
+/* MATRIX RAIN */
+const mCanvas = document.getElementById('matrix-canvas');
+const mCtx = mCanvas.getContext('2d');
+let mw, mh, mCols, mYpos;
+function initMatrix() {
+    mw = mCanvas.width = window.innerWidth; mh = mCanvas.height = window.innerHeight;
+    mCols = Math.floor(mw / 20); mYpos = Array(mCols).fill(0);
 }
-setInterval(matrix, 50);
+function drawMatrix() {
+    mCtx.fillStyle = 'rgba(0, 5, 16, 0.1)'; mCtx.fillRect(0, 0, mw, mh);
+    mCtx.fillStyle = '#0080FF'; mCtx.font = '15px monospace';
+    mYpos.forEach((y, i) => {
+        mCtx.fillText(String.fromCharCode(Math.random() * 128), i * 20, y);
+        mYpos[i] = y > 100 + Math.random() * 10000 ? 0 : y + 20;
+    });
+}
+initMatrix(); setInterval(drawMatrix, 50);
 
-/* --- DEFENSE SYSTEM: 5 LIVES --- */
+/* --- DEFENSE SYSTEM V2: PARTICLES & HEARTS --- */
 const gCanvas = document.getElementById('game-canvas');
 const gCtx = gCanvas.getContext('2d');
-let gameActive = false, score = 0, lives = 5, enemies = [];
+let gameActive = false, score = 0, lives = 5, enemies = [], particles = [], nextHeartScore = 5000;
 const emojis = ['👾', '🛸'], rare = ['🚀', '⭐'];
 
+class Particle {
+    constructor(x, y) {
+        this.x = x; this.y = y;
+        this.vx = (Math.random() - 0.5) * 8; this.vy = (Math.random() - 0.5) * 8;
+        this.alpha = 1; this.size = Math.random() * 3 + 1;
+    }
+    update() { this.x += this.vx; this.y += this.vy; this.alpha -= 0.02; }
+    draw() {
+        gCtx.globalAlpha = this.alpha; gCtx.fillStyle = '#0080FF';
+        gCtx.fillRect(this.x, this.y, this.size, this.size);
+        gCtx.globalAlpha = 1;
+    }
+}
+
 class Enemy {
-    constructor(isRare = false) {
-        this.x = Math.random() * (w - 60); this.y = -60;
-        this.speed = isRare ? 7 : 2 + Math.random() * 2.5;
-        this.isRare = isRare;
-        this.txt = isRare ? rare[0] : emojis[Math.floor(Math.random()*2)];
+    constructor(type = 'normal') {
+        this.x = Math.random() * (mw - 60); this.y = -60;
+        this.type = type;
+        this.isRare = (type === 'rare');
+        this.isHeart = (type === 'heart');
+        this.speed = this.isRare ? 7 : (this.isHeart ? 4 : 2 + Math.random() * 2);
+        this.txt = this.isHeart ? '❤️' : (this.isRare ? rare[0] : emojis[Math.floor(Math.random()*2)]);
     }
     update() { this.y += this.speed; }
-    draw() { gCtx.font = this.isRare ? '50px Arial' : '40px Arial'; gCtx.fillText(this.txt, this.x, this.y); }
+    draw() { 
+        gCtx.font = this.isRare || this.isHeart ? '50px Arial' : '40px Arial'; 
+        gCtx.fillText(this.txt, this.x, this.y); 
+    }
 }
+
+function createParticles(x, y) { for(let i=0; i<15; i++) particles.push(new Particle(x, y)); }
 
 function toggleGame() {
     gameActive = !gameActive;
     document.getElementById('game-container').style.display = gameActive ? 'block' : 'none';
     if(gameActive) {
-        gCanvas.width = w; gCanvas.height = h;
-        score = 0; lives = 5; enemies = [];
-        updateHUD();
-        animateGame();
+        gCanvas.width = mw; gCanvas.height = mh;
+        score = 0; lives = 5; enemies = []; particles = []; nextHeartScore = 5000;
+        updateHUD(); animateGame();
     }
 }
 
@@ -156,11 +176,21 @@ function updateHUD() {
 }
 
 gCanvas.addEventListener('mousedown', (e) => {
+    if(!gameActive) return;
     const mx = e.clientX, my = e.clientY;
     enemies.forEach((en, i) => {
         if(mx > en.x && mx < en.x+60 && my > en.y-50 && my < en.y+10) {
-            score += en.isRare ? 500 : 100;
+            if(en.isHeart) { if(lives < 5) lives++; } 
+            else { score += en.isRare ? 500 : 100; }
+            
+            createParticles(en.x + 25, en.y - 20);
             enemies.splice(i, 1);
+            
+            // Check for next heart spawn
+            if(score >= nextHeartScore) {
+                enemies.push(new Enemy('heart'));
+                nextHeartScore += 5000;
+            }
             updateHUD();
         }
     });
@@ -168,34 +198,34 @@ gCanvas.addEventListener('mousedown', (e) => {
 
 function animateGame() {
     if(!gameActive) return;
-    gCtx.clearRect(0, 0, w, h);
+    gCtx.clearRect(0, 0, mw, mh);
     
-    // REDUCED SPAWN RATE
-    if(Math.random() < 0.015) enemies.push(new Enemy(Math.random() < 0.1));
+    if(Math.random() < 0.015) enemies.push(new Enemy(Math.random() < 0.1 ? 'rare' : 'normal'));
 
     enemies.forEach((en, i) => {
-        en.update();
-        en.draw();
-        
-        // CHECK BOTTOM COLLISION
-        if(en.y > h) {
-            lives--;
-            enemies.splice(i, 1);
-            updateHUD();
+        en.update(); en.draw();
+        if(en.y > mh) {
+            if(!en.isHeart) lives--;
+            enemies.splice(i, 1); updateHUD();
             if(lives <= 0) {
                 gameActive = false;
-                alert(`GAME OVER\nPuntaje Final: ${score} PTS\nSectores comprometidos.`);
+                alert(`SISTEMA COMPROMETIDO\nPuntaje Final: ${score} PTS`);
                 toggleGame();
             }
         }
     });
+
+    particles.forEach((p, i) => {
+        p.update(); p.draw();
+        if(p.alpha <= 0) particles.splice(i, 1);
+    });
+
     requestAnimationFrame(animateGame);
 }
 
-/* --- DATA LOGIC: COL_C & W9 FIX --- */
+/* --- DATA SYNC: COL_C & W9 --- */
 async function loadData() {
     try {
-        // CORRECCIÓN: Usamos W9 como fuente maestra para evitar el Error 400
         const masterUrl = `https://sheets.googleapis.com/v4/spreadsheets/${DAILY_SHEETID}/values/W9!A3:B90?key=${API_KEY}`;
         const transferUrl = `https://sheets.googleapis.com/v4/spreadsheets/${DAILY_SHEETID}/values/Feb 25!A2:C70?key=${API_KEY}`;
         
@@ -211,39 +241,37 @@ async function loadData() {
             const match = daily.find(d => d[1] == id);
             const val = match ? parseInt(match[2]) || 0 : 0; // Columna C / índice 2
             totalGlobal += val;
-            return { id, name, today: val, total: val * 4.5 }; // Simulación
+            return { id, name, today: val };
         }).filter(x => x.name);
 
         report.sort((a,b) => b.today - a.today);
         document.getElementById('xfersCounter').innerText = totalGlobal;
         render(report);
-    } catch(e) { console.error("Sync Conflict:", e); }
+    } catch(e) { console.error("Sync Conflict", e); }
 }
 
 function render(list) {
     const tbody = document.querySelector("#tbl tbody");
     tbody.innerHTML = "";
-    const max = Math.max(...list.map(l => l.total), 1);
-    
+    const max = Math.max(...list.map(l => l.today), 1);
     list.forEach((a, i) => {
-        const pct = (a.today / (max/4)) * 100; // Normalizado para visualización
+        const pct = (a.today / max) * 100;
         tbody.innerHTML += `
             <tr>
-                <td><span style="opacity:0.5">${i+1}</span></td>
-                <td style="text-align:left"><strong>${a.name}</strong> <small style="color:var(--blue-dim)">[ID: ${a.id}]</small></td>
+                <td>${i+1}</td>
+                <td style="text-align:left"><strong>${a.name}</strong> <small>[${a.id}]</small></td>
                 <td style="color:#fff; font-weight:bold;">${a.today}</td>
                 <td>
                     <div class="bar-container">
-                        <div class="bar-fill" style="width:${Math.min(100, pct)}%"></div>
-                        <div class="bar-text">${Math.round(a.total)} UPLINK_VAL</div>
+                        <div class="bar-fill" style="width:${pct}%"></div>
                     </div>
                 </td>
             </tr>`;
     });
 }
 
-loadData(); 
-setInterval(loadData, 30000); // 30s refresh
+loadData(); setInterval(loadData, 30000);
+window.addEventListener('resize', initMatrix);
 window.addEventListener('keydown', (e) => { if(e.key === "Escape") toggleGame(); });
 </script>
 </body>
