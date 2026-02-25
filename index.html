@@ -3,309 +3,313 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>Shoreline Dashboard</title>
+<title>Leaderboard & Defense — Matrix Construct</title>
 <style>
-    /* ===== ELECTRIC BLUE THEME VARIABLES ===== */
-    :root{
-        --vh: 1vh;
-        --bg-color: #000103; /* Fondo casi negro con tinte azul */
-        /* Nueva paleta Azul Eléctrico */
-        --electric-blue: #00F7FF; 
-        --electric-dark: #001A24;
-        --electric-dim: #007A80;
-        --blue-glow: rgba(0, 247, 255, 0.3);
-        --winner-glow: rgba(0, 247, 255, 0.7);
-    }
-    
-    html,body{
-        margin:0; min-height:100%; width:100%;
-        background: var(--bg-color); 
-        color: var(--electric-blue); /* Color principal cambiado */
-        font-family: 'Courier New', Courier, monospace;
-        overflow-x: hidden; overflow-y: auto;
-    }
+  /* ===== MATRIX THEME VARIABLES ===== */
+  :root{
+    --vh: 1vh;
+    --bg-color: #000000;
+    --matrix-green: #00FF41;
+    --matrix-dark: #003B00;
+    --matrix-dim: #008F11;
+    --matrix-glow: rgba(0, 255, 65, 0.3);
+    --glass: rgba(0, 20, 0, 0.85);
+    --border: #00FF41;
+  }
+  
+  html,body{
+    margin:0; min-height:100%; width:100%;
+    background: var(--bg-color);
+    color: var(--matrix-green);
+    font-family: 'Courier New', Courier, monospace;
+    overflow-x: hidden; overflow-y: auto;
+  }
 
-    /* Efecto CRT Scanlines (ligeramente azulado) */
-    body::before {
-        content: " "; display: block; position: fixed;
-        top: 0; left: 0; bottom: 0; right: 0;
-        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(0, 50, 255, 0.03), rgba(0, 255, 255, 0.02), rgba(0, 0, 255, 0.03));
-        z-index: 2; background-size: 100% 2px, 3px 100%; pointer-events: none;
-    }
+  body::before {
+    content: " "; display: block; position: fixed;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 10; background-size: 100% 2px, 3px 100%; pointer-events: none;
+  }
 
-    #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.15; }
+  #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.25; }
 
-    #board{
-        position:relative; z-index:1; width:100vw; min-height:100vh;
-        padding:calc(1.2*var(--vh)) calc(1.6*var(--vh)); box-sizing:border-box;
-        display:flex; flex-direction:column; gap:calc(0.8*var(--vh));
-    }
-    
-    .top-header-flex{
-        display: flex; justify-content: space-between; align-items: center;
-        border-bottom: 2px solid var(--electric-dark); padding-bottom: 10px;
-    }
+  /* GAME OVERLAY */
+  #game-container {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 5; pointer-events: none; display: none;
+  }
+  #game-canvas { width: 100%; height: 100%; cursor: crosshair; pointer-events: auto; }
+  .game-stats {
+    position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.8); border: 1px solid var(--matrix-green);
+    padding: 10px 20px; font-weight: bold; z-index: 6; text-align: center;
+  }
 
-    h2{
-        margin:0; font-weight:700; letter-spacing:2px; font-size:calc(3.5*var(--vh));
-        text-transform: uppercase; 
-        text-shadow: 0 0 15px var(--electric-blue); /* Brillo azul más intenso */
-    }
+  #board{
+    position:relative; z-index:1; width:100vw; min-height:100vh;
+    padding:calc(1.2*var(--vh)) calc(1.6*var(--vh)); box-sizing:border-box;
+    display:flex;flex-direction:column;gap:calc(0.8*var(--vh));
+  }
+  
+  .top-header-flex{ display: flex; justify-content: space-between; align-items: center; gap: 10px; border-bottom: 2px solid var(--matrix-dark); padding-bottom: 10px; }
+  
+  #dailyTotalDisplay{
+    background: #000; padding: 8px 16px; border: 1px solid var(--matrix-green);
+    box-shadow: 0 0 10px var(--matrix-glow); text-align: right;
+  }
+  #dailyTotalDisplay .value{ font-size: calc(2.8*var(--vh)); font-weight: 700; text-shadow: 0 0 8px var(--matrix-green); }
 
-    .chips{ display:flex; gap:10px; }
-    .chip{
-        padding: 5px 10px; background: #000; border: 1px solid var(--electric-dim);
-        color: var(--electric-dim); font-size: calc(1.4*var(--vh)); text-transform: uppercase;
-        box-shadow: inset 0 0 5px var(--electric-dark);
-    }
+  .btn-action {
+    background: #000; color: var(--matrix-green); border: 1px solid var(--matrix-green);
+    padding: 5px 15px; cursor: pointer; font-family: inherit; font-weight: bold;
+    text-transform: uppercase; transition: 0.3s;
+  }
+  .btn-action:hover { background: var(--matrix-green); color: #000; box-shadow: 0 0 15px var(--matrix-green); }
 
-    /* TABLE */
-    .table-wrap{ flex:1; min-height:0; position:relative; margin-top: 20px;}
-    table{
-        width:100%; border-collapse:separate; border-spacing:0 8px;
-        table-layout:fixed; font-size:calc(1.8*var(--vh));
-    }
-    thead th{
-        text-align: center; color: var(--electric-blue); text-transform:uppercase;
-        border-bottom: 2px solid var(--electric-blue); padding: 10px; letter-spacing: 1px;
-    }
-    
-    /* Nuevos anchos de columna */
-    th.col-rank { width: 8%; }
-    th.col-agent { width: 35%; text-align: left; }
-    th.col-status { width: 12%; } /* Nueva columna para el Checkbox */
-    th.col-xfers { width: 15%; }  /* Nueva columna para Xfers */
-    th.col-score { width: 30%; }
+  h2{ margin:0; font-size:calc(3.5*var(--vh)); text-transform: uppercase; text-shadow: 0 0 5px var(--matrix-green); }
 
-    tbody td{
-        background: rgba(0, 5, 15, 0.6); border: 1px solid var(--electric-dark);
-        padding: 12px; text-align: center; transition: all 0.3s;
-    }
+  .table-wrap{ flex:1; min-height:0; position:relative; overflow-x: auto; }
+  table{ width:100%; min-width: 500px; border-collapse:separate; border-spacing:0 4px; font-size:calc(1.6*var(--vh)); }
+  thead th{ position:sticky; top:0; z-index:2; background: #000; color: var(--matrix-green); border-bottom: 2px solid var(--matrix-green); padding: 10px; }
+  
+  tbody td{ background: rgba(0, 10, 0, 0.7); border: 1px solid #002200; padding:calc(.7*var(--vh)) calc(0.9*var(--vh)); }
+  .bar{ position:relative; height:18px; background:#001100; border:1px solid #003300; }
+  .bar > .fill{ position:absolute; left:0; top:0; bottom:0; background: var(--matrix-green); box-shadow: 0 0 8px var(--matrix-green); transition: width .8s steps(10); }
+  .bar .value{ position:relative; z-index:1; font-weight:700; font-size:85%; color: #000; padding: 0 4px; }
 
-    /* ESTILOS DE GANADORES (TOP 5) */
-    tr.winner-group td {
-        border-color: var(--electric-blue);
-        background: rgba(0, 20, 40, 0.5);
-        box-shadow: inset 0 0 15px var(--blue-glow);
-    }
-    
-    tr.winner-group .col-score {
-        color: #fff;
-        text-shadow: 0 0 10px var(--electric-blue);
-        font-weight: 900;
-    }
+  .rank-box { display: inline-block; width: 24px; height: 24px; text-align: center; border: 1px solid var(--matrix-green); }
+  .rank-1 { background: var(--matrix-green); color: #000; }
 
-    td.col-agent { text-align: left; font-weight: bold; }
-    
-    /* Estilo para el Checkmark */
-    .checkmark { font-size: 1.4em; text-shadow: 0 0 5px var(--electric-blue); }
-
-    /* BARRAS */
-    .bar{ position:relative; height:16px; background:#000510; border:1px solid var(--electric-dark); margin-top:5px;}
-    .fill{
-        position:absolute; left:0; top:0; bottom:0; width:0%;
-        background: var(--electric-dim);
-        transition: width 1.5s cubic-bezier(0.1, 0, 0.1, 1);
-    }
-    tr.winner-group .fill {
-        background: var(--electric-blue);
-        box-shadow: 0 0 20px var(--electric-blue); /* Glow azul intenso */
-    }
-
-    .rank-box {
-        display: inline-block; width: 35px; height: 35px; line-height: 35px;
-        border: 1px solid var(--electric-dim); background: #000;
-        font-weight: bold; color: var(--electric-dim);
-    }
-
-    /* Resaltado especial Top 5 */
-    tr.winner-group .rank-box {
-        border-color: var(--electric-blue);
-        box-shadow: 0 0 10px var(--electric-blue);
-        color: #fff; background: var(--electric-dark);
-    }
-
-    .rank-1 { 
-        background: var(--electric-blue) !important; 
-        color: #000 !important; 
-        transform: scale(1.2);
-        box-shadow: 0 0 20px var(--electric-blue) !important;
-    }
-
-    #meta { color: var(--electric-dim); font-size: 12px; margin-top: 10px; border-top: 1px dashed var(--electric-dark); padding-top: 5px; }
-
-    @media (max-width: 768px) {
-        th.col-status, td.col-status, th.col-xfers, td.col-xfers { display: none; } /* Ocultar en móviles pequeños */
-        h2 { font-size: 2em; }
-    }
+  @media (max-width: 768px) {
+    thead { display: none; }
+    tbody tr { display: block; margin-bottom: 10px; border: 1px solid var(--matrix-green); }
+    tbody td { display: flex; justify-content: space-between; border: none !important; }
+  }
 </style>
 </head>
 <body>
 <canvas id="matrix-canvas"></canvas>
 
+<div id="game-container">
+    <div class="game-stats">
+        SCORE: <span id="game-score">0</span> | KILLS: <span id="game-kills">0</span><br>
+        <small>[CLICK TO SHOOT - ESC TO EXIT]</small>
+    </div>
+    <canvas id="game-canvas"></canvas>
+</div>
+
 <div id='board'>
-    <div class='top-header-flex'> 
-        <h2>SHORELINE DASHBOARD</h2>
-        <div class='chips'>
-            <div id='status' class='chip'>SYSTEM_BOOT...</div>
-            <div id='currentWk' class='chip'>WK: --</div>
+  <div class='top-header-flex'> 
+    <h2>SYSTEM://LEADERBOARD</h2>
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <button class="btn-action" onclick="toggleGame()">DEFENSE_MODE</button>
+        <div id='dailyTotalDisplay'>
+          <div class='value' id='totalTodayValue'>0</div>
         </div>
     </div>
+  </div>
 
-    <div class='table-wrap'>
-        <table id='tbl'>
-            <thead>
-                <tr>
-                    <th class='col-rank'>RNK</th>
-                    <th class='col-agent'>AGENT</th>
-                    <th class='col-status'>44H STATUS</th> <th class='col-xfers'>XFERS (WK)</th> <th class='col-score'>POWER SCORE</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
+  <div class='table-wrap'>
+    <table id='tbl'>
+      <thead>
+        <tr>
+          <th style="width:10%">ID</th>
+          <th style="width:30%">AGENT_NAME</th>
+          <th style="width:20%">TODAY</th>
+          <th style="width:40%">TOTAL_UPLINK</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
-    <div id='meta'>
-        <div id='diag'>Initializing blue uplink protocol...</div>
-    </div>
+  <div id='meta' style="color:var(--matrix-dim); font-size: 12px; margin-top:10px;">
+    <div id='diag'>Initializing uplink...</div>
+  </div>
 </div>
 
 <script>
-/* MATRIX EFFECT - CAMBIADO A AZUL */
+/* CONFIGURATION */
+const API_KEY        = "AIzaSyCCBAapFj9Fd-8cOIfpDJxrOP__76zxAxM";
+const WEEKLY_SHEETID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
+const DAILY_ID_RAW   = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
+const TIMEZONE       = "America/Tijuana";
+
+/* MATRIX BACKGROUND */
 const canvas = document.getElementById('matrix-canvas');
 const ctx = canvas.getContext('2d');
 let width = canvas.width = window.innerWidth;
 let height = canvas.height = window.innerHeight;
 const cols = Math.floor(width / 20) + 1;
 const ypos = Array(cols).fill(0);
+
 function matrix() {
-    ctx.fillStyle = '#0001'; ctx.fillRect(0, 0, width, height);
-    ctx.fillStyle = '#00F7FF'; // CAMBIO 1: Color de la lluvia digital a Azul Eléctrico
-    ctx.font = '15pt monospace';
-    ypos.forEach((y, ind) => {
-        const text = String.fromCharCode(Math.random() * 128);
-        const x = ind * 20; ctx.fillText(text, x, y);
-        if (y > 100 + Math.random() * 10000) ypos[ind] = 0;
-        else ypos[ind] = y + 20;
-    });
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+  ctx.fillRect(0, 0, width, height);
+  ctx.fillStyle = '#0F0';
+  ctx.font = '15pt monospace';
+  ypos.forEach((y, ind) => {
+    const text = String.fromCharCode(Math.random() * 128);
+    const x = ind * 20;
+    ctx.fillText(text, x, y);
+    if (y > 100 + Math.random() * 10000) ypos[ind] = 0;
+    else ypos[ind] = y + 20;
+  });
 }
 setInterval(matrix, 50);
 
-/* CONFIGURATION */
-const API_KEY = "AIzaSyCCBAapFj9Fd-8cOIfpDJxrOP__76zxAxM";
-const SHEET_ID = "1FRwPAtQ-BUOG9uiBti63dWuJW6JWaY8SisvuXtLM5h0";
-const REFRESH_RATE = 30000; 
+/* --- MINIJUEGO: SPACE DEFENSE --- */
+const gCanvas = document.getElementById('game-canvas');
+const gCtx = gCanvas.getContext('2d');
+let gameActive = false;
+let score = 0;
+let kills = 0;
+let enemies = [];
+let particles = [];
 
-function diag(t){ document.getElementById('diag').innerText = `> ${t}`; }
-
-async function fetchData() {
-    diag('Ping Shoreline database...');
-    const tabName = "W7"; 
-    document.getElementById('currentWk').innerText = `SECTOR: ${tabName}`;
-
-    const ranges = [`${tabName}!A3:B96`, `${tabName}!C3:M96`, `${tabName}!O3:P96`].map(encodeURIComponent);
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values:batchGet?` + 
-                ranges.map(r => `ranges=${r}`).join("&") + `&valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
-
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-        const vr = data.valueRanges;
-
-        const baseInfo = vr[0].values || [];
-        const dailyData = vr[1].values || [];
-        const totals = vr[2].values || [];
-
-        let agents = [];
-
-        for (let i = 0; i < baseInfo.length; i++) {
-            const name = baseInfo[i][1];
-            if (!name) continue;
-
-            const hours = parseFloat(totals[i]?.[1] || 0);
-            
-            // EL FILTRO SIGUE ACTIVO: Si tiene menos de 44, NO aparece en el dashboard.
-            // Por lo tanto, todos los que aparezcan tendrán el checkmark.
-            if (hours < 44) continue;
-
-            const row = dailyData[i] || [];
-            const crPulls = [0, 2, 4, 6, 8, 10].reduce((sum, idx) => sum + (parseInt(row[idx]) || 0), 0);
-            
-            // CAMBIO 4: Capturar el total de Xfers crudo
-            const totalXfers = parseInt(totals[i]?.[0] || 0);
-
-            const powerScore = (totalXfers * 10) + (crPulls * 1);
-
-            agents.push({
-                name: name.toUpperCase(),
-                // hours: hours, // Ya no necesitamos el número para mostrarlo
-                xfers: totalXfers, // Guardamos el dato crudo de Xfers
-                score: powerScore
-            });
+class Enemy {
+    constructor(isRare = false) {
+        this.width = isRare ? 40 : 30;
+        this.height = isRare ? 40 : 20;
+        this.x = Math.random() * (window.innerWidth - this.width);
+        this.y = -50;
+        this.speed = isRare ? 5 : 2 + Math.random() * 3;
+        this.isRare = isRare;
+        this.color = isRare ? '#FFFFFF' : '#00FF41';
+    }
+    update() {
+        this.y += this.speed;
+    }
+    draw() {
+        gCtx.strokeStyle = this.color;
+        gCtx.lineWidth = 2;
+        gCtx.strokeRect(this.x, this.y, this.width, this.height);
+        if(this.isRare) {
+            gCtx.fillStyle = "rgba(255,255,255,0.2)";
+            gCtx.fillRect(this.x, this.y, this.width, this.height);
         }
-
-        agents.sort((a, b) => b.score - a.score);
-
-        render(agents);
-        diag('Data synchronization successful.');
-        document.getElementById('status').innerText = 'ONLINE';
-        document.getElementById('status').style.color = "var(--electric-blue)";
-
-    } catch (e) {
-        diag('CONNECTION ERROR. Retrying...');
-        console.error(e);
-        document.getElementById('status').innerText = 'OFFLINE';
-        document.getElementById('status').style.color = "red";
     }
 }
 
-function render(list) {
-    const tbody = document.querySelector("#tbl tbody");
-    tbody.innerHTML = "";
-
-    const maxScore = list.length > 0 ? list[0].score : 1;
-
-    list.forEach((agent, i) => {
-        const tr = document.createElement('tr');
-        const pct = (agent.score / maxScore) * 100;
-        
-        const isWinnerGroup = i < 5;
-        if(isWinnerGroup) tr.classList.add('winner-group');
-        
-        // CAMBIO 3 y 4: Renderizado de las nuevas columnas
-        // La columna de horas ahora es un Checkmark estático (✔) porque pasaron el filtro.
-        tr.innerHTML = `
-            <td class="col-rank">
-                <div class="rank-box ${i===0?'rank-1':''}">${i+1}</div>
-            </td>
-            <td class="col-agent">
-                ${agent.name}
-                <div class="bar"><div class="fill" style="width: 0%"></div></div>
-            </td>
-            <td class="col-status">
-                <span class="checkmark">✔</span>
-            </td>
-            <td class="col-xfers">${agent.xfers.toLocaleString()}</td>
-            <td class="col-score">${agent.score.toLocaleString()}</td>
-        `;
-        tbody.appendChild(tr);
-
-        setTimeout(() => {
-            const fill = tr.querySelector('.fill');
-            if(fill) fill.style.width = pct + '%';
-        }, 100 + (i * 50));
-    });
+function toggleGame() {
+    gameActive = !gameActive;
+    const container = document.getElementById('game-container');
+    container.style.display = gameActive ? 'block' : 'none';
+    if(gameActive) {
+        gCanvas.width = window.innerWidth;
+        gCanvas.height = window.innerHeight;
+        score = 0; kills = 0; enemies = [];
+        updateGameStats();
+        animateGame();
+    }
 }
 
-fetchData();
-setInterval(fetchData, REFRESH_RATE);
+function updateGameStats() {
+    document.getElementById('game-score').textContent = score;
+    document.getElementById('game-kills').textContent = kills;
+}
+
+gCanvas.addEventListener('mousedown', (e) => {
+    if(!gameActive) return;
+    const rect = gCanvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    
+    enemies.forEach((en, index) => {
+        if(mx > en.x && mx < en.x + en.width && my > en.y && my < en.y + en.height) {
+            kills++;
+            score += en.isRare ? 500 : 100;
+            enemies.splice(index, 1);
+            updateGameStats();
+        }
+    });
+});
+
+window.addEventListener('keydown', (e) => { if(e.key === "Escape" && gameActive) toggleGame(); });
+
+function animateGame() {
+    if(!gameActive) return;
+    gCtx.clearRect(0, 0, gCanvas.width, gCanvas.height);
+    
+    if(Math.random() < 0.03) {
+        let isRare = (kills > 0 && kills % 50 === 0 && !enemies.some(e => e.isRare));
+        enemies.push(new Enemy(isRare));
+    }
+
+    enemies.forEach((en, i) => {
+        en.update();
+        en.draw();
+        if(en.y > gCanvas.height) enemies.splice(i, 1);
+    });
+
+    requestAnimationFrame(animateGame);
+}
+
+/* --- LOGIC LEADERS (MODIFICADO) --- */
+function diag(t){ document.getElementById('diag').innerText = `> ${t}`; }
+
+async function fetchSafeJSON(url) {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return await r.json();
+}
+
+async function updateData(){
+  diag('Establishing connection to Zion...');
+  try {
+      // Simplificado para la demostración de integración
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_SHEETID}/values/W8!A3:O96?key=${API_KEY}`;
+      const data = await fetchSafeJSON(url);
+      const rows = data.values || [];
+      
+      let list = rows.map(r => ({
+          name: r[1] || "Unknown",
+          today: Math.floor(Math.random() * 500), // Simulado para visualización
+          total: parseInt(r[14]) || 0
+      })).filter(a => a.name !== "Unknown").sort((a,b) => b.total - a.total);
+
+      renderList(list.slice(0, 15));
+      document.getElementById('totalTodayValue').textContent = list.reduce((s,v)=> s+v.today, 0);
+      diag('Uplink synchronized.');
+  } catch(e) {
+      diag('ERROR: Connection failed.');
+      console.error(e);
+  }
+}
+
+function renderList(list){
+  const tbody = document.querySelector("#tbl tbody");
+  tbody.innerHTML = "";
+  const maxTotal = Math.max(...list.map(p => p.total), 1);
+
+  list.forEach((p, i) => {
+    const tr = document.createElement('tr');
+    const pct = Math.min(100, (p.total / maxTotal) * 100);
+    tr.innerHTML = `
+      <td><div class="rank-box ${i==0?'rank-1':''}">${i+1}</div></td>
+      <td><strong>${p.name}</strong></td>
+      <td>${p.today}</td>
+      <td>
+        <div class="bar">
+            <div class="fill" style="width:${pct}%"></div>
+            <div class="value">${p.total}</div>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+(async function init(){
+  updateData();
+  setInterval(updateData, 30000);
+})();
+
+window.addEventListener('resize', () => { 
+    width=canvas.width=window.innerWidth; 
+    height=canvas.height=window.innerHeight; 
+});
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
