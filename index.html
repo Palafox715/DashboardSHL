@@ -83,7 +83,6 @@
 
   #diag { position: fixed; bottom: 10px; left: 10px; font-size: 10px; padding: 5px 10px; border-radius: 5px; background: rgba(0,0,0,0.8); border-left: 3px solid var(--neon-blue); z-index: 10; }
 
-  /* GAME UI */
   #game-container { position: fixed; inset: 0; z-index: 9999; display: none; background: rgba(0,0,0,0.92); backdrop-filter: blur(15px); }
   #game-canvas { width: 100%; height: 100%; cursor: crosshair; }
   .game-hud { position: absolute; bottom: 30px; right: 30px; text-align: right; background: var(--glass-strong); padding: 25px; border-radius: 20px; border: 2px solid var(--neon-blue); box-shadow: 0 0 20px var(--glow-blue); }
@@ -97,9 +96,9 @@
     <div style="position:absolute; top:20px; left:20px; opacity:0.6; font-size:12px; letter-spacing:2px;">SISTEMA DE DEFENSA ACTIVO (ESC PARA ABORTAR)</div>
     <div class="game-hud">
         <div style="font-size:10px; color:var(--neon-blue); letter-spacing:1px;">INTEGRIDAD DEL NÚCLEO</div>
-        <div id="lives-display" style="font-size:24px; margin-bottom:15px; filter: drop-shadow(0 0 5px red);">❤️❤️❤️❤️❤️</div>
+        <div id="lives-display" style="font-size:24px; margin-bottom:15px;">❤️❤️❤️❤️❤️</div>
         <div style="font-size:10px; color:var(--neon-blue); letter-spacing:1px;">PUNTOS TÁCTICOS</div>
-        <div id="score-display" style="font-size:40px; font-weight:900; color:var(--neon-purple); text-shadow: 0 0 10px var(--glow-purple)">0</div>
+        <div id="score-display" style="font-size:40px; font-weight:900; color:var(--neon-purple);">0</div>
     </div>
     <canvas id="game-canvas"></canvas>
 </div>
@@ -166,13 +165,33 @@ function drawMatrix() {
 const gCanvas = document.getElementById('game-canvas');
 const gCtx = gCanvas.getContext('2d');
 let gameActive = false, score = 0, lives = 5, enemies = [], particles = [];
-let invaderCounter = 0; // Para el cohete cada 50
-let nextHeartScore = 5000;
-let nextBossScore = 2000;
+let invaderCounter = 0;
+let lastHeartScore = 0;
+let lastBossScore = 0;
 
 class Particle {
     constructor(x,y, color = '#44CCFF') { this.x=x; this.y=y; this.vx=(Math.random()-0.5)*12; this.vy=(Math.random()-0.5)*12; this.a=1; this.c = color; }
     draw() { gCtx.globalAlpha=this.a; gCtx.fillStyle=this.c; gCtx.fillRect(this.x,this.y,3,3); gCtx.globalAlpha=1; }
+}
+
+function updateHUD() {
+    const scoreDisp = document.getElementById('score-display');
+    const livesDisp = document.getElementById('lives-display');
+    if(scoreDisp) scoreDisp.innerText = score;
+    if(livesDisp) livesDisp.innerText = "❤️".repeat(Math.max(0, lives));
+}
+
+function spawnEnemy(type = 'normal') {
+    let emoji = '👾';
+    let val = 100;
+    let speed = 3 + Math.random() * 4 + (score/5000);
+    
+    if(type === 'ufo') { emoji = '🛸'; val = 500; }
+    if(type === 'rocket') { emoji = '🚀'; val = 300; speed += 2; }
+    if(type === 'heart') { emoji = '❤️'; val = 0; speed = 4; }
+    if(type === 'boss') { emoji = '👑'; val = 500; speed = 2; }
+
+    enemies.push({ x: Math.random()*(gCanvas.width-60), y: -60, s: speed, t: type, e: emoji, v: val });
 }
 
 function startDefense() {
@@ -180,35 +199,16 @@ function startDefense() {
     document.getElementById('game-container').style.display = 'block';
     gCanvas.width = window.innerWidth; gCanvas.height = window.innerHeight;
     score = 0; lives = 5; enemies = []; particles = [];
-    invaderCounter = 0; nextHeartScore = 5000; nextBossScore = 2000;
-    updateHUD(); runGame();
-}
-
-function spawnEnemy(type = 'normal') {
-    let emoji = '👾';
-    let val = 100;
-    let speed = 3 + Math.random() * 4 + (score/10000);
-    
-    if(type === 'ufo') { emoji = '🛸'; val = 500; }
-    if(type === 'rocket') { emoji = '🚀'; val = 300; speed += 2; }
-    if(type === 'heart') { emoji = '❤️'; val = 0; speed = 4; }
-    if(type === 'boss') { emoji = '👑'; val = 500; speed = 2; }
-
-    enemies.push({
-        x: Math.random()*(gCanvas.width-60), 
-        y: -60, 
-        s: speed, 
-        t: type, 
-        e: emoji, 
-        v: val 
-    });
+    invaderCounter = 0; lastHeartScore = 0; lastBossScore = 0;
+    updateHUD(); 
+    runGame();
 }
 
 function runGame() {
     if(!gameActive) return;
     gCtx.clearRect(0,0, gCanvas.width, gCanvas.height);
 
-    // Lógica de Aparición
+    // Generación de enemigos
     if(Math.random() < 0.03) {
         invaderCounter++;
         if(invaderCounter >= 50) {
@@ -219,15 +219,17 @@ function runGame() {
         }
     }
 
-    // Eventos por Puntaje
-    if(score >= nextHeartScore) { spawnEnemy('heart'); nextHeartScore += 5000; }
-    if(score >= nextBossScore) { spawnEnemy('boss'); nextBossScore += 2000; }
+    // Eventos por puntuación
+    if(score > 0 && score % 5000 < 500 && score - lastHeartScore >= 5000) {
+        spawnEnemy('heart'); lastHeartScore = score;
+    }
+    if(score > 0 && score % 2000 < 500 && score - lastBossScore >= 2000) {
+        spawnEnemy('boss'); lastBossScore = score;
+    }
 
     enemies.forEach((en, i) => {
         en.y += en.s;
-        gCtx.font = en.t === 'boss' ? '60px serif' : '45px serif';
-        gCtx.shadowBlur = en.t === 'normal' ? 0 : 15;
-        gCtx.shadowColor = varColor(en.t);
+        gCtx.font = en.t === 'boss' ? '65px serif' : '45px serif';
         gCtx.fillText(en.e, en.x, en.y);
         
         if(en.y > gCanvas.height) {
@@ -236,45 +238,53 @@ function runGame() {
         }
     });
 
-    particles.forEach((p,i) => { p.x+=p.vx; p.y+=p.vy; p.a-=0.02; p.draw(); if(p.a<=0) particles.splice(i,1); });
+    particles.forEach((p,i) => { 
+        p.x+=p.vx; p.y+=p.vy; p.a-=0.02; p.draw(); 
+        if(p.a<=0) particles.splice(i,1); 
+    });
 
     if(lives <= 0) {
         gameActive = false;
-        alert("DERROTA DEL NÚCLEO\nPUNTUACIÓN: " + score);
+        alert("NÚCLEO COMPROMETIDO\nPUNTUACIÓN: " + score);
         document.getElementById('game-container').style.display='none';
-    } else requestAnimationFrame(runGame);
-}
-
-function varColor(type) {
-    if(type === 'ufo') return '#FF44CC';
-    if(type === 'rocket') return '#44CCFF';
-    if(type === 'heart') return '#FF0000';
-    if(type === 'boss') return '#FFD700';
-    return 'transparent';
+    } else {
+        requestAnimationFrame(runGame);
+    }
 }
 
 gCanvas.addEventListener('mousedown', (e) => {
+    const rect = gCanvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    
     enemies.forEach((en, i) => {
-        const dist = Math.hypot(e.clientX - (en.x + 25), e.clientY - (en.y - 20));
+        const dist = Math.hypot(mx - (en.x + 25), my - (en.y - 20));
         if(dist < 50) {
             score += en.v;
             if(en.t === 'heart') lives += 1;
             if(en.t === 'boss') lives += 2;
             
-            for(let j=0; j<20; j++) particles.push(new Particle(en.x+25, en.y-20, varColor(en.t)));
-            enemies.splice(i,1); updateHUD();
+            let pCol = en.t === 'ufo' ? '#FF44CC' : (en.t === 'boss' ? '#FFD700' : '#44CCFF');
+            for(let j=0; j<15; j++) particles.push(new Particle(en.x+25, en.y-20, pCol));
+            
+            enemies.splice(i,1); 
+            updateHUD();
         }
     });
 });
 
-window.addEventListener('keydown', (e) => { if(e.key === "Escape") { gameActive = false; document.getElementById('game-container').style.display='none'; }});
+window.addEventListener('keydown', (e) => { 
+    if(e.key === "Escape") { gameActive = false; document.getElementById('game-container').style.display='none'; }
+});
 
 /* --- LÓGICA DE DATOS --- */
 function setDiag(msg, color = "#44CCFF") {
     const d = document.getElementById('diag');
-    d.innerText = msg; d.style.borderLeftColor = color;
+    if(d) { d.innerText = msg; d.style.borderLeftColor = color; }
 }
+
 function getLocalDate(){ return new Date(new Date().toLocaleString('en-US',{timeZone:"America/Tijuana"})); }
+
 function computeWeeklyTab(){
     const d = getLocalDate();
     const start = new Date(d.getFullYear(), 0, 1);
@@ -283,20 +293,23 @@ function computeWeeklyTab(){
     if (d.getDay() < 3 || (d.getDay() === 3 && d.getHours() < 12)) week--;
     return `W${week}`;
 }
+
 async function fetchSheet(id, range) {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${encodeURIComponent(range)}?key=${API_KEY}`;
     try { const r = await fetch(url); return r.ok ? await r.json() : null; } catch (e) { return null; }
 }
+
 async function updateData() {
     setDiag("📡 Sincronizando...");
     const weeklyTab = computeWeeklyTab();
-    document.getElementById('chipWeekly').innerText = `Week: ${weeklyTab}`;
     const master = await fetchSheet(WEEKLY_ID, `${weeklyTab}!A3:O96`);
     if (!master) { setDiag("❌ Error Weekly", "#FF44CC"); return; }
+    
     const today = getLocalDate();
     const fmt = today.toLocaleString('en-US', {month:'short', day:'2-digit'});
     let daily = await fetchSheet(DAILY_ID, `${fmt}!A2:D100`);
     if (!daily) daily = await fetchSheet(DAILY_ID, `Tabla_25!A2:D100`);
+
     const dailyRows = daily?.values || [];
     const agents = master.values.map(row => {
         const id = (row[0] || "").toString().trim();
@@ -305,21 +318,35 @@ async function updateData() {
         const match = dailyRows.find(d => (d[1] || "").toString().trim() === id);
         return { name, today: match ? parseInt(match[2]) || 0 : 0, total: parseInt(row[14]) || 0 };
     }).filter(x => x).sort((a,b) => b.today - a.today);
+
     renderList(agents);
     document.getElementById('totalTodayValue').innerText = agents.reduce((s, a) => s + a.today, 0);
+    document.getElementById('chipWeekly').innerText = `Week: ${weeklyTab}`;
+    document.getElementById('chipDaily').innerText = `Daily: ${daily ? (daily.range.split('!')[0]) : '---'}`;
     setDiag("✅ Online");
 }
+
 function renderList(data) {
-    const tbody = document.querySelector("#tbl tbody"); tbody.innerHTML = "";
+    const tbody = document.querySelector("#tbl tbody");
+    if(!tbody) return;
+    tbody.innerHTML = "";
     const maxT = Math.max(1, ...data.map(d => d.today));
     const maxW = Math.max(1, ...data.map(d => d.total));
     data.forEach((a, i) => {
-        tbody.innerHTML += `<tr><td>${i+1}</td><td style="text-align:left; font-weight:800">${a.name}</td><td><div class="bar today"><div class="fill" style="width:${(a.today/maxT)*100}%"></div><div class="value">${a.today}</div></div></td><td><div class="bar total"><div class="fill" style="width:${(a.total/maxW)*100}%"></div><div class="value">${a.total}</div></div></td></tr>`;
+        tbody.innerHTML += `<tr>
+            <td>${i+1}</td>
+            <td style="text-align:left; font-weight:800">${a.name}</td>
+            <td><div class="bar today"><div class="fill" style="width:${(a.today/maxT)*100}%"></div><div class="value">${a.today}</div></div></td>
+            <td><div class="bar total"><div class="fill" style="width:${(a.total/maxW)*100}%"></div><div class="value">${a.total}</div></div></td>
+        </tr>`;
     });
 }
+
 (async function init() {
-    initMatrix(); setInterval(drawMatrix, 50);
-    await updateData(); setInterval(updateData, 60000);
+    initMatrix(); 
+    setInterval(drawMatrix, 50);
+    await updateData(); 
+    setInterval(updateData, 60000);
 })();
 </script>
 </body>
