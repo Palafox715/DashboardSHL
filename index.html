@@ -3,7 +3,7 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>Leaderboard — Tactical Elite</title>
+<title>Leaderboard — Tactical Elite V2</title>
 <style>
   :root{
     --vh: 1vh;
@@ -60,7 +60,7 @@
 
   .chips{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
   .chip{
-    padding:5px 12px; border-radius:999px; background:var(--glass); border:1px solid rgba(255,255,255,.2);
+    padding: 5px 12px; border-radius:999px; background:var(--glass); border:1px solid rgba(255,255,255,.2);
     font-weight:800; font-size:12px;
   }
 
@@ -83,9 +83,19 @@
 
   #diag { position: fixed; bottom: 10px; left: 10px; font-size: 10px; padding: 5px 10px; border-radius: 5px; background: rgba(0,0,0,0.8); border-left: 3px solid var(--neon-blue); z-index: 10; }
 
-  #game-container { position: fixed; inset: 0; z-index: 9999; display: none; background: rgba(0,0,0,0.92); backdrop-filter: blur(15px); }
+  /* GAME UI ACTUALIZADA */
+  #game-container { position: fixed; inset: 0; z-index: 9999; display: none; background: rgba(0,0,0,0.45); backdrop-filter: blur(4px); }
   #game-canvas { width: 100%; height: 100%; cursor: crosshair; }
-  .game-hud { position: absolute; bottom: 30px; right: 30px; text-align: right; background: var(--glass-strong); padding: 25px; border-radius: 20px; border: 2px solid var(--neon-blue); box-shadow: 0 0 20px var(--glow-blue); }
+  .game-hud { position: absolute; bottom: 30px; right: 30px; text-align: right; background: var(--glass-strong); padding: 25px; border-radius: 20px; border: 2px solid var(--neon-blue); box-shadow: 0 0 20px var(--glow-blue); z-index: 10001; }
+
+  #game-over-screen {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: var(--glass-strong); border: 2px solid var(--neon-purple); padding: 40px;
+    border-radius: 30px; text-align: center; display: none; z-index: 10002;
+    box-shadow: 0 0 50px var(--glow-purple); backdrop-filter: blur(10px);
+  }
+  .go-title { color: #FF4444; font-size: 24px; font-weight: 900; letter-spacing: 5px; margin-bottom: 20px; }
+  .go-score { color: var(--neon-purple); font-size: 60px; font-weight: 900; margin-bottom: 30px; }
 </style>
 </head>
 <body>
@@ -93,7 +103,16 @@
 <canvas id="matrix-canvas"></canvas>
 
 <div id="game-container">
-    <div style="position:absolute; top:20px; left:20px; opacity:0.6; font-size:12px; letter-spacing:2px;">SISTEMA DE DEFENSA ACTIVO (ESC PARA ABORTAR)</div>
+    <div style="position:absolute; top:20px; left:20px; opacity:0.8; font-size:12px; letter-spacing:2px; color:var(--neon-blue)">DEFENSE PROTOCOL [ACTIVE]</div>
+    
+    <div id="game-over-screen">
+        <div class="go-title">NÚCLEO COMPROMETIDO</div>
+        <div style="font-size:12px; color:var(--ink); opacity:0.6">PUNTUACIÓN OBTENIDA</div>
+        <div id="final-score" class="go-score">0</div>
+        <button class="btn-defense" onclick="startDefense()">Reiniciar Misión</button>
+        <button class="btn-defense" style="border-color:var(--ink); color:var(--ink); margin-left:10px;" onclick="abortGame()">Cerrar</button>
+    </div>
+
     <div class="game-hud">
         <div style="font-size:10px; color:var(--neon-blue); letter-spacing:1px;">INTEGRIDAD DEL NÚCLEO</div>
         <div id="lives-display" style="font-size:24px; margin-bottom:15px;">❤️❤️❤️❤️❤️</div>
@@ -169,11 +188,6 @@ let invaderCounter = 0;
 let lastHeartScore = 0;
 let lastBossScore = 0;
 
-class Particle {
-    constructor(x,y, color = '#44CCFF') { this.x=x; this.y=y; this.vx=(Math.random()-0.5)*12; this.vy=(Math.random()-0.5)*12; this.a=1; this.c = color; }
-    draw() { gCtx.globalAlpha=this.a; gCtx.fillStyle=this.c; gCtx.fillRect(this.x,this.y,3,3); gCtx.globalAlpha=1; }
-}
-
 function updateHUD() {
     const scoreDisp = document.getElementById('score-display');
     const livesDisp = document.getElementById('lives-display');
@@ -182,134 +196,110 @@ function updateHUD() {
 }
 
 function spawnEnemy(type = 'normal') {
-    let emoji = '👾';
-    let val = 100;
-    let speed = 3 + Math.random() * 4 + (score/5000);
-    
+    let emoji = '👾'; let val = 100;
+    let speed = 2.5 + Math.random() * 3 + (score/8000);
     if(type === 'ufo') { emoji = '🛸'; val = 500; }
     if(type === 'rocket') { emoji = '🚀'; val = 300; speed += 2; }
-    if(type === 'heart') { emoji = '❤️'; val = 0; speed = 4; }
-    if(type === 'boss') { emoji = '👑'; val = 500; speed = 2; }
-
+    if(type === 'heart') { emoji = '❤️'; val = 0; speed = 3; }
+    if(type === 'boss') { emoji = '👑'; val = 500; speed = 1.5; }
     enemies.push({ x: Math.random()*(gCanvas.width-60), y: -60, s: speed, t: type, e: emoji, v: val });
 }
 
 function startDefense() {
     gameActive = true; 
     document.getElementById('game-container').style.display = 'block';
+    document.getElementById('game-over-screen').style.display = 'none';
     gCanvas.width = window.innerWidth; gCanvas.height = window.innerHeight;
     score = 0; lives = 5; enemies = []; particles = [];
     invaderCounter = 0; lastHeartScore = 0; lastBossScore = 0;
-    updateHUD(); 
-    runGame();
+    updateHUD(); runGame();
+}
+
+function abortGame() {
+    gameActive = false;
+    document.getElementById('game-container').style.display = 'none';
 }
 
 function runGame() {
     if(!gameActive) return;
     gCtx.clearRect(0,0, gCanvas.width, gCanvas.height);
 
-    // Generación de enemigos
-    if(Math.random() < 0.03) {
+    // APARICIÓN REDUCIDA A 0.018 PARA ELEGANCIA
+    if(Math.random() < 0.018) {
         invaderCounter++;
-        if(invaderCounter >= 50) {
-            spawnEnemy('rocket');
-            invaderCounter = 0;
-        } else {
-            spawnEnemy(Math.random() < 0.08 ? 'ufo' : 'normal');
-        }
+        if(invaderCounter >= 50) { spawnEnemy('rocket'); invaderCounter = 0; }
+        else { spawnEnemy(Math.random() < 0.08 ? 'ufo' : 'normal'); }
     }
 
-    // Eventos por puntuación
-    if(score > 0 && score % 5000 < 500 && score - lastHeartScore >= 5000) {
-        spawnEnemy('heart'); lastHeartScore = score;
-    }
-    if(score > 0 && score % 2000 < 500 && score - lastBossScore >= 2000) {
-        spawnEnemy('boss'); lastBossScore = score;
-    }
+    if(score > 0 && score % 5000 < 500 && score - lastHeartScore >= 5000) { spawnEnemy('heart'); lastHeartScore = score; }
+    if(score > 0 && score % 2000 < 500 && score - lastBossScore >= 2000) { spawnEnemy('boss'); lastBossScore = score; }
 
     enemies.forEach((en, i) => {
         en.y += en.s;
-        gCtx.font = en.t === 'boss' ? '65px serif' : '45px serif';
+        gCtx.font = en.t === 'boss' ? '70px serif' : '48px serif';
         gCtx.fillText(en.e, en.x, en.y);
-        
         if(en.y > gCanvas.height) {
-            if(en.t !== 'heart') lives--; 
-            enemies.splice(i,1); updateHUD();
+            if(en.t !== 'heart') lives--; enemies.splice(i,1); updateHUD();
         }
     });
 
-    particles.forEach((p,i) => { 
-        p.x+=p.vx; p.y+=p.vy; p.a-=0.02; p.draw(); 
-        if(p.a<=0) particles.splice(i,1); 
-    });
+    particles.forEach((p,i) => { p.x+=p.vx; p.y+=p.vy; p.a-=0.02; p.draw(); if(p.a<=0) particles.splice(i,1); });
 
     if(lives <= 0) {
         gameActive = false;
-        alert("NÚCLEO COMPROMETIDO\nPUNTUACIÓN: " + score);
-        document.getElementById('game-container').style.display='none';
-    } else {
-        requestAnimationFrame(runGame);
-    }
+        document.getElementById('final-score').innerText = score;
+        document.getElementById('game-over-screen').style.display = 'block';
+    } else requestAnimationFrame(runGame);
+}
+
+class Particle {
+    constructor(x,y, color = '#44CCFF') { this.x=x; this.y=y; this.vx=(Math.random()-0.5)*12; this.vy=(Math.random()-0.5)*12; this.a=1; this.c = color; }
+    draw() { gCtx.globalAlpha=this.a; gCtx.fillStyle=this.c; gCtx.fillRect(this.x,this.y,3,3); gCtx.globalAlpha=1; }
 }
 
 gCanvas.addEventListener('mousedown', (e) => {
-    const rect = gCanvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
-    
+    const mx = e.clientX; const my = e.clientY;
     enemies.forEach((en, i) => {
         const dist = Math.hypot(mx - (en.x + 25), my - (en.y - 20));
-        if(dist < 50) {
+        if(dist < 55) {
             score += en.v;
             if(en.t === 'heart') lives += 1;
             if(en.t === 'boss') lives += 2;
-            
             let pCol = en.t === 'ufo' ? '#FF44CC' : (en.t === 'boss' ? '#FFD700' : '#44CCFF');
-            for(let j=0; j<15; j++) particles.push(new Particle(en.x+25, en.y-20, pCol));
-            
-            enemies.splice(i,1); 
-            updateHUD();
+            for(let j=0; j<20; j++) particles.push(new Particle(en.x+25, en.y-20, pCol));
+            enemies.splice(i,1); updateHUD();
         }
     });
 });
 
-window.addEventListener('keydown', (e) => { 
-    if(e.key === "Escape") { gameActive = false; document.getElementById('game-container').style.display='none'; }
-});
+window.addEventListener('keydown', (e) => { if(e.key === "Escape") abortGame(); });
 
 /* --- LÓGICA DE DATOS --- */
 function setDiag(msg, color = "#44CCFF") {
     const d = document.getElementById('diag');
     if(d) { d.innerText = msg; d.style.borderLeftColor = color; }
 }
-
 function getLocalDate(){ return new Date(new Date().toLocaleString('en-US',{timeZone:"America/Tijuana"})); }
-
 function computeWeeklyTab(){
-    const d = getLocalDate();
-    const start = new Date(d.getFullYear(), 0, 1);
+    const d = getLocalDate(); const start = new Date(d.getFullYear(), 0, 1);
     const days = Math.floor((d - start) / 86400000);
     let week = Math.ceil((days + start.getDay() + 1) / 7);
     if (d.getDay() < 3 || (d.getDay() === 3 && d.getHours() < 12)) week--;
     return `W${week}`;
 }
-
 async function fetchSheet(id, range) {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${encodeURIComponent(range)}?key=${API_KEY}`;
     try { const r = await fetch(url); return r.ok ? await r.json() : null; } catch (e) { return null; }
 }
-
 async function updateData() {
     setDiag("📡 Sincronizando...");
     const weeklyTab = computeWeeklyTab();
     const master = await fetchSheet(WEEKLY_ID, `${weeklyTab}!A3:O96`);
     if (!master) { setDiag("❌ Error Weekly", "#FF44CC"); return; }
-    
     const today = getLocalDate();
     const fmt = today.toLocaleString('en-US', {month:'short', day:'2-digit'});
     let daily = await fetchSheet(DAILY_ID, `${fmt}!A2:D100`);
     if (!daily) daily = await fetchSheet(DAILY_ID, `Tabla_25!A2:D100`);
-
     const dailyRows = daily?.values || [];
     const agents = master.values.map(row => {
         const id = (row[0] || "").toString().trim();
@@ -318,35 +308,24 @@ async function updateData() {
         const match = dailyRows.find(d => (d[1] || "").toString().trim() === id);
         return { name, today: match ? parseInt(match[2]) || 0 : 0, total: parseInt(row[14]) || 0 };
     }).filter(x => x).sort((a,b) => b.today - a.today);
-
     renderList(agents);
     document.getElementById('totalTodayValue').innerText = agents.reduce((s, a) => s + a.today, 0);
     document.getElementById('chipWeekly').innerText = `Week: ${weeklyTab}`;
     document.getElementById('chipDaily').innerText = `Daily: ${daily ? (daily.range.split('!')[0]) : '---'}`;
     setDiag("✅ Online");
 }
-
 function renderList(data) {
-    const tbody = document.querySelector("#tbl tbody");
-    if(!tbody) return;
+    const tbody = document.querySelector("#tbl tbody"); if(!tbody) return;
     tbody.innerHTML = "";
     const maxT = Math.max(1, ...data.map(d => d.today));
     const maxW = Math.max(1, ...data.map(d => d.total));
     data.forEach((a, i) => {
-        tbody.innerHTML += `<tr>
-            <td>${i+1}</td>
-            <td style="text-align:left; font-weight:800">${a.name}</td>
-            <td><div class="bar today"><div class="fill" style="width:${(a.today/maxT)*100}%"></div><div class="value">${a.today}</div></div></td>
-            <td><div class="bar total"><div class="fill" style="width:${(a.total/maxW)*100}%"></div><div class="value">${a.total}</div></div></td>
-        </tr>`;
+        tbody.innerHTML += `<tr><td>${i+1}</td><td style="text-align:left; font-weight:800">${a.name}</td><td><div class="bar today"><div class="fill" style="width:${(a.today/maxT)*100}%"></div><div class="value">${a.today}</div></div></td><td><div class="bar total"><div class="fill" style="width:${(a.total/maxW)*100}%"></div><div class="value">${a.total}</div></div></td></tr>`;
     });
 }
-
 (async function init() {
-    initMatrix(); 
-    setInterval(drawMatrix, 50);
-    await updateData(); 
-    setInterval(updateData, 60000);
+    initMatrix(); setInterval(drawMatrix, 50);
+    await updateData(); setInterval(updateData, 60000);
 })();
 </script>
 </body>
