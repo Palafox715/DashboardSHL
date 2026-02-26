@@ -3,7 +3,7 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>Leaderboard — Defense Edition</title>
+<title>Leaderboard — Tactical Edition</title>
 <style>
   :root{
     --vh: 1vh;
@@ -75,11 +75,11 @@
   tbody tr td:first-child{ border-top-left-radius:12px; border-bottom-left-radius:12px; }
   tbody tr td:last-child { border-top-right-radius:12px; border-bottom-right-radius:12px; }
 
-  .bar{ position:relative; height:18px; border-radius:10px; background:rgba(255,255,255,.1); overflow:hidden; }
-  .bar > .fill{ position:absolute; left:0; top:0; bottom:0; width:0%; transition: width .8s ease; }
+  .bar{ position:relative; height:18px; border-radius:10px; background:rgba(255,255,255,0.1); overflow:hidden; }
+  .bar > .fill{ position:absolute; left:0; top:0; bottom:0; width:0%; transition: width 0.8s ease; }
   .bar.today > .fill{ background: var(--neon-blue); box-shadow: 0 0 10px var(--glow-blue); }
   .bar.total > .fill{ background: var(--neon-purple); box-shadow: 0 0 10px var(--glow-purple); }
-  .bar .value{ position:relative; z-index:1; font-size:11px; font-weight:900; color:#000; }
+  .bar .value{ position:relative; z-index:1; font-size:11px; font-weight:900; color:white; text-shadow: 1px 1px 2px black; }
 
   #diag { 
     position: fixed; bottom: 10px; left: 10px; font-size: 10px; 
@@ -87,9 +87,9 @@
     border-left: 3px solid var(--neon-blue); z-index: 10;
   }
 
-  /* GAME OVERLAY */
-  #game-container { position: fixed; inset: 0; z-index: 9999; display: none; background: rgba(0,0,0,0.9); }
+  #game-container { position: fixed; inset: 0; z-index: 9999; display: none; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); }
   #game-canvas { width: 100%; height: 100%; cursor: crosshair; }
+  .game-hud { position: absolute; bottom: 30px; right: 30px; text-align: right; background: var(--glass-strong); padding: 20px; border-radius: 15px; border: 1px solid var(--neon-blue); }
 </style>
 </head>
 <body>
@@ -97,6 +97,13 @@
 <canvas id="matrix-canvas"></canvas>
 
 <div id="game-container">
+    <div style="position:absolute; top:20px; left:20px; opacity:0.6; font-size:12px;">ESC PARA SALIR</div>
+    <div class="game-hud">
+        <div style="font-size:10px; color:var(--neon-blue)">INTEGRIDAD DEL NÚCLEO</div>
+        <div id="lives-display" style="font-size:20px; margin-bottom:10px;">❤️❤️❤️❤️❤️</div>
+        <div style="font-size:10px; color:var(--neon-blue)">PUNTOS</div>
+        <div id="score-display" style="font-size:30px; font-weight:900; color:var(--neon-purple)">0</div>
+    </div>
     <canvas id="game-canvas"></canvas>
 </div>
 
@@ -115,6 +122,7 @@
   <div class='chips'>
     <div id='chipWeekly' class='chip'>Week: —</div>
     <div id='chipDaily' class='chip'>Daily: —</div>
+    <button class="chip" onclick="updateData()" style="cursor:pointer; background:rgba(68,204,255,0.2)">🔄 Refrescar</button>
   </div>
 
   <div class='table-wrap'>
@@ -135,25 +143,95 @@
 <div id="diag">Iniciando sistemas...</div>
 
 <script>
+/* --- CONFIGURACIÓN GLOBAL --- */
 const API_KEY = "AIzaSyCCBAapFj9Fd-8cOIfpDJxrOP__76zxAxM";
 const WEEKLY_ID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
 const DAILY_ID = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
 
-function setDiag(msg, color = "#44CCFF") {
-    const d = document.getElementById('diag');
-    d.innerText = msg;
-    d.style.borderLeftColor = color;
+/* --- MOTOR MATRIX --- */
+const mCanvas = document.getElementById('matrix-canvas');
+const mCtx = mCanvas.getContext('2d');
+let mw, mh, mCols, mYpos;
+
+function initMatrix() {
+    mw = mCanvas.width = window.innerWidth; mh = mCanvas.height = window.innerHeight;
+    mCols = Math.floor(mw / 25); mYpos = Array(mCols).fill(0);
+}
+function drawMatrix() {
+    mCtx.fillStyle = 'rgba(10, 10, 10, 0.1)'; mCtx.fillRect(0, 0, mw, mh);
+    mCtx.fillStyle = '#44CCFF'; mCtx.font = '15px monospace';
+    mYpos.forEach((y, i) => {
+        mCtx.fillText(String.fromCharCode(0x30A0 + Math.random() * 96), i * 25, y);
+        mYpos[i] = y > 100 + Math.random() * 10000 ? 0 : y + 20;
+    });
 }
 
-// Lógica de Semanas y Fechas
+/* --- LÓGICA DEL JUEGO --- */
+const gCanvas = document.getElementById('game-canvas');
+const gCtx = gCanvas.getContext('2d');
+let gameActive = false, score = 0, lives = 5, enemies = [], particles = [];
+
+class Particle {
+    constructor(x,y) { this.x=x; this.y=y; this.vx=(Math.random()-0.5)*10; this.vy=(Math.random()-0.5)*10; this.a=1; }
+    draw() { gCtx.globalAlpha=this.a; gCtx.fillStyle='#44CCFF'; gCtx.fillRect(this.x,this.y,2,2); gCtx.globalAlpha=1; }
+}
+
+function startDefense() {
+    gameActive = true; 
+    document.getElementById('game-container').style.display = 'block';
+    gCanvas.width = window.innerWidth; gCanvas.height = window.innerHeight;
+    score = 0; lives = 5; enemies = []; particles = [];
+    updateHUD(); runGame();
+}
+
+function updateHUD() {
+    document.getElementById('score-display').innerText = score;
+    document.getElementById('lives-display').innerText = "❤️".repeat(lives);
+}
+
+function runGame() {
+    if(!gameActive) return;
+    gCtx.clearRect(0,0, gCanvas.width, gCanvas.height);
+    if(Math.random() < 0.03) enemies.push({x: Math.random()*(gCanvas.width-50), y:-50, s: 3 + Math.random()*5, r: Math.random()<0.1});
+    enemies.forEach((en, i) => {
+        en.y += en.s;
+        gCtx.font = '40px serif';
+        gCtx.fillText(en.r ? '🛸' : '👾', en.x, en.y);
+        if(en.y > gCanvas.height) { lives--; enemies.splice(i,1); updateHUD(); }
+    });
+    particles.forEach((p,i) => { p.x+=p.vx; p.y+=p.vy; p.a-=0.02; p.draw(); if(p.a<=0) particles.splice(i,1); });
+    if(lives <= 0) {
+        alert("FIN DEL JUEGO: " + score);
+        gameActive = false; document.getElementById('game-container').style.display='none';
+    } else requestAnimationFrame(runGame);
+}
+
+gCanvas.addEventListener('mousedown', (e) => {
+    enemies.forEach((en, i) => {
+        const dist = Math.hypot(e.clientX - (en.x + 20), e.clientY - (en.y - 20));
+        if(dist < 40) {
+            score += en.r ? 500 : 100;
+            for(let j=0; j<15; j++) particles.push(new Particle(en.x+20, en.y-20));
+            enemies.splice(i,1); updateHUD();
+        }
+    });
+});
+
+window.addEventListener('keydown', (e) => { if(e.key === "Escape") { gameActive = false; document.getElementById('game-container').style.display='none'; }});
+
+/* --- LÓGICA DE DATOS --- */
+function setDiag(msg, color = "#44CCFF") {
+    const d = document.getElementById('diag');
+    d.innerText = msg; d.style.borderLeftColor = color;
+}
+
 function getLocalDate(){ return new Date(new Date().toLocaleString('en-US',{timeZone:"America/Tijuana"})); }
 
 function computeWeeklyTab(){
     const d = getLocalDate();
     const start = new Date(d.getFullYear(), 0, 1);
-    const days = Math.floor((d - start) / (24 * 60 * 60 * 1000));
+    const days = Math.floor((d - start) / 86400000);
     let week = Math.ceil((days + start.getDay() + 1) / 7);
-    // Ajuste de corte Miércoles 12:00 PM
     if (d.getDay() < 3 || (d.getDay() === 3 && d.getHours() < 12)) week--;
     return `W${week}`;
 }
@@ -162,94 +240,59 @@ async function fetchSheet(id, range) {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${encodeURIComponent(range)}?key=${API_KEY}`;
     try {
         const r = await fetch(url);
-        if (!r.ok) throw new Error(`Error ${r.status}: Pestaña no encontrada o API bloqueada.`);
+        if (!r.ok) return null;
         return await r.json();
-    } catch (e) {
-        console.error(e);
-        return null;
-    }
+    } catch (e) { return null; }
 }
 
 async function updateData() {
-    setDiag("📡 Sincronizando con el Uplink...");
+    setDiag("📡 Sincronizando...");
     const weeklyTab = computeWeeklyTab();
     document.getElementById('chipWeekly').innerText = `Week: ${weeklyTab}`;
 
-    // 1. Obtener datos maestros (Weekly)
     const master = await fetchSheet(WEEKLY_ID, `${weeklyTab}!A3:O96`);
-    if (!master) {
-        setDiag(`❌ ERROR: No existe la pestaña ${weeklyTab}`, "#FF44CC");
-        return;
-    }
+    if (!master) { setDiag("❌ Error Weekly", "#FF44CC"); return; }
 
-    // 2. Intentar obtener datos diarios (Probar varios nombres de pestaña)
     const today = getLocalDate();
-    const fmt = today.toLocaleString('en-US', {month:'short', day:'2-digit'}); // "Feb 25"
-    
-    // Candidatos: Nombre dinámico o el nombre fijo "Tabla_25"
+    const fmt = today.toLocaleString('en-US', {month:'short', day:'2-digit'});
     let daily = await fetchSheet(DAILY_ID, `${fmt}!A2:D100`);
     if (!daily) daily = await fetchSheet(DAILY_ID, `Tabla_25!A2:D100`);
-
-    if (!daily) {
-        setDiag("⚠️ Advertencia: No se encontró la hoja Diaria.", "#FFD700");
-    }
 
     const dailyRows = daily?.values || [];
     const agents = master.values.map(row => {
         const id = (row[0] || "").toString().trim();
         const name = (row[1] || "").toString().trim();
         if (!id || !name) return null;
-
-        // Buscar match en la hoja diaria por ID (Col B)
         const match = dailyRows.find(d => (d[1] || "").toString().trim() === id);
-        return {
-            name,
-            today: match ? parseInt(match[2]) || 0 : 0,
-            total: parseInt(row[14]) || 0
-        };
+        return { name, today: match ? parseInt(match[2]) || 0 : 0, total: parseInt(row[14]) || 0 };
     }).filter(x => x).sort((a,b) => b.today - a.today);
 
-    render(agents);
-    const totalSum = agents.reduce((s, a) => s + a.today, 0);
-    document.getElementById('totalTodayValue').innerText = totalSum;
-    setDiag("✅ Sistemas Nominales.");
+    renderList(agents);
+    document.getElementById('totalTodayValue').innerText = agents.reduce((s, a) => s + a.today, 0);
+    setDiag("✅ Online");
 }
 
-function render(data) {
+function renderList(data) {
     const tbody = document.querySelector("#tbl tbody");
     tbody.innerHTML = "";
     const maxT = Math.max(1, ...data.map(d => d.today));
     const maxW = Math.max(1, ...data.map(d => d.total));
-
     data.forEach((a, i) => {
-        tbody.innerHTML += `
-            <tr>
-                <td>${i+1}</td>
-                <td style="text-align:left; font-weight:800">${a.name}</td>
-                <td>
-                    <div class="bar today">
-                        <div class="fill" style="width:${(a.today/maxT)*100}%"></div>
-                        <div class="value">${a.today}</div>
-                    </div>
-                </td>
-                <td>
-                    <div class="bar total">
-                        <div class="fill" style="width:${(a.total/maxW)*100}%"></div>
-                        <div class="value">${a.total}</div>
-                    </div>
-                </td>
-            </tr>`;
+        tbody.innerHTML += `<tr>
+            <td>${i+1}</td>
+            <td style="text-align:left; font-weight:800">${a.name}</td>
+            <td><div class="bar today"><div class="fill" style="width:${(a.today/maxT)*100}%"></div><div class="value">${a.today}</div></div></td>
+            <td><div class="bar total"><div class="fill" style="width:${(a.total/maxW)*100}%"></div><div class="value">${a.total}</div></div></td>
+        </tr>`;
     });
 }
 
-// Matrix y Juego se mantienen igual que su motor anterior
-// ... (Aquí van las funciones startDefense, initMatrix y drawMatrix)
-
+/* --- INICIALIZACIÓN --- */
 (async function init() {
     initMatrix();
     setInterval(drawMatrix, 50);
-    await updateData(); // Esperar a la carga inicial
-    setInterval(updateData, 30000);
+    await updateData();
+    setInterval(updateData, 60000);
 })();
 </script>
 </body>
