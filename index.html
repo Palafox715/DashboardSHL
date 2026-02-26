@@ -3,23 +3,52 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>Leaderboard — Clean Version</title>
+<title>Leaderboard — Blue Protocol Final Señor</title>
 <style>
-  /* Variables de Color (Dark Neon Blue/Purple) */
-  :root{
-    --vh: 1vh;
-    --dark-bg: #0A0A0A; /* Fondo casi negro */
-    --ink:#E0E0E0;  /* Texto gris claro */
-    --glass: rgba(0,0,0, .55);
-    --glass-strong: rgba(0,0,0, .75);
-    --neon-blue: #44CCFF;
-    --neon-purple: #FF44CC;
-    --glow-blue: rgba(44, 204, 255, .6);
-    --glow-purple: rgba(255, 68, 204, .5);
+  :root {
+    --bg: #0b0a1a;
+    --card-bg: rgba(20, 20, 35, 0.9);
+    --blue-neon: #00d4ff;
+    --pink-neon: #ff00ff;
+    --text: #ffffff;
+    --blue-glow: rgba(0, 212, 255, 0.5);
   }
+  
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
+  
+  #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.2; pointer-events: none; }
 
+  #board { position: relative; z-index: 5; padding: 25px; max-width: 1200px; margin: auto; }
+  .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+  .title-area h1 { margin: 0; font-size: 36px; text-transform: uppercase; letter-spacing: 2px; }
+  
+  .total-box { background: rgba(0,0,0,0.6); border: 2px solid var(--blue-neon); padding: 10px 25px; border-radius: 12px; text-align: right; box-shadow: 0 0 15px var(--blue-glow); }
+  .total-box .val { font-size: 42px; font-weight: 900; color: var(--pink-neon); line-height: 1; }
 
-  <canvas id="matrix-canvas"></canvas>
+  .table-wrap { background: var(--card-bg); border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-transform: uppercase; color: #777; padding: 15px 5px; font-size: 11px; letter-spacing: 1px; border-bottom: 1px solid #333; }
+  td { padding: 15px 5px; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center; }
+
+  .rank-circle { width: 35px; height: 35px; line-height: 35px; border-radius: 50%; display: inline-block; font-weight: bold; color: #000; }
+  .rank-1 { background: #ffcc00; box-shadow: 0 0 20px #ffcc00; }
+  .rank-2 { background: #e0e0e0; box-shadow: 0 0 15px #e0e0e0; }
+  .rank-3 { background: #ff8800; box-shadow: 0 0 15px #ff8800; }
+
+  .bar-ui { height: 20px; background: #000; border-radius: 10px; position: relative; overflow: hidden; min-width: 90px; border: 1px solid #222; }
+  .fill-blue { background: linear-gradient(90deg, #0066ff, #00d4ff); transition: width 0.5s ease; }
+  .fill-pink { background: linear-gradient(90deg, #cc00ff, #ff00ff); transition: width 0.5s ease; }
+  .bar-text { position: absolute; width: 100%; z-index: 2; font-size: 11px; font-weight: bold; line-height: 20px; color: #fff; text-align: center; }
+
+  #game-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; display: none; }
+  #game-canvas { width: 100%; height: 100%; pointer-events: auto; cursor: crosshair; }
+  .game-hud { position: fixed; bottom: 30px; right: 30px; background: rgba(0,0,0,0.9); padding: 20px; border: 2px solid var(--blue-neon); border-radius: 15px; z-index: 110; text-align: right; }
+  .btn-defense { background: none; border: 2px solid var(--blue-neon); color: var(--blue-neon); padding: 10px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<canvas id="matrix-canvas"></canvas>
 
 <div id="game-container">
     <div class="game-hud">
@@ -62,36 +91,7 @@
     </table>
   </div>
 </div>
-  /* ===== BACKGROUND ===== */
-  html,body{
-    margin:0;
-    min-height:100%;
-    width:100%;
-    background:var(--dark-bg);
-    color:var(--ink);
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-  body::before, body::after{
-    content:""; position:fixed; inset:-20%;
-    background: radial-gradient(40% 40% at 20% 20%, var(--glow-blue), transparent),
-                radial-gradient(35% 35% at 80% 10%, rgba(255,255,255,.20), transparent),
-                radial-gradient(30% 30% at 50% 90%, var(--glow-purple), transparent);
-    z-index:0; pointer-events:none; mix-blend-mode:lighten; animation:float 22s linear infinite;
-  }
-  body::after{ animation-direction:reverse; animation-duration:27s; opacity:.7; }
-  @keyframes float{ 0%{transform:translate3d(0,0,0)} 50%{transform:translate3d(2%, -2%, 0)} 100%{transform:translate3d(0,0,0)} }
 
-  #board{
-    position:relative; z-index:1;
-    width:100vw;
-    min-height:100vh;
-    padding:calc(1.2*var(--vh)) calc(1.6*var(--vh)); box-sizing:border-box;
-    background: radial-gradient(ellipse at top, #1a0a2e 0%, var(--dark-bg) 100%);
-    display:flex;flex-direction:column;gap:calc(0.8*var(--vh));
-  }
-  
   /* HEADER */
   .top-header-flex{
     display: flex;
@@ -618,4 +618,5 @@ window.addEventListener('keydown', (e) => {
 </script>
 </body>
 </html>
+
 
