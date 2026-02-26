@@ -5,7 +5,6 @@
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
 <title>Leaderboard — Defense Edition</title>
 <style>
-  /* Variables de Color (Dark Neon Blue/Purple) */
   :root{
     --vh: 1vh;
     --dark-bg: #0A0A0A;
@@ -25,109 +24,72 @@
     overflow-x: hidden; overflow-y: auto;
   }
 
-  /* MATRIX BACKGROUND */
-  #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.15; pointer-events: none; }
+  #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.12; pointer-events: none; }
 
   body::before, body::after{
     content:""; position:fixed; inset:-20%;
     background: radial-gradient(40% 40% at 20% 20%, var(--glow-blue), transparent),
-                radial-gradient(35% 35% at 80% 10%, rgba(255,255,255,.20), transparent),
                 radial-gradient(30% 30% at 50% 90%, var(--glow-purple), transparent);
     z-index:0; pointer-events:none; mix-blend-mode:lighten; animation:float 22s linear infinite;
   }
-  body::after{ animation-direction:reverse; animation-duration:27s; opacity:.7; }
-  @keyframes float{ 0%{transform:translate3d(0,0,0)} 50%{transform:translate3d(2%, -2%, 0)} 100%{transform:translate3d(0,0,0)} }
+  @keyframes float{ 0%, 100%{transform:translate3d(0,0,0)} 50%{transform:translate3d(2%, -2%, 0)} }
 
   #board{
     position:relative; z-index:1; width:100vw; min-height:100vh;
     padding:calc(1.2*var(--vh)) calc(1.6*var(--vh)); box-sizing:border-box;
-    background: radial-gradient(ellipse at top, #1a0a2e 0%, var(--dark-bg) 100%);
     display:flex;flex-direction:column;gap:calc(0.8*var(--vh));
   }
   
-  /* HEADER */
   .top-header-flex{ display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-  
   .header-controls { display: flex; align-items: center; gap: 15px; }
 
   #dailyTotalDisplay{
     background: var(--glass-strong); padding: 8px 16px; border-radius: 10px;
     border: 1px solid var(--neon-blue); box-shadow: 0 0 15px var(--glow-blue);
-    text-align: right; flex-shrink: 0;
+    text-align: right;
   }
-  #dailyTotalDisplay .label{ font-size: calc(1.4*var(--vh)); font-weight: 600; color: var(--neon-blue); text-transform: uppercase; }
-  #dailyTotalDisplay .value{ font-size: calc(3.0*var(--vh)); font-weight: 900; color: var(--neon-purple); line-height: 1; filter: drop-shadow(0 0 8px var(--glow-purple)); }
+  #dailyTotalDisplay .label{ font-size: 10px; font-weight: 600; color: var(--neon-blue); text-transform: uppercase; }
+  #dailyTotalDisplay .value{ font-size: 24px; font-weight: 900; color: var(--neon-purple); line-height: 1; }
 
-  /* GAME BUTTON */
   .btn-defense {
     background: var(--glass-strong); border: 1px solid var(--neon-blue); color: var(--neon-blue);
-    padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 800;
-    text-transform: uppercase; font-size: 11px; letter-spacing: 1px;
-    transition: all 0.3s; box-shadow: 0 0 10px var(--glow-blue);
+    padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 800;
+    text-transform: uppercase; font-size: 11px; transition: 0.3s;
   }
   .btn-defense:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 20px var(--neon-blue); }
 
-  h2{ margin:0; font-weight:900; font-size:calc(4.0*var(--vh)); filter: drop-shadow(0 0 8px var(--neon-blue)); }
-  .chips{ display:flex; gap:calc(.6*var(--vh)); flex-wrap:wrap; justify-content:center; }
+  .chips{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
   .chip{
-    padding:calc(.35*var(--vh)) calc(.8*var(--vh)); border-radius:999px;
-    background:var(--glass); backdrop-filter: blur(6px); border:1px solid rgba(255,255,255,.2);
-    font-weight:800; font-size:calc(1.5*var(--vh));
+    padding:5px 12px; border-radius:999px; background:var(--glass); border:1px solid rgba(255,255,255,.2);
+    font-weight:800; font-size:12px;
   }
 
-  /* TABLA */
-  .table-wrap{ flex:1; min-height:0; position:relative; }
-  table{ width:100%; min-width: 500px; border-collapse:separate; border-spacing:0 10px; table-layout:fixed; font-size:calc(1.7*var(--vh)); }
+  .table-wrap{ flex:1; overflow-x: auto; }
+  table{ width:100%; border-collapse:separate; border-spacing:0 8px; table-layout:fixed; }
   thead th{
-    position:sticky; top:0; z-index:2; background:var(--glass-strong); backdrop-filter: blur(6px);
-    text-transform:uppercase; font-size:calc(1.6*var(--vh)); font-weight:900; padding:calc(.6*var(--vh)) calc(0.9*var(--vh));
-    border-radius:10px; border:1px solid rgba(255,255,255,.15);
+    background:var(--glass-strong); text-transform:uppercase; font-size:12px; padding:10px;
+    border-radius:8px; border:1px solid rgba(255,255,255,.1);
   }
   
-  th.col-rank, td.col-rank { width:9%; text-align:center; }
-  th.col-agent,td.col-agent{ width:30%; text-align:left; }
-  th.col-today,td.col-today{ width:12%; text-align:center; }
-  th.col-day,  td.col-day  { width:7%;  text-align:center; }
-  th.col-total,td.col-total{ width:12%; text-align:center; }
+  tbody td{ background: var(--glass); padding:10px; text-align:center; border-top:1px solid rgba(255,255,255,.05); }
+  tbody tr td:first-child{ border-top-left-radius:12px; border-bottom-left-radius:12px; }
+  tbody tr td:last-child { border-top-right-radius:12px; border-bottom-right-radius:12px; }
 
-  tbody td{ background: var(--glass); border-top:1px solid rgba(255,255,255,.05); border-bottom:1px solid rgba(255,255,255,.05); padding:calc(.7*var(--vh)) calc(0.9*var(--vh)); }
-  tbody tr td:first-child{ border-left:1px solid rgba(255,255,255,.05); border-top-left-radius:14px; border-bottom-left-radius:14px; }
-  tbody tr td:last-child { border-right:1px solid rgba(255,255,255,.05); border-top-right-radius:14px; border-bottom-right-radius:14px; }
-  tbody tr:hover{ transform: translateY(-2px); box-shadow:0 0 18px var(--glow-blue); background: rgba(0,0,0,.8); }
+  .bar{ position:relative; height:18px; border-radius:10px; background:rgba(255,255,255,.1); overflow:hidden; }
+  .bar > .fill{ position:absolute; left:0; top:0; bottom:0; width:0%; transition: width .8s ease; }
+  .bar.today > .fill{ background: var(--neon-blue); box-shadow: 0 0 10px var(--glow-blue); }
+  .bar.total > .fill{ background: var(--neon-purple); box-shadow: 0 0 10px var(--glow-purple); }
+  .bar .value{ position:relative; z-index:1; font-size:11px; font-weight:900; color:#000; }
 
-  .agent-wrap{ display:flex; align-items:center; min-width:0; }
-  .name{ font-weight:900; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size: 1.1em; padding-left: 5px; }
+  #diag { 
+    position: fixed; bottom: 10px; left: 10px; font-size: 10px; 
+    padding: 5px 10px; border-radius: 5px; background: rgba(0,0,0,0.8);
+    border-left: 3px solid var(--neon-blue); z-index: 10;
+  }
 
-  /* Barras */
-  .bar{ position:relative; height:22px; border-radius:999px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.06); overflow:hidden; }
-  .bar > .fill{ position:absolute; left:0; top:0; bottom:0; width:0%; background:linear-gradient(90deg, var(--neon-blue), #0099EE); box-shadow: 0 0 16px var(--glow-blue); transition: width .8s ease; }
-  .bar.total > .fill{ background:linear-gradient(90deg, var(--neon-purple), #EE00AA); box-shadow: 0 0 16px var(--glow-purple); }
-  .bar .value{ position:relative; z-index:1; font-weight:900; font-size:90%; color:var(--dark-bg); text-shadow: 0 0 5px var(--ink); }
-
-  /* MEDALLAS */
-  .medal{ display:inline-grid; place-items:center; width:30px; height:30px; border-radius:50%; margin-right:8px; font-weight:1000; color: #000; }
-  .gold { background: linear-gradient(135deg, #FFD700, #FDB931); box-shadow: 0 0 10px #FFD700; }
-  .silver{ background: linear-gradient(135deg, #E0E0E0, #BDBDBD); box-shadow: 0 0 10px #E0E0E0; }
-  .bronze{ background: linear-gradient(135deg, #E67E22, #A04000); box-shadow: 0 0 10px #E67E22; color: #fff; }
-
-  /* GAME CONTAINER OVERLAY */
-  #game-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; display: none; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); }
+  /* GAME OVERLAY */
+  #game-container { position: fixed; inset: 0; z-index: 9999; display: none; background: rgba(0,0,0,0.9); }
   #game-canvas { width: 100%; height: 100%; cursor: crosshair; }
-  .game-hud {
-    position: absolute; bottom: 40px; right: 40px; background: var(--glass-strong);
-    padding: 25px; border: 2px solid var(--neon-blue); border-radius: 20px;
-    text-align: right; box-shadow: 0 0 30px var(--glow-blue);
-  }
-  .hud-label { font-size: 10px; color: var(--neon-blue); letter-spacing: 2px; margin-bottom: 5px; opacity: 0.8; }
-  .hud-value { font-size: 38px; font-weight: 900; color: var(--neon-purple); line-height: 1; }
-  .lives-container { font-size: 24px; margin-top: 10px; filter: drop-shadow(0 0 5px red); }
-  .esc-hint { position: absolute; top: 20px; left: 20px; color: var(--ink); opacity: 0.5; font-size: 12px; }
-
-  @media (max-width: 768px) {
-    .top-header-flex { flex-direction: column; }
-    .header-controls { flex-direction: column; width: 100%; }
-    #dailyTotalDisplay { width: 100%; }
-  }
 </style>
 </head>
 <body>
@@ -135,24 +97,16 @@
 <canvas id="matrix-canvas"></canvas>
 
 <div id="game-container">
-    <div class="esc-hint">Presione ESC para abortar misión</div>
-    <div class="game-hud">
-        <div class="hud-label">INTEGRIDAD DEL NÚCLEO</div>
-        <div id="lives-display" class="lives-container">❤️❤️❤️❤️❤️</div>
-        <div style="margin: 15px 0; height: 1px; background: rgba(255,255,255,0.1);"></div>
-        <div class="hud-label">PUNTOS TÁCTICOS</div>
-        <div id="score-display" class="hud-value">0</div>
-    </div>
     <canvas id="game-canvas"></canvas>
 </div>
 
 <div id='board'>
   <div class='top-header-flex'> 
-    <h2>🏁 Leaderboard</h2>
+    <h2 style="margin:0; font-size: 28px;">🏁 Leaderboard</h2>
     <div class="header-controls">
         <button class="btn-defense" onclick="startDefense()">Defense_Mode</button>
         <div id='dailyTotalDisplay'>
-          <div class='label'>Total Diario (Today)</div>
+          <div class='label'>Total Diario</div>
           <div class='value' id='totalTodayValue'>0</div>
         </div>
     </div>
@@ -167,156 +121,135 @@
     <table id='tbl'>
       <thead>
         <tr>
-          <th class='col-rank'>#</th>
-          <th class='col-agent'>Agent</th>
-          <th class='col-today'>Today</th>
-          <th class='col-day'>Wed</th>
-          <th class='col-day'>Thu</th>
-          <th class='col-day'>Fri</th>
-          <th class='col-day'>Sat</th>
-          <th class='col-day'>Mon</th>
-          <th class='col-day'>Tue</th>
-          <th class='col-total'>Total</th>
+          <th style="width:50px">#</th>
+          <th style="text-align:left">Agent</th>
+          <th>Today</th>
+          <th>Total</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
   </div>
-
-  <div id='meta' style="padding: 10px; font-size: 12px; opacity: 0.5;">
-    <div id='diag'>Iniciando sistemas...</div>
-  </div>
 </div>
 
+<div id="diag">Iniciando sistemas...</div>
+
 <script>
-/* --- CONFIGURACIÓN DE INTERFAZ --- */
-function setVHVar(){ const vh=window.innerHeight*0.01; document.documentElement.style.setProperty('--vh', `${vh}px`); }
-setVHVar(); window.addEventListener('resize', setVHVar);
-
-/* --- MOTOR MATRIX --- */
-const mCanvas = document.getElementById('matrix-canvas');
-const mCtx = mCanvas.getContext('2d');
-let mw, mh, mCols, mYpos;
-
-function initMatrix() {
-    mw = mCanvas.width = window.innerWidth; mh = mCanvas.height = window.innerHeight;
-    mCols = Math.floor(mw / 25); mYpos = Array(mCols).fill(0);
-}
-function drawMatrix() {
-    mCtx.fillStyle = 'rgba(10, 10, 10, 0.1)'; mCtx.fillRect(0, 0, mw, mh);
-    mCtx.fillStyle = '#44CCFF'; mCtx.font = '15px monospace';
-    mYpos.forEach((y, i) => {
-        mCtx.fillText(String.fromCharCode(0x30A0 + Math.random() * 96), i * 25, y);
-        mYpos[i] = y > 100 + Math.random() * 10000 ? 0 : y + 20;
-    });
-}
-initMatrix(); setInterval(drawMatrix, 50);
-
-/* --- LÓGICA DEL VIDEOJUEGO --- */
-const gCanvas = document.getElementById('game-canvas');
-const gCtx = gCanvas.getContext('2d');
-let gameActive = false, score = 0, lives = 5, enemies = [], particles = [];
-
-class Particle {
-    constructor(x,y) { this.x=x; this.y=y; this.vx=(Math.random()-0.5)*15; this.vy=(Math.random()-0.5)*15; this.a=1; }
-    draw() { gCtx.globalAlpha=this.a; gCtx.fillStyle='#44CCFF'; gCtx.fillRect(this.x,this.y,3,3); gCtx.globalAlpha=1; }
-}
-
-function startDefense() {
-    gameActive = true; 
-    document.getElementById('game-container').style.display = 'block';
-    gCanvas.width = window.innerWidth; gCanvas.height = window.innerHeight;
-    score = 0; lives = 5; enemies = []; particles = [];
-    updateHUD(); runGame();
-}
-
-function updateHUD() {
-    document.getElementById('score-display').innerText = score;
-    document.getElementById('lives-display').innerText = "❤️".repeat(lives);
-}
-
-gCanvas.addEventListener('mousedown', (e) => {
-    const rect = gCanvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
-    
-    enemies.forEach((en, i) => {
-        // Hitbox mejorada
-        const dist = Math.hypot(mx - (en.x + 25), my - (en.y - 20));
-        if(dist < 40) {
-            score += en.r ? 500 : 100;
-            for(let j=0; j<20; j++) particles.push(new Particle(en.x+25, en.y-20));
-            enemies.splice(i,1);
-            updateHUD();
-        }
-    });
-});
-
-function runGame() {
-    if(!gameActive) return;
-    gCtx.clearRect(0,0, gCanvas.width, gCanvas.height);
-    
-    // Spawn progresivo
-    if(Math.random() < 0.02 + (score/100000)) {
-        enemies.push({
-            x: Math.random()*(gCanvas.width-50), 
-            y:-50, 
-            s: 3 + Math.random()*4 + (score/5000), 
-            r: Math.random()<0.1
-        });
-    }
-
-    enemies.forEach((en, i) => {
-        en.y += en.s;
-        gCtx.shadowBlur = 15;
-        gCtx.shadowColor = en.r ? '#FF44CC' : '#44CCFF';
-        gCtx.font = en.r ? '50px serif' : '40px serif';
-        gCtx.fillText(en.r ? '🛸' : '👾', en.x, en.y);
-        gCtx.shadowBlur = 0;
-
-        if(en.y > gCanvas.height) {
-            lives--; enemies.splice(i,1); updateHUD();
-        }
-    });
-
-    particles.forEach((p,i) => { 
-        p.x+=p.vx; p.y+=p.vy; p.a-=0.02; p.draw(); 
-        if(p.a<=0) particles.splice(i,1); 
-    });
-
-    if(lives <= 0) {
-        gameActive = false;
-        alert(`SISTEMA COMPROMETIDO\n\nPUNTUACIÓN FINAL: ${score} PUNTOS`);
-        document.getElementById('game-container').style.display='none';
-    } else {
-        requestAnimationFrame(runGame);
-    }
-}
-
-window.addEventListener('keydown', (e) => {
-    if(e.key === "Escape" && gameActive) {
-        gameActive = false;
-        document.getElementById('game-container').style.display='none';
-    }
-});
-
-/* --- LÓGICA DE DATOS DASHBOARD --- */
 const API_KEY = "AIzaSyCCBAapFj9Fd-8cOIfpDJxrOP__76zxAxM";
-const WEEKLY_SHEETID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
-const DAILY_ID_RAW = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
-const TIMEZONE = "America/Tijuana";
+const WEEKLY_ID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
+const DAILY_ID = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
 
-async function updateData(){
-  // (Mantenemos su lógica de actualización de Google Sheets aquí...)
-  document.getElementById('diag').innerText = "Sincronizando con Uplink...";
-  // Simulando actualización exitosa para el ejemplo:
-  setTimeout(() => { document.getElementById('diag').innerText = "Sistemas nominales. Esperando órdenes."; }, 2000);
+function setDiag(msg, color = "#44CCFF") {
+    const d = document.getElementById('diag');
+    d.innerText = msg;
+    d.style.borderLeftColor = color;
 }
 
-// Inicialización del Dashboard
-(async function init(){
-  updateData();
-  setInterval(updateData, 30000);
+// Lógica de Semanas y Fechas
+function getLocalDate(){ return new Date(new Date().toLocaleString('en-US',{timeZone:"America/Tijuana"})); }
+
+function computeWeeklyTab(){
+    const d = getLocalDate();
+    const start = new Date(d.getFullYear(), 0, 1);
+    const days = Math.floor((d - start) / (24 * 60 * 60 * 1000));
+    let week = Math.ceil((days + start.getDay() + 1) / 7);
+    // Ajuste de corte Miércoles 12:00 PM
+    if (d.getDay() < 3 || (d.getDay() === 3 && d.getHours() < 12)) week--;
+    return `W${week}`;
+}
+
+async function fetchSheet(id, range) {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${encodeURIComponent(range)}?key=${API_KEY}`;
+    try {
+        const r = await fetch(url);
+        if (!r.ok) throw new Error(`Error ${r.status}: Pestaña no encontrada o API bloqueada.`);
+        return await r.json();
+    } catch (e) {
+        console.error(e);
+        return null;
+    }
+}
+
+async function updateData() {
+    setDiag("📡 Sincronizando con el Uplink...");
+    const weeklyTab = computeWeeklyTab();
+    document.getElementById('chipWeekly').innerText = `Week: ${weeklyTab}`;
+
+    // 1. Obtener datos maestros (Weekly)
+    const master = await fetchSheet(WEEKLY_ID, `${weeklyTab}!A3:O96`);
+    if (!master) {
+        setDiag(`❌ ERROR: No existe la pestaña ${weeklyTab}`, "#FF44CC");
+        return;
+    }
+
+    // 2. Intentar obtener datos diarios (Probar varios nombres de pestaña)
+    const today = getLocalDate();
+    const fmt = today.toLocaleString('en-US', {month:'short', day:'2-digit'}); // "Feb 25"
+    
+    // Candidatos: Nombre dinámico o el nombre fijo "Tabla_25"
+    let daily = await fetchSheet(DAILY_ID, `${fmt}!A2:D100`);
+    if (!daily) daily = await fetchSheet(DAILY_ID, `Tabla_25!A2:D100`);
+
+    if (!daily) {
+        setDiag("⚠️ Advertencia: No se encontró la hoja Diaria.", "#FFD700");
+    }
+
+    const dailyRows = daily?.values || [];
+    const agents = master.values.map(row => {
+        const id = (row[0] || "").toString().trim();
+        const name = (row[1] || "").toString().trim();
+        if (!id || !name) return null;
+
+        // Buscar match en la hoja diaria por ID (Col B)
+        const match = dailyRows.find(d => (d[1] || "").toString().trim() === id);
+        return {
+            name,
+            today: match ? parseInt(match[2]) || 0 : 0,
+            total: parseInt(row[14]) || 0
+        };
+    }).filter(x => x).sort((a,b) => b.today - a.today);
+
+    render(agents);
+    const totalSum = agents.reduce((s, a) => s + a.today, 0);
+    document.getElementById('totalTodayValue').innerText = totalSum;
+    setDiag("✅ Sistemas Nominales.");
+}
+
+function render(data) {
+    const tbody = document.querySelector("#tbl tbody");
+    tbody.innerHTML = "";
+    const maxT = Math.max(1, ...data.map(d => d.today));
+    const maxW = Math.max(1, ...data.map(d => d.total));
+
+    data.forEach((a, i) => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${i+1}</td>
+                <td style="text-align:left; font-weight:800">${a.name}</td>
+                <td>
+                    <div class="bar today">
+                        <div class="fill" style="width:${(a.today/maxT)*100}%"></div>
+                        <div class="value">${a.today}</div>
+                    </div>
+                </td>
+                <td>
+                    <div class="bar total">
+                        <div class="fill" style="width:${(a.total/maxW)*100}%"></div>
+                        <div class="value">${a.total}</div>
+                    </div>
+                </td>
+            </tr>`;
+    });
+}
+
+// Matrix y Juego se mantienen igual que su motor anterior
+// ... (Aquí van las funciones startDefense, initMatrix y drawMatrix)
+
+(async function init() {
+    initMatrix();
+    setInterval(drawMatrix, 50);
+    await updateData(); // Esperar a la carga inicial
+    setInterval(updateData, 30000);
 })();
 </script>
 </body>
