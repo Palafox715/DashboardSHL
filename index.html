@@ -3,7 +3,7 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>Leaderboard — Tactical Elite V2</title>
+<title>Leaderboard — Quartz Rift Event</title>
 <style>
   :root{
     --vh: 1vh;
@@ -13,8 +13,10 @@
     --glass-strong: rgba(0,0,0, .75);
     --neon-blue: #44CCFF;
     --neon-purple: #FF44CC;
+    --neon-red: #FF4444;
     --glow-blue: rgba(44, 204, 255, .6);
     --glow-purple: rgba(255, 68, 204, .5);
+    --glow-red: rgba(255, 68, 68, .5);
   }
   
   html,body{
@@ -24,20 +26,22 @@
     overflow-x: hidden; overflow-y: auto;
   }
 
-  #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.12; pointer-events: none; }
-
+  /* FONDO MATRIX Y GRADIENTES (INTACTOS) */
+  #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; opacity: 0.12; pointer-events: none; }
   body::before, body::after{
     content:""; position:fixed; inset:-20%;
     background: radial-gradient(40% 40% at 20% 20%, var(--glow-blue), transparent),
                 radial-gradient(30% 30% at 50% 90%, var(--glow-purple), transparent);
-    z-index:0; pointer-events:none; mix-blend-mode:lighten; animation:float 22s linear infinite;
+    z-index:-1; pointer-events:none; mix-blend-mode:lighten; animation:float 22s linear infinite;
   }
   @keyframes float{ 0%, 100%{transform:translate3d(0,0,0)} 50%{transform:translate3d(2%, -2%, 0)} }
 
+  /* ESTRUCTURA DEL DASHBOARD (INTACTA) */
   #board{
     position:relative; z-index:1; width:100vw; min-height:100vh;
     padding:calc(1.2*var(--vh)) calc(1.6*var(--vh)); box-sizing:border-box;
     display:flex;flex-direction:column;gap:calc(0.8*var(--vh));
+    max-width: 1400px; margin: 0 auto; /* Centrado para dejar espacio a las grietas */
   }
   
   .top-header-flex{ display: flex; justify-content: space-between; align-items: center; gap: 10px; }
@@ -49,84 +53,108 @@
     text-align: right;
   }
   #dailyTotalDisplay .label{ font-size: 10px; font-weight: 600; color: var(--neon-blue); text-transform: uppercase; }
-  #dailyTotalDisplay .value{ font-size: 24px; font-weight: 900; color: var(--neon-purple); line-height: 1; }
-
-  .btn-defense {
-    background: var(--glass-strong); border: 1px solid var(--neon-blue); color: var(--neon-blue);
-    padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 800;
-    text-transform: uppercase; font-size: 11px; transition: 0.3s;
-  }
-  .btn-defense:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 20px var(--neon-blue); }
+  #dailyTotalDisplay .value{ font-size: 24px; font-weight: 900; color: var(--neon-blue); line-height: 1; }
 
   .chips{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
-  .chip{
-    padding: 5px 12px; border-radius:999px; background:var(--glass); border:1px solid rgba(255,255,255,.2);
-    font-weight:800; font-size:12px;
-  }
+  .chip{ padding: 5px 12px; border-radius:999px; background:var(--glass); border:1px solid rgba(255,255,255,.2); font-weight:800; font-size:12px; }
 
-  .table-wrap{ flex:1; overflow-x: auto; }
+  .table-wrap{ flex:1; overflow-x: auto; background: var(--glass); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
   table{ width:100%; border-collapse:separate; border-spacing:0 8px; table-layout:fixed; }
-  thead th{
-    background:var(--glass-strong); text-transform:uppercase; font-size:12px; padding:10px;
-    border-radius:8px; border:1px solid rgba(255,255,255,.1);
-  }
+  thead th{ background:var(--glass-strong); text-transform:uppercase; font-size:12px; padding:10px; border-bottom: 2px solid rgba(255,255,255,.1); }
+  tbody td{ padding:10px; text-align:center; border-top:1px solid rgba(255,255,255,.05); }
   
-  tbody td{ background: var(--glass); padding:10px; text-align:center; border-top:1px solid rgba(255,255,255,.05); }
-  tbody tr td:first-child{ border-top-left-radius:12px; border-bottom-left-radius:12px; }
-  tbody tr td:last-child { border-top-right-radius:12px; border-bottom-right-radius:12px; }
-
   .bar{ position:relative; height:18px; border-radius:10px; background:rgba(255,255,255,0.1); overflow:hidden; }
   .bar > .fill{ position:absolute; left:0; top:0; bottom:0; width:0%; transition: width 0.8s ease; }
   .bar.today > .fill{ background: var(--neon-blue); box-shadow: 0 0 10px var(--glow-blue); }
   .bar.total > .fill{ background: var(--neon-purple); box-shadow: 0 0 10px var(--glow-purple); }
   .bar .value{ position:relative; z-index:1; font-size:11px; font-weight:900; color:white; text-shadow: 1px 1px 2px black; }
 
-  #diag { position: fixed; bottom: 10px; left: 10px; font-size: 10px; padding: 5px 10px; border-radius: 5px; background: rgba(0,0,0,0.8); border-left: 3px solid var(--neon-blue); z-index: 10; }
+  #diag { position: fixed; bottom: 10px; left: 10px; font-size: 10px; padding: 5px 10px; border-radius: 5px; background: rgba(0,0,0,0.8); border-left: 3px solid var(--neon-blue); z-index: 100; }
 
-  /* GAME UI ACTUALIZADA */
-  #game-container { position: fixed; inset: 0; z-index: 9999; display: none; background: rgba(0,0,0,0.45); backdrop-filter: blur(4px); }
-  #game-canvas { width: 100%; height: 100%; cursor: crosshair; }
-  .game-hud { position: absolute; bottom: 30px; right: 30px; text-align: right; background: var(--glass-strong); padding: 25px; border-radius: 20px; border: 2px solid var(--neon-blue); box-shadow: 0 0 20px var(--glow-blue); z-index: 10001; }
-
-  #game-over-screen {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    background: var(--glass-strong); border: 2px solid var(--neon-purple); padding: 40px;
-    border-radius: 30px; text-align: center; display: none; z-index: 10002;
-    box-shadow: 0 0 50px var(--glow-purple); backdrop-filter: blur(10px);
+  /* =========================================
+     NUEVO: SISTEMA DE GRIETAS (MINERÍA IDLE) 
+     ========================================= */
+  
+  /* Sombras laterales para simular profundidad/roca */
+  .rift-overlay {
+    position: fixed; top: 0; bottom: 0; width: 120px; z-index: 50; pointer-events: none;
   }
-  .go-title { color: #FF4444; font-size: 24px; font-weight: 900; letter-spacing: 5px; margin-bottom: 20px; }
-  .go-score { color: var(--neon-purple); font-size: 60px; font-weight: 900; margin-bottom: 30px; }
+  #rift-left { left: 0; background: linear-gradient(to right, rgba(0,0,0,0.9), transparent); border-right: 1px solid rgba(255,255,255,0.02); }
+  #rift-right { right: 0; background: linear-gradient(to left, rgba(0,0,0,0.9), transparent); border-left: 1px solid rgba(255,255,255,0.02); }
+
+  /* Nodos de Cristal */
+  .crystal-node {
+    position: absolute; width: 40px; height: 60px; pointer-events: auto;
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); /* Forma de diamante */
+    transition: transform 0.3s ease, filter 0.3s ease, opacity 0.3s ease;
+    cursor: not-allowed; opacity: 0.3; transform: scale(0.2);
+  }
+  
+  .crystal-node.ready { cursor: pointer; opacity: 1; transform: scale(1); animation: pulse-crystal 2s infinite alternate; }
+  
+  /* Posicionamiento y Colores Específicos */
+  #node-blue { top: 30%; left: 30px; background: linear-gradient(135deg, #00f, var(--neon-blue)); }
+  .ready#node-blue { filter: drop-shadow(0 0 15px var(--neon-blue)); }
+
+  #node-red { top: 45%; right: 30px; background: linear-gradient(135deg, #800, var(--neon-red)); }
+  .ready#node-red { filter: drop-shadow(0 0 15px var(--neon-red)); }
+
+  #node-purple { top: 65%; left: 40px; background: linear-gradient(135deg, #808, var(--neon-purple)); }
+  .ready#node-purple { filter: drop-shadow(0 0 15px var(--neon-purple)); }
+
+  @keyframes pulse-crystal {
+    0% { transform: scale(1); filter: brightness(1); }
+    100% { transform: scale(1.1); filter: brightness(1.3); }
+  }
+
+  /* HUD DE LA BÓVEDA (Abajo Derecha) */
+  #vault-hud {
+    position: fixed; bottom: 30px; right: 30px; z-index: 100;
+    background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 20px;
+    text-align: right; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    border-right: 3px solid #FFF; /* Cambiará dinámicamente */
+  }
+  .vault-title { font-size: 10px; color: var(--ink); letter-spacing: 2px; opacity: 0.6; margin-bottom: 5px; }
+  .vault-score { font-size: 38px; font-weight: 900; color: #FFF; line-height: 1; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
+  
+  /* Texto flotante al recolectar */
+  .floating-text {
+    position: fixed; font-weight: 900; font-size: 20px; z-index: 200; pointer-events: none;
+    animation: floatUp 1s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+  }
+  @keyframes floatUp {
+    0% { transform: translateY(0) scale(0.5); opacity: 1; }
+    100% { transform: translateY(-50px) scale(1.5); opacity: 0; }
+  }
+
+  @media (max-width: 768px) {
+    .rift-overlay { width: 60px; }
+    #node-blue { left: 10px; } #node-red { right: 10px; } #node-purple { left: 15px; }
+  }
 </style>
 </head>
 <body>
 
 <canvas id="matrix-canvas"></canvas>
 
-<div id="game-container">
-    <div style="position:absolute; top:20px; left:20px; opacity:0.8; font-size:12px; letter-spacing:2px; color:var(--neon-blue)">DEFENSE PROTOCOL [ACTIVE]</div>
-    
-    <div id="game-over-screen">
-        <div class="go-title">NÚCLEO COMPROMETIDO</div>
-        <div style="font-size:12px; color:var(--ink); opacity:0.6">PUNTUACIÓN OBTENIDA</div>
-        <div id="final-score" class="go-score">0</div>
-        <button class="btn-defense" onclick="startDefense()">Reiniciar Misión</button>
-        <button class="btn-defense" style="border-color:var(--ink); color:var(--ink); margin-left:10px;" onclick="abortGame()">Cerrar</button>
-    </div>
+<div id="rift-left" class="rift-overlay">
+    <div id="node-blue" class="crystal-node" onclick="mineCrystal('blue')"></div>
+    <div id="node-purple" class="crystal-node" onclick="mineCrystal('purple')"></div>
+</div>
+<div id="rift-right" class="rift-overlay">
+    <div id="node-red" class="crystal-node" onclick="mineCrystal('red')"></div>
+</div>
 
-    <div class="game-hud">
-        <div style="font-size:10px; color:var(--neon-blue); letter-spacing:1px;">INTEGRIDAD DEL NÚCLEO</div>
-        <div id="lives-display" style="font-size:24px; margin-bottom:15px;">❤️❤️❤️❤️❤️</div>
-        <div style="font-size:10px; color:var(--neon-blue); letter-spacing:1px;">PUNTOS TÁCTICOS</div>
-        <div id="score-display" style="font-size:40px; font-weight:900; color:var(--neon-purple);">0</div>
-    </div>
-    <canvas id="game-canvas"></canvas>
+<div id="vault-hud">
+    <div class="vault-title">BÓVEDA LOCAL (DATOS)</div>
+    <div id="vault-score" class="vault-score">0</div>
 </div>
 
 <div id='board'>
   <div class='top-header-flex'> 
     <h2 style="margin:0; font-size: 28px;">🏁 Leaderboard</h2>
     <div class="header-controls">
-        <button class="btn-defense" onclick="startDefense()">Defense_Mode</button>
         <div id='dailyTotalDisplay'>
           <div class='label'>Total Diario</div>
           <div class='value' id='totalTodayValue'>0</div>
@@ -137,7 +165,7 @@
   <div class='chips'>
     <div id='chipWeekly' class='chip'>Week: —</div>
     <div id='chipDaily' class='chip'>Daily: —</div>
-    <button class="chip" onclick="updateData()" style="cursor:pointer; background:rgba(68,204,255,0.2)">🔄 Refrescar</button>
+    <button class="chip" onclick="updateData()" style="cursor:pointer; background:rgba(255,255,255,0.1)">🔄 Refrescar Red</button>
   </div>
 
   <div class='table-wrap'>
@@ -158,12 +186,197 @@
 <div id="diag">Iniciando sistemas...</div>
 
 <script>
-/* --- CONFIGURACIÓN --- */
+/* ==========================================================================
+   MÓDULO 1: LA GRIETA DE CUARZO (IDLE MINER LOCAL)
+   ========================================================================== */
+
+// Configuración de los minerales (Tiempos en milisegundos)
+const MINERALS = {
+    blue:   { id: 'node-blue',   time: 2 * 60 * 1000,   points: 250,  color: '#44CCFF' }, // 2 Minutos
+    red:    { id: 'node-red',    time: 5 * 60 * 1000,   points: 500,  color: '#FF4444' }, // 5 Minutos
+    purple: { id: 'node-purple', time: 10 * 60 * 1000,  points: 1000, color: '#FF44CC' }  // 10 Minutos
+};
+
+let localVault = 0;
+
+function initMiner() {
+    // 1. Cargar Bóveda
+    localVault = parseInt(localStorage.getItem('qv_vault')) || 0;
+    updateVaultUI();
+
+    // 2. Iniciar ciclos de crecimiento
+    Object.keys(MINERALS).forEach(key => {
+        let lastMined = localStorage.getItem(`qv_time_${key}`);
+        if (!lastMined) {
+            // Si es la primera vez, el tiempo inicia ahora
+            lastMined = Date.now();
+            localStorage.setItem(`qv_time_${key}`, lastMined);
+        }
+    });
+
+    // 3. Bucle de vigilancia (cada segundo revisa el estado)
+    setInterval(checkGrowth, 1000);
+    checkGrowth(); // Chequeo inicial
+}
+
+function checkGrowth() {
+    const now = Date.now();
+    
+    Object.keys(MINERALS).forEach(key => {
+        const min = MINERALS[key];
+        const el = document.getElementById(min.id);
+        const lastMined = parseInt(localStorage.getItem(`qv_time_${key}`));
+        
+        const elapsed = now - lastMined;
+        const progress = Math.min(elapsed / min.time, 1.0); // De 0.0 a 1.0
+
+        if (progress >= 1.0) {
+            // Cristal listo para cosechar
+            if (!el.classList.contains('ready')) {
+                el.classList.add('ready');
+                el.style.transform = `scale(1)`;
+                el.style.opacity = `1`;
+            }
+        } else {
+            // Cristal creciendo (escala visual del 20% al 90%)
+            el.classList.remove('ready');
+            const scale = 0.2 + (progress * 0.7); 
+            const opacity = 0.3 + (progress * 0.5);
+            el.style.transform = `scale(${scale})`;
+            el.style.opacity = opacity;
+        }
+    });
+}
+
+function mineCrystal(key) {
+    const el = document.getElementById(MINERALS[key].id);
+    
+    // Si no está listo, ignorar el clic
+    if (!el.classList.contains('ready')) return;
+
+    // 1. Sumar puntos y guardar
+    const pointsGained = MINERALS[key].points;
+    localVault += pointsGained;
+    localStorage.setItem('qv_vault', localVault);
+    
+    // 2. Reiniciar temporizador del cristal
+    localStorage.setItem(`qv_time_${key}`, Date.now());
+    
+    // 3. Feedback Visual
+    el.classList.remove('ready');
+    updateVaultUI(MINERALS[key].color);
+    spawnFloatingText(pointsGained, MINERALS[key].color, el);
+    
+    // Forzar actualización visual inmediata
+    checkGrowth();
+}
+
+function updateVaultUI(glowColor = '#FFF') {
+    const scoreEl = document.getElementById('vault-score');
+    const hudEl = document.getElementById('vault-hud');
+    
+    // Animación de contador
+    scoreEl.innerText = localVault.toLocaleString();
+    
+    // Brillo temporal al recolectar
+    hudEl.style.borderRightColor = glowColor;
+    scoreEl.style.color = glowColor;
+    scoreEl.style.textShadow = `0 0 15px ${glowColor}`;
+    
+    setTimeout(() => {
+        hudEl.style.borderRightColor = '#FFF';
+        scoreEl.style.color = '#FFF';
+        scoreEl.style.textShadow = `0 0 10px rgba(255,255,255,0.5)`;
+    }, 500);
+}
+
+function spawnFloatingText(points, color, sourceEl) {
+    const rect = sourceEl.getBoundingClientRect();
+    const floating = document.createElement('div');
+    floating.className = 'floating-text';
+    floating.innerText = `+${points}`;
+    floating.style.color = color;
+    floating.style.left = `${rect.left + (rect.width/2) - 15}px`;
+    floating.style.top = `${rect.top}px`;
+    floating.style.textShadow = `0 0 10px ${color}`;
+    
+    document.body.appendChild(floating);
+    setTimeout(() => floating.remove(), 1000);
+}
+
+
+/* ==========================================================================
+   MÓDULO 2: DASHBOARD Y RED (SISTEMAS INTACTOS DE GOOGLE SHEETS)
+   ========================================================================== */
 const API_KEY = "AIzaSyCCBAapFj9Fd-8cOIfpDJxrOP__76zxAxM";
 const WEEKLY_ID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
 const DAILY_ID = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
 
-/* --- MOTOR MATRIX --- */
+function setDiag(msg, color = "#44CCFF") {
+    const d = document.getElementById('diag');
+    if(d) { d.innerText = msg; d.style.borderLeftColor = color; }
+}
+
+function getLocalDate(){ return new Date(new Date().toLocaleString('en-US',{timeZone:"America/Tijuana"})); }
+
+function computeWeeklyTab(){
+    const d = getLocalDate(); const start = new Date(d.getFullYear(), 0, 1);
+    const days = Math.floor((d - start) / 86400000);
+    let week = Math.ceil((days + start.getDay() + 1) / 7);
+    if (d.getDay() < 3 || (d.getDay() === 3 && d.getHours() < 12)) week--;
+    return `W${week}`;
+}
+
+async function fetchSheet(id, range) {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${encodeURIComponent(range)}?key=${API_KEY}`;
+    try { const r = await fetch(url); return r.ok ? await r.json() : null; } catch (e) { return null; }
+}
+
+async function updateData() {
+    setDiag("📡 Sincronizando Uplink...");
+    const weeklyTab = computeWeeklyTab();
+    const master = await fetchSheet(WEEKLY_ID, `${weeklyTab}!A3:O96`);
+    if (!master) { setDiag("❌ Error Weekly", "#FF44CC"); return; }
+    
+    const today = getLocalDate();
+    const fmt = today.toLocaleString('en-US', {month:'short', day:'2-digit'});
+    let daily = await fetchSheet(DAILY_ID, `${fmt}!A2:D100`);
+    if (!daily) daily = await fetchSheet(DAILY_ID, `Tabla_25!A2:D100`);
+
+    const dailyRows = daily?.values || [];
+    const agents = master.values.map(row => {
+        const id = (row[0] || "").toString().trim();
+        const name = (row[1] || "").toString().trim();
+        if (!id || !name) return null;
+        const match = dailyRows.find(d => (d[1] || "").toString().trim() === id);
+        return { name, today: match ? parseInt(match[2]) || 0 : 0, total: parseInt(row[14]) || 0 };
+    }).filter(x => x).sort((a,b) => b.today - a.today);
+
+    renderList(agents);
+    document.getElementById('totalTodayValue').innerText = agents.reduce((s, a) => s + a.today, 0);
+    document.getElementById('chipWeekly').innerText = `Week: ${weeklyTab}`;
+    document.getElementById('chipDaily').innerText = `Daily: ${daily ? (daily.range.split('!')[0]) : '---'}`;
+    setDiag("✅ Uplink Estable");
+}
+
+function renderList(data) {
+    const tbody = document.querySelector("#tbl tbody"); if(!tbody) return;
+    tbody.innerHTML = "";
+    const maxT = Math.max(1, ...data.map(d => d.today));
+    const maxW = Math.max(1, ...data.map(d => d.total));
+    data.forEach((a, i) => {
+        tbody.innerHTML += `<tr>
+            <td>${i+1}</td>
+            <td style="text-align:left; font-weight:800">${a.name}</td>
+            <td><div class="bar today"><div class="fill" style="width:${(a.today/maxT)*100}%"></div><div class="value">${a.today}</div></div></td>
+            <td><div class="bar total"><div class="fill" style="width:${(a.total/maxW)*100}%"></div><div class="value">${a.total}</div></div></td>
+        </tr>`;
+    });
+}
+
+/* ==========================================================================
+   MOTOR MATRIX DE FONDO
+   ========================================================================== */
 const mCanvas = document.getElementById('matrix-canvas');
 const mCtx = mCanvas.getContext('2d');
 let mw, mh, mCols, mYpos;
@@ -180,151 +393,12 @@ function drawMatrix() {
     });
 }
 
-/* --- MOTOR DEL JUEGO --- */
-const gCanvas = document.getElementById('game-canvas');
-const gCtx = gCanvas.getContext('2d');
-let gameActive = false, score = 0, lives = 5, enemies = [], particles = [];
-let invaderCounter = 0;
-let lastHeartScore = 0;
-let lastBossScore = 0;
-
-function updateHUD() {
-    const scoreDisp = document.getElementById('score-display');
-    const livesDisp = document.getElementById('lives-display');
-    if(scoreDisp) scoreDisp.innerText = score;
-    if(livesDisp) livesDisp.innerText = "❤️".repeat(Math.max(0, lives));
-}
-
-function spawnEnemy(type = 'normal') {
-    let emoji = '👾'; let val = 100;
-    let speed = 2.5 + Math.random() * 3 + (score/8000);
-    if(type === 'ufo') { emoji = '🛸'; val = 500; }
-    if(type === 'rocket') { emoji = '🚀'; val = 300; speed += 2; }
-    if(type === 'heart') { emoji = '❤️'; val = 0; speed = 3; }
-    if(type === 'boss') { emoji = '👑'; val = 500; speed = 1.5; }
-    enemies.push({ x: Math.random()*(gCanvas.width-60), y: -60, s: speed, t: type, e: emoji, v: val });
-}
-
-function startDefense() {
-    gameActive = true; 
-    document.getElementById('game-container').style.display = 'block';
-    document.getElementById('game-over-screen').style.display = 'none';
-    gCanvas.width = window.innerWidth; gCanvas.height = window.innerHeight;
-    score = 0; lives = 5; enemies = []; particles = [];
-    invaderCounter = 0; lastHeartScore = 0; lastBossScore = 0;
-    updateHUD(); runGame();
-}
-
-function abortGame() {
-    gameActive = false;
-    document.getElementById('game-container').style.display = 'none';
-}
-
-function runGame() {
-    if(!gameActive) return;
-    gCtx.clearRect(0,0, gCanvas.width, gCanvas.height);
-
-    // APARICIÓN REDUCIDA A 0.018 PARA ELEGANCIA
-    if(Math.random() < 0.018) {
-        invaderCounter++;
-        if(invaderCounter >= 50) { spawnEnemy('rocket'); invaderCounter = 0; }
-        else { spawnEnemy(Math.random() < 0.08 ? 'ufo' : 'normal'); }
-    }
-
-    if(score > 0 && score % 5000 < 500 && score - lastHeartScore >= 5000) { spawnEnemy('heart'); lastHeartScore = score; }
-    if(score > 0 && score % 2000 < 500 && score - lastBossScore >= 2000) { spawnEnemy('boss'); lastBossScore = score; }
-
-    enemies.forEach((en, i) => {
-        en.y += en.s;
-        gCtx.font = en.t === 'boss' ? '70px serif' : '48px serif';
-        gCtx.fillText(en.e, en.x, en.y);
-        if(en.y > gCanvas.height) {
-            if(en.t !== 'heart') lives--; enemies.splice(i,1); updateHUD();
-        }
-    });
-
-    particles.forEach((p,i) => { p.x+=p.vx; p.y+=p.vy; p.a-=0.02; p.draw(); if(p.a<=0) particles.splice(i,1); });
-
-    if(lives <= 0) {
-        gameActive = false;
-        document.getElementById('final-score').innerText = score;
-        document.getElementById('game-over-screen').style.display = 'block';
-    } else requestAnimationFrame(runGame);
-}
-
-class Particle {
-    constructor(x,y, color = '#44CCFF') { this.x=x; this.y=y; this.vx=(Math.random()-0.5)*12; this.vy=(Math.random()-0.5)*12; this.a=1; this.c = color; }
-    draw() { gCtx.globalAlpha=this.a; gCtx.fillStyle=this.c; gCtx.fillRect(this.x,this.y,3,3); gCtx.globalAlpha=1; }
-}
-
-gCanvas.addEventListener('mousedown', (e) => {
-    const mx = e.clientX; const my = e.clientY;
-    enemies.forEach((en, i) => {
-        const dist = Math.hypot(mx - (en.x + 25), my - (en.y - 20));
-        if(dist < 55) {
-            score += en.v;
-            if(en.t === 'heart') lives += 1;
-            if(en.t === 'boss') lives += 2;
-            let pCol = en.t === 'ufo' ? '#FF44CC' : (en.t === 'boss' ? '#FFD700' : '#44CCFF');
-            for(let j=0; j<20; j++) particles.push(new Particle(en.x+25, en.y-20, pCol));
-            enemies.splice(i,1); updateHUD();
-        }
-    });
-});
-
-window.addEventListener('keydown', (e) => { if(e.key === "Escape") abortGame(); });
-
-/* --- LÓGICA DE DATOS --- */
-function setDiag(msg, color = "#44CCFF") {
-    const d = document.getElementById('diag');
-    if(d) { d.innerText = msg; d.style.borderLeftColor = color; }
-}
-function getLocalDate(){ return new Date(new Date().toLocaleString('en-US',{timeZone:"America/Tijuana"})); }
-function computeWeeklyTab(){
-    const d = getLocalDate(); const start = new Date(d.getFullYear(), 0, 1);
-    const days = Math.floor((d - start) / 86400000);
-    let week = Math.ceil((days + start.getDay() + 1) / 7);
-    if (d.getDay() < 3 || (d.getDay() === 3 && d.getHours() < 12)) week--;
-    return `W${week}`;
-}
-async function fetchSheet(id, range) {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${encodeURIComponent(range)}?key=${API_KEY}`;
-    try { const r = await fetch(url); return r.ok ? await r.json() : null; } catch (e) { return null; }
-}
-async function updateData() {
-    setDiag("📡 Sincronizando...");
-    const weeklyTab = computeWeeklyTab();
-    const master = await fetchSheet(WEEKLY_ID, `${weeklyTab}!A3:O96`);
-    if (!master) { setDiag("❌ Error Weekly", "#FF44CC"); return; }
-    const today = getLocalDate();
-    const fmt = today.toLocaleString('en-US', {month:'short', day:'2-digit'});
-    let daily = await fetchSheet(DAILY_ID, `${fmt}!A2:D100`);
-    if (!daily) daily = await fetchSheet(DAILY_ID, `Tabla_25!A2:D100`);
-    const dailyRows = daily?.values || [];
-    const agents = master.values.map(row => {
-        const id = (row[0] || "").toString().trim();
-        const name = (row[1] || "").toString().trim();
-        if (!id || !name) return null;
-        const match = dailyRows.find(d => (d[1] || "").toString().trim() === id);
-        return { name, today: match ? parseInt(match[2]) || 0 : 0, total: parseInt(row[14]) || 0 };
-    }).filter(x => x).sort((a,b) => b.today - a.today);
-    renderList(agents);
-    document.getElementById('totalTodayValue').innerText = agents.reduce((s, a) => s + a.today, 0);
-    document.getElementById('chipWeekly').innerText = `Week: ${weeklyTab}`;
-    document.getElementById('chipDaily').innerText = `Daily: ${daily ? (daily.range.split('!')[0]) : '---'}`;
-    setDiag("✅ Online");
-}
-function renderList(data) {
-    const tbody = document.querySelector("#tbl tbody"); if(!tbody) return;
-    tbody.innerHTML = "";
-    const maxT = Math.max(1, ...data.map(d => d.today));
-    const maxW = Math.max(1, ...data.map(d => d.total));
-    data.forEach((a, i) => {
-        tbody.innerHTML += `<tr><td>${i+1}</td><td style="text-align:left; font-weight:800">${a.name}</td><td><div class="bar today"><div class="fill" style="width:${(a.today/maxT)*100}%"></div><div class="value">${a.today}</div></div></td><td><div class="bar total"><div class="fill" style="width:${(a.total/maxW)*100}%"></div><div class="value">${a.total}</div></div></td></tr>`;
-    });
-}
+/* ==========================================================================
+   INICIALIZACIÓN MAESTRA
+   ========================================================================== */
 (async function init() {
     initMatrix(); setInterval(drawMatrix, 50);
+    initMiner(); // Arranca el minijuego de fondo
     await updateData(); setInterval(updateData, 60000);
 })();
 </script>
