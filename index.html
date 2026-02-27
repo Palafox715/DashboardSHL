@@ -3,7 +3,7 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>Leaderboard — Quartz Rift High-Fidelity</title>
+<title>Leaderboard — Quartz Rift Protocol V2</title>
 <style>
   :root{
     --vh: 1vh;
@@ -14,9 +14,6 @@
     --neon-blue: #44CCFF;
     --neon-purple: #FF44CC;
     --neon-red: #FF4444;
-    --neon-green: #44FF88;
-    --neon-yellow: #FFDD44;
-    --neon-white: #FFFFFF;
     
     --glow-blue: rgba(44, 204, 255, .6);
     --glow-purple: rgba(255, 68, 204, .5);
@@ -24,13 +21,13 @@
   
   html,body{ margin:0; min-height:100%; width:100%; background:var(--dark-bg); color:var(--ink); font-family:system-ui,-apple-system,sans-serif; overflow-x: hidden; overflow-y: auto; }
 
-  /* FONDO MATRIX Y GRADIENTES */
+  /* FONDO MATRIX Y GRADIENTES (INTACTOS) */
   #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; opacity: 0.12; pointer-events: none; }
   body::before, body::after{ content:""; position:fixed; inset:-20%; background: radial-gradient(40% 40% at 20% 20%, var(--glow-blue), transparent), radial-gradient(30% 30% at 50% 90%, var(--glow-purple), transparent); z-index:-1; pointer-events:none; mix-blend-mode:lighten; animation:float 22s linear infinite; }
   @keyframes float{ 0%, 100%{transform:translate3d(0,0,0)} 50%{transform:translate3d(2%, -2%, 0)} }
 
-  /* ESTRUCTURA DEL DASHBOARD */
-  #board{ position:relative; z-index:1; width:100vw; min-height:100vh; padding:calc(1.2*var(--vh)) calc(1.6*var(--vh)); box-sizing:border-box; display:flex;flex-direction:column;gap:calc(0.8*var(--vh)); max-width: 1300px; margin: 0 auto; }
+  /* ESTRUCTURA DEL DASHBOARD CENTRAL (INTACTA) */
+  #board{ position:relative; z-index:1; width:100vw; min-height:100vh; padding:calc(1.2*var(--vh)) calc(1.6*var(--vh)); box-sizing:border-box; display:flex;flex-direction:column;gap:calc(0.8*var(--vh)); max-width: 1300px; margin: 0 auto; transition: opacity 0.5s; }
   .top-header-flex{ display: flex; justify-content: space-between; align-items: center; gap: 10px; }
   .header-controls { display: flex; align-items: center; gap: 15px; }
   #dailyTotalDisplay{ background: var(--glass-strong); padding: 8px 16px; border-radius: 10px; border: 1px solid var(--neon-blue); box-shadow: 0 0 15px var(--glow-blue); text-align: right; }
@@ -50,46 +47,46 @@
   #diag { position: fixed; bottom: 10px; left: 10px; font-size: 10px; padding: 5px 10px; border-radius: 5px; background: rgba(0,0,0,0.8); border-left: 3px solid var(--neon-blue); z-index: 100; }
 
   /* =========================================
-     SISTEMA DE GRIETAS Y DIAMANTES PNG
+     CAPA DE MINERÍA DE ALTA FIDELIDAD (V2) 
      ========================================= */
-  .rift-overlay { position: fixed; top: 0; bottom: 0; width: 140px; z-index: 50; pointer-events: none; }
-  #rift-left { left: 0; background: linear-gradient(to right, rgba(0,0,0,0.9), transparent); border-right: 1px solid rgba(255,255,255,0.02); }
-  #rift-right { right: 0; background: linear-gradient(to left, rgba(0,0,0,0.9), transparent); border-left: 1px solid rgba(255,255,255,0.02); }
+  .rift-overlay { position: fixed; top: 0; bottom: 0; width: 150px; z-index: 50; pointer-events: none; }
+  #rift-left { left: 0; background: linear-gradient(to right, rgba(0,0,0,0.95), rgba(0,0,0,0.5) 70%, transparent); border-right: 1px solid rgba(255,255,255,0.02); }
+  #rift-right { right: 0; background: linear-gradient(to left, rgba(0,0,0,0.95), rgba(0,0,0,0.5) 70%, transparent); border-left: 1px solid rgba(255,255,255,0.02); }
 
-  /* Clase base para los minerales */
+  /* Nodos de Cristal PNG */
   .crystal-node {
     position: absolute; 
-    width: 65px; /* Tamaño más grande para lucir el PNG */
-    height: 80px; 
+    width: 60px; /* Tamaño optimizado para los PNG */
+    height: 70px; 
     pointer-events: auto;
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease, filter 0.4s ease;
+    /* Transición suave al "teletransportarse" y crecer */
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease, filter 0.4s ease, top 0.5s ease-in-out, left 0.5s ease-in-out, right 0.5s ease-in-out;
     cursor: not-allowed; 
-    opacity: 0.15; 
+    opacity: 0.1; 
     transform: scale(0.1);
-    /* Fallback temporal si no hay imagen: forma de diamante */
-    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    filter: brightness(0.5) grayscale(1); /* Estado inactivo/creciendo */
   }
   
-  /* ESTADO DE LISTO (ANIMACIÓN AGRESIVA) */
+  /* ESTADO DE LISTO (ANIMACIÓN NEÓN AGRESIVA) */
   .crystal-node.ready { 
     cursor: pointer; 
     opacity: 1; 
-    clip-path: none; /* Quitamos el clip-path para que el PNG se vea completo */
-    animation: levitate-glow 2s infinite alternate ease-in-out; 
+    filter: brightness(1.2) grayscale(0);
+    animation: levitate-neon-pulse 2s infinite alternate ease-in-out; 
   }
 
-  @keyframes levitate-glow {
+  @keyframes levitate-neon-pulse {
     0% { 
         transform: scale(1) translateY(0px); 
-        filter: drop-shadow(0 0 10px var(--node-color)) brightness(1.2); 
+        filter: drop-shadow(0 0 10px var(--node-color)) brightness(1.1); 
     }
     100% { 
         transform: scale(1.1) translateY(-10px); 
-        /* Doble sombra para un resplandor Neón masivo */
-        filter: drop-shadow(0 0 20px var(--node-color)) drop-shadow(0 0 40px var(--node-color)) brightness(1.8); 
+        /* Doble sombra para un resplandor Neón masivo sobre el borde PNG */
+        filter: drop-shadow(0 0 15px var(--node-color)) drop-shadow(0 0 30px var(--node-color)) brightness(1.5); 
     }
   }
 
@@ -99,6 +96,7 @@
     background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(10px);
     border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 20px;
     text-align: right; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-right: 3px solid #FFF;
+    transition: opacity 0.5s;
   }
   .vault-title { font-size: 10px; color: var(--ink); letter-spacing: 2px; opacity: 0.6; margin-bottom: 5px; }
   .vault-score { font-size: 38px; font-weight: 900; color: #FFF; line-height: 1; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
@@ -107,9 +105,12 @@
     position: fixed; font-weight: 900; font-size: 24px; z-index: 200; pointer-events: none;
     animation: floatUp 1s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
   }
-  @keyframes floatUp { 0% { transform: translateY(0) scale(0.5); opacity: 1; } 100% { transform: translateY(-60px) scale(1.5); opacity: 0; } }
+  @keyframes floatUp { 0% { transform: translateY(0) scale(0.5); opacity: 1; } 100% { transform: translateY(-70px) scale(1.5); opacity: 0; } }
 
-  @media (max-width: 768px) { .rift-overlay { width: 70px; } .crystal-node { width: 45px; height: 60px; } }
+  @media (max-width: 768px) {
+    .rift-overlay { width: 80px; }
+    .crystal-node { width: 50px; height: 60px; }
+  }
 </style>
 </head>
 <body>
@@ -117,11 +118,10 @@
 <canvas id="matrix-canvas"></canvas>
 
 <div id="rift-left" class="rift-overlay"></div>
-
 <div id="rift-right" class="rift-overlay"></div>
 
 <div id="vault-hud">
-    <div class="vault-title">BÓVEDA LOCAL (DATOS)</div>
+    <div class="vault-title">BÓVEDA </div>
     <div id="vault-score" class="vault-score">0</div>
 </div>
 
@@ -146,62 +146,58 @@
 
 <script>
 /* ==========================================================================
-   MÓDULO 1: LA GRIETA DE CUARZO (SOPORTE PNG Y 6 NODOS)
+   MÓDULO 1: LA GRIETA DE CUARZO V2 (PNG, 6 NODOS, POSICIONES DINÁMICAS)
    ========================================================================== */
 
-// SEÑOR: Aquí es donde usted alimentará sus PNGs. 
-// Sustituya "URL_DE_SU_IMAGEN.png" por el enlace de GitHub.
-const MINERALS = {
-    // GRIETA IZQUIERDA
-    blue:   { rift: 'left',  top: '20%', left: '30px', time: 1 * 60 * 1000, points: 100,  color: 'var(--neon-blue)',   img: 'URL_AZUL.png' },
-    yellow: { rift: 'left',  top: '50%', left: '45px', time: 3 * 60 * 1000, points: 400,  color: 'var(--neon-yellow)', img: 'URL_AMARILLO.png' },
-    purple: { rift: 'left',  top: '80%', left: '25px', time: 8 * 60 * 1000, points: 1200, color: 'var(--neon-purple)', img: 'URL_MORADO.png' },
-    
-    // GRIETA DERECHA
-    green:  { rift: 'right', top: '30%', right: '35px', time: 2 * 60 * 1000, points: 250,  color: 'var(--neon-green)', img: 'URL_VERDE.png' },
-    red:    { rift: 'right', top: '60%', right: '20px', time: 5 * 60 * 1000, points: 750,  color: 'var(--neon-red)',   img: 'URL_ROJO.png' },
-    prism:  { rift: 'right', top: '85%', right: '40px', time: 10 * 60 * 1000,points: 2000, color: 'var(--neon-white)', img: 'URL_DIAMANTE.png' }
+// Definición de Gemas y Activos sumistrados
+const GEM_TYPES = {
+    blue:   { points: 250,  time: 1 * 60 * 1000, color: 'var(--neon-blue)',   img: 'https://i.ibb.co/7sBBH4c/pngwing-com-1.png' }, // Diamante Azul: 1 Min
+    red:    { points: 500,  time: 5 * 60 * 1000, color: 'var(--neon-red)',    img: 'https://i.ibb.co/XZrXPwGc/pngwing-com.png' },   // Rubí Rojo: 5 Min
+    purple: { points: 1000, time: 10 * 60 * 1000,color: 'var(--neon-purple)', img: 'https://i.ibb.co/4gwYj5LG/pngegg.png' }        // Cuarzo Morado: 10 Min
+};
+
+// 6 Ranuras de minería activas (3 por lado)
+const ACTIVE_SLOTS = [
+    { id: 'L1', side: 'left',  type: 'blue' },
+    { id: 'L2', side: 'left',  type: 'purple' },
+    { id: 'L3', side: 'left',  type: 'blue' },
+    { id: 'R1', side: 'right', type: 'red' },
+    { id: 'R2', side: 'right', type: 'blue' },
+    { id: 'R3', side: 'right', type: 'red' }
+];
+
+// Malla de posibles coordenadas (Evita superposiciones)
+const POSITIONS_POOL = {
+    left:  [ {t:'15%', l:'20px'}, {t:'30%', l:'50px'}, {t:'45%', l:'15px'}, {t:'60%', l:'45px'}, {t:'75%', l:'25px'}, {t:'88%', l:'55px'} ],
+    right: [ {t:'18%', r:'20px'}, {t:'33%', r:'50px'}, {t:'48%', r:'15px'}, {t:'63%', r:'45px'}, {t:'78%', r:'25px'}, {t:'90%', r:'55px'} ]
 };
 
 let localVault = 0;
+let occupiedPositions = { left: new Set(), right: new Set() };
 
 function initMiner() {
-    localVault = parseInt(localStorage.getItem('qv_vault')) || 0;
+    localVault = parseInt(localStorage.getItem('qv_vault_v2')) || 0;
     updateVaultUI();
 
-    // Inyectar los nodos en el HTML dinámicamente
-    Object.keys(MINERALS).forEach(key => {
-        const min = MINERALS[key];
-        const riftEl = document.getElementById(`rift-${min.rift}`);
+    ACTIVE_SLOTS.forEach(slot => {
+        const gem = GEM_TYPES[slot.type];
+        const riftEl = document.getElementById(`rift-${slot.side}`);
         
+        // Crear elemento DOM
         const node = document.createElement('div');
-        node.id = `node-${key}`;
+        node.id = `gem-${slot.id}`;
         node.className = 'crystal-node';
-        node.onclick = () => mineCrystal(key);
-        
-        // Posicionamiento
-        node.style.top = min.top;
-        if(min.left) node.style.left = min.left;
-        if(min.right) node.style.right = min.right;
-        
-        // Asignación del color para el resplandor Neón
-        node.style.setProperty('--node-color', min.color);
-        
-        // SOPORTE PNG O FALLBACK:
-        // Si usted sube una imagen real, cambiará el background. Si no, usa el color base de fondo.
-        if(min.img.startsWith('http') || min.img.endsWith('.png')) {
-            node.style.backgroundImage = `url('${min.img}')`;
-            node.style.backgroundColor = 'transparent';
-            node.style.clipPath = 'none'; // Desactiva la forma CSS para ver el PNG
-        } else {
-            node.style.backgroundColor = min.color; // Placeholder
-        }
-
+        node.style.backgroundImage = `url('${gem.img}')`;
+        node.style.setProperty('--node-color', gem.color);
+        node.onclick = () => mineCrystal(slot.id);
         riftEl.appendChild(node);
 
-        // Control de tiempo
-        if (!localStorage.getItem(`qv_time_${key}`)) {
-            localStorage.setItem(`qv_time_${key}`, Date.now());
+        // Control de tiempo y posición persistente
+        if (!localStorage.getItem(`qv_time_v2_${slot.id}`)) {
+            localStorage.setItem(`qv_time_v2_${slot.id}`, Date.now());
+            assignNewRandomPosition(slot.id); // Primera posición
+        } else {
+            loadStoredPosition(slot.id); // Cargar posición guardada
         }
     });
 
@@ -209,44 +205,98 @@ function initMiner() {
     checkGrowth();
 }
 
+function assignNewRandomPosition(slotId) {
+    const slot = ACTIVE_SLOTS.find(s => s.id === slotId);
+    const pool = POSITIONS_POOL[slot.side];
+    const el = document.getElementById(`gem-${slotId}`);
+
+    // Liberar posición antigua si existe
+    const oldPosIdx = localStorage.getItem(`qv_pos_v2_${slotId}`);
+    if (oldPosIdx !== null) occupiedPositions[slot.side].delete(parseInt(oldPosIdx));
+
+    // Buscar nueva posición no ocupada
+    let newIdx;
+    let attempts = 0;
+    do {
+        newIdx = Math.floor(Math.random() * pool.length);
+        attempts++;
+    } while (occupiedPositions[slot.side].has(newIdx) && attempts < 20);
+
+    // Bloquear y aplicar nueva posición
+    occupiedPositions[slot.side].add(newIdx);
+    localStorage.setItem(`qv_pos_v2_${slotId}`, newIdx);
+    
+    const pos = pool[newIdx];
+    el.style.top = pos.t;
+    // resetear ejes horizontales
+    el.style.left = ''; el.style.right = ''; 
+    if(slot.side === 'left') el.style.left = pos.l;
+    else el.style.right = pos.r;
+}
+
+function loadStoredPosition(slotId) {
+    const slot = ACTIVE_SLOTS.find(s => s.id === slotId);
+    const posIdx = parseInt(localStorage.getItem(`qv_pos_v2_${slotId}`));
+    const el = document.getElementById(`gem-${slotId}`);
+    
+    // Si por alguna razón no hay posición guardada (error de storage), asignar una
+    if (isNaN(posIdx)) { assignNewRandomPosition(slotId); return; }
+
+    occupiedPositions[slot.side].add(posIdx);
+    const pos = POSITIONS_POOL[slot.side][posIdx];
+    el.style.top = pos.t;
+    if(slot.side === 'left') el.style.left = pos.l;
+    else el.style.right = pos.r;
+}
+
 function checkGrowth() {
     const now = Date.now();
-    Object.keys(MINERALS).forEach(key => {
-        const min = MINERALS[key];
-        const el = document.getElementById(`node-${key}`);
-        const lastMined = parseInt(localStorage.getItem(`qv_time_${key}`));
+    ACTIVE_SLOTS.forEach(slot => {
+        const gem = GEM_TYPES[slot.type];
+        const el = document.getElementById(`gem-${slot.id}`);
+        const lastMined = parseInt(localStorage.getItem(`qv_time_v2_${slot.id}`));
         
         const elapsed = now - lastMined;
-        const progress = Math.min(elapsed / min.time, 1.0);
+        const progress = Math.min(elapsed / gem.time, 1.0);
 
         if (progress >= 1.0) {
             if (!el.classList.contains('ready')) {
                 el.classList.add('ready');
                 el.style.transform = `scale(1)`;
-                el.style.opacity = `1`;
             }
         } else {
             el.classList.remove('ready');
-            const scale = 0.2 + (progress * 0.7); 
-            const opacity = 0.2 + (progress * 0.5);
+            // Crecimiento visual: escala 0.1 a 0.9, opacidad 0.1 a 0.6
+            const scale = 0.1 + (progress * 0.8); 
+            const opacity = 0.1 + (progress * 0.5);
             el.style.transform = `scale(${scale})`;
             el.style.opacity = opacity;
         }
     });
 }
 
-function mineCrystal(key) {
-    const el = document.getElementById(`node-${key}`);
+function mineCrystal(slotId) {
+    const el = document.getElementById(`gem-${slotId}`);
     if (!el.classList.contains('ready')) return;
 
-    const pointsGained = MINERALS[key].points;
-    localVault += pointsGained;
-    localStorage.setItem('qv_vault', localVault);
-    localStorage.setItem(`qv_time_${key}`, Date.now());
+    const slot = ACTIVE_SLOTS.find(s => s.id === slotId);
+    const gem = GEM_TYPES[slot.type];
+
+    // 1. Sumar puntos
+    localVault += gem.points;
+    localStorage.setItem('qv_vault_v2', localVault);
     
+    // 2. Reiniciar temporizador
+    localStorage.setItem(`qv_time_v2_${slotId}`, Date.now());
+    
+    // 3. Feedback Visual y HUD
     el.classList.remove('ready');
-    updateVaultUI(MINERALS[key].color);
-    spawnFloatingText(pointsGained, MINERALS[key].color, el);
+    updateVaultUI(gem.color);
+    spawnFloatingText(gem.points, gem.color, el);
+    
+    // 4. CAMBIO DE POSICIÓN DINÁMICO (Teletransportación)
+    assignNewRandomPosition(slotId);
+
     checkGrowth();
 }
 
@@ -290,10 +340,10 @@ function computeWeeklyTab(){ const d = getLocalDate(); const start = new Date(d.
 async function fetchSheet(id, range) { try { const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${encodeURIComponent(range)}?key=${API_KEY}`); return r.ok ? await r.json() : null; } catch (e) { return null; } }
 
 async function updateData() {
-    setDiag("📡 Sincronizando Uplink...");
+    setDiag("📡 Sincronizandouplink...");
     const weeklyTab = computeWeeklyTab();
     const master = await fetchSheet(WEEKLY_ID, `${weeklyTab}!A3:O96`);
-    if (!master) { setDiag("❌ Error Weekly", "#FF44CC"); return; }
+    if (!master) { setDiag("❌ Error Weekly Sheets", "#FF44CC"); return; }
     const today = getLocalDate(); const fmt = today.toLocaleString('en-US', {month:'short', day:'2-digit'});
     let daily = await fetchSheet(DAILY_ID, `${fmt}!A2:D100`);
     if (!daily) daily = await fetchSheet(DAILY_ID, `Tabla_25!A2:D100`);
@@ -320,7 +370,12 @@ const mCanvas = document.getElementById('matrix-canvas'); const mCtx = mCanvas.g
 function initMatrix() { mw = mCanvas.width = window.innerWidth; mh = mCanvas.height = window.innerHeight; mCols = Math.floor(mw / 25); mYpos = Array(mCols).fill(0); }
 function drawMatrix() { mCtx.fillStyle = 'rgba(10, 10, 10, 0.1)'; mCtx.fillRect(0, 0, mw, mh); mCtx.fillStyle = '#44CCFF'; mCtx.font = '15px monospace'; mYpos.forEach((y, i) => { mCtx.fillText(String.fromCharCode(0x30A0 + Math.random() * 96), i * 25, y); mYpos[i] = y > 100 + Math.random() * 10000 ? 0 : y + 20; }); }
 
-(async function init() { initMatrix(); setInterval(drawMatrix, 50); initMiner(); await updateData(); setInterval(updateData, 60000); })();
+/* INICIALIZACIÓN MAESTRA */
+(async function init() { 
+    initMatrix(); setInterval(drawMatrix, 50); 
+    initMiner(); // Iniciar capa de minería V2
+    await updateData(); setInterval(updateData, 60000); 
+})();
 </script>
 </body>
 </html>
