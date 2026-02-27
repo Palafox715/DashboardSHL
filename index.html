@@ -3,7 +3,7 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>Leaderboard — Quartz Rift Protocol V2</title>
+<title>Leaderboard — Quartz Rift Protocol V3 (24 Nodes)</title>
 <style>
   :root{
     --vh: 1vh;
@@ -21,13 +21,13 @@
   
   html,body{ margin:0; min-height:100%; width:100%; background:var(--dark-bg); color:var(--ink); font-family:system-ui,-apple-system,sans-serif; overflow-x: hidden; overflow-y: auto; }
 
-  /* FONDO MATRIX Y GRADIENTES (INTACTOS) */
+  /* FONDO MATRIX Y GRADIENTES */
   #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; opacity: 0.12; pointer-events: none; }
   body::before, body::after{ content:""; position:fixed; inset:-20%; background: radial-gradient(40% 40% at 20% 20%, var(--glow-blue), transparent), radial-gradient(30% 30% at 50% 90%, var(--glow-purple), transparent); z-index:-1; pointer-events:none; mix-blend-mode:lighten; animation:float 22s linear infinite; }
   @keyframes float{ 0%, 100%{transform:translate3d(0,0,0)} 50%{transform:translate3d(2%, -2%, 0)} }
 
-  /* ESTRUCTURA DEL DASHBOARD CENTRAL (INTACTA) */
-  #board{ position:relative; z-index:1; width:100vw; min-height:100vh; padding:calc(1.2*var(--vh)) calc(1.6*var(--vh)); box-sizing:border-box; display:flex;flex-direction:column;gap:calc(0.8*var(--vh)); max-width: 1300px; margin: 0 auto; transition: opacity 0.5s; }
+  /* ESTRUCTURA DEL DASHBOARD CENTRAL */
+  #board{ position:relative; z-index:1; width:100vw; min-height:100vh; padding:calc(1.2*var(--vh)) calc(1.6*var(--vh)); box-sizing:border-box; display:flex;flex-direction:column;gap:calc(0.8*var(--vh)); max-width: 1200px; margin: 0 auto; transition: opacity 0.5s; }
   .top-header-flex{ display: flex; justify-content: space-between; align-items: center; gap: 10px; }
   .header-controls { display: flex; align-items: center; gap: 15px; }
   #dailyTotalDisplay{ background: var(--glass-strong); padding: 8px 16px; border-radius: 10px; border: 1px solid var(--neon-blue); box-shadow: 0 0 15px var(--glow-blue); text-align: right; }
@@ -47,70 +47,39 @@
   #diag { position: fixed; bottom: 10px; left: 10px; font-size: 10px; padding: 5px 10px; border-radius: 5px; background: rgba(0,0,0,0.8); border-left: 3px solid var(--neon-blue); z-index: 100; }
 
   /* =========================================
-     CAPA DE MINERÍA DE ALTA FIDELIDAD (V2) 
+     CAPA DE MINERÍA DE ALTA FIDELIDAD (24 NODOS) 
      ========================================= */
-  .rift-overlay { position: fixed; top: 0; bottom: 0; width: 150px; z-index: 50; pointer-events: none; }
-  #rift-left { left: 0; background: linear-gradient(to right, rgba(0,0,0,0.95), rgba(0,0,0,0.5) 70%, transparent); border-right: 1px solid rgba(255,255,255,0.02); }
-  #rift-right { right: 0; background: linear-gradient(to left, rgba(0,0,0,0.95), rgba(0,0,0,0.5) 70%, transparent); border-left: 1px solid rgba(255,255,255,0.02); }
+  .rift-overlay { position: fixed; top: 0; bottom: 0; width: 200px; z-index: 50; pointer-events: none; }
+  #rift-left { left: 0; background: linear-gradient(to right, rgba(0,0,0,0.95), rgba(0,0,0,0.4) 80%, transparent); border-right: 1px solid rgba(255,255,255,0.02); }
+  #rift-right { right: 0; background: linear-gradient(to left, rgba(0,0,0,0.95), rgba(0,0,0,0.4) 80%, transparent); border-left: 1px solid rgba(255,255,255,0.02); }
 
-  /* Nodos de Cristal PNG */
   .crystal-node {
     position: absolute; 
-    width: 60px; /* Tamaño optimizado para los PNG */
-    height: 70px; 
-    pointer-events: auto;
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
-    /* Transición suave al "teletransportarse" y crecer */
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease, filter 0.4s ease, top 0.5s ease-in-out, left 0.5s ease-in-out, right 0.5s ease-in-out;
-    cursor: not-allowed; 
-    opacity: 0.1; 
-    transform: scale(0.1);
-    filter: brightness(0.5) grayscale(1); /* Estado inactivo/creciendo */
+    width: 60px; height: 70px; 
+    pointer-events: auto; background-size: contain; background-position: center; background-repeat: no-repeat;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease, filter 0.4s ease, top 0.6s ease-in-out, left 0.6s ease-in-out, right 0.6s ease-in-out;
+    cursor: not-allowed; opacity: 0.1; transform: scale(0.1); filter: brightness(0.5) grayscale(1);
   }
   
-  /* ESTADO DE LISTO (ANIMACIÓN NEÓN AGRESIVA) */
-  .crystal-node.ready { 
-    cursor: pointer; 
-    opacity: 1; 
-    filter: brightness(1.2) grayscale(0);
-    animation: levitate-neon-pulse 2s infinite alternate ease-in-out; 
-  }
+  .crystal-node.ready { cursor: pointer; opacity: 1; filter: brightness(1.2) grayscale(0); animation: levitate-neon-pulse 2s infinite alternate ease-in-out; }
 
   @keyframes levitate-neon-pulse {
-    0% { 
-        transform: scale(1) translateY(0px); 
-        filter: drop-shadow(0 0 10px var(--node-color)) brightness(1.1); 
-    }
-    100% { 
-        transform: scale(1.1) translateY(-10px); 
-        /* Doble sombra para un resplandor Neón masivo sobre el borde PNG */
-        filter: drop-shadow(0 0 15px var(--node-color)) drop-shadow(0 0 30px var(--node-color)) brightness(1.5); 
-    }
+    0% { transform: scale(1) translateY(0px); filter: drop-shadow(0 0 10px var(--node-color)) brightness(1.1); }
+    100% { transform: scale(1.1) translateY(-10px); filter: drop-shadow(0 0 15px var(--node-color)) drop-shadow(0 0 30px var(--node-color)) brightness(1.5); }
   }
 
   /* BÓVEDA LOCAL */
   #vault-hud {
-    position: fixed; bottom: 30px; right: 30px; z-index: 100;
-    background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 20px;
-    text-align: right; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-right: 3px solid #FFF;
-    transition: opacity 0.5s;
+    position: fixed; bottom: 30px; right: 30px; z-index: 100; background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 20px; text-align: right; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-right: 3px solid #FFF; transition: opacity 0.5s;
   }
   .vault-title { font-size: 10px; color: var(--ink); letter-spacing: 2px; opacity: 0.6; margin-bottom: 5px; }
   .vault-score { font-size: 38px; font-weight: 900; color: #FFF; line-height: 1; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
   
-  .floating-text {
-    position: fixed; font-weight: 900; font-size: 24px; z-index: 200; pointer-events: none;
-    animation: floatUp 1s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
-  }
+  .floating-text { position: fixed; font-weight: 900; font-size: 24px; z-index: 200; pointer-events: none; animation: floatUp 1s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; }
   @keyframes floatUp { 0% { transform: translateY(0) scale(0.5); opacity: 1; } 100% { transform: translateY(-70px) scale(1.5); opacity: 0; } }
 
-  @media (max-width: 768px) {
-    .rift-overlay { width: 80px; }
-    .crystal-node { width: 50px; height: 60px; }
-  }
+  @media (max-width: 768px) { .rift-overlay { width: 80px; } .crystal-node { width: 45px; height: 55px; } }
 </style>
 </head>
 <body>
@@ -121,7 +90,7 @@
 <div id="rift-right" class="rift-overlay"></div>
 
 <div id="vault-hud">
-    <div class="vault-title">BÓVEDA </div>
+    <div class="vault-title">BÓVEDA LOCAL (DATOS)</div>
     <div id="vault-score" class="vault-score">0</div>
 </div>
 
@@ -146,36 +115,38 @@
 
 <script>
 /* ==========================================================================
-   MÓDULO 1: LA GRIETA DE CUARZO V2 (PNG, 6 NODOS, POSICIONES DINÁMICAS)
+   MÓDULO 1: LA GRIETA DE CUARZO V3 (24 NODOS, CLUSTERING ORGÁNICO)
    ========================================================================== */
 
-// Definición de Gemas y Activos sumistrados
 const GEM_TYPES = {
-    blue:   { points: 250,  time: 1 * 60 * 1000, color: 'var(--neon-blue)',   img: 'https://i.ibb.co/7sBBH4c/pngwing-com-1.png' }, // Diamante Azul: 1 Min
-    red:    { points: 500,  time: 5 * 60 * 1000, color: 'var(--neon-red)',    img: 'https://i.ibb.co/XZrXPwGc/pngwing-com.png' },   // Rubí Rojo: 5 Min
-    purple: { points: 1000, time: 10 * 60 * 1000,color: 'var(--neon-purple)', img: 'https://i.ibb.co/4gwYj5LG/pngegg.png' }        // Cuarzo Morado: 10 Min
+    blue:   { points: 250,  time: 1 * 60 * 1000, color: 'var(--neon-blue)',   img: 'https://i.ibb.co/7sBBH4c/pngwing-com-1.png' },
+    red:    { points: 500,  time: 5 * 60 * 1000, color: 'var(--neon-red)',    img: 'https://i.ibb.co/XZrXPwGc/pngwing-com.png' },
+    purple: { points: 1000, time: 10 * 60 * 1000,color: 'var(--neon-purple)', img: 'https://i.ibb.co/4gwYj5LG/pngegg.png' }
 };
 
-// 6 Ranuras de minería activas (3 por lado)
-const ACTIVE_SLOTS = [
-    { id: 'L1', side: 'left',  type: 'blue' },
-    { id: 'L2', side: 'left',  type: 'purple' },
-    { id: 'L3', side: 'left',  type: 'blue' },
-    { id: 'R1', side: 'right', type: 'red' },
-    { id: 'R2', side: 'right', type: 'blue' },
-    { id: 'R3', side: 'right', type: 'red' }
-];
+// Generación Dinámica de 24 Nodos (12 Izquierda, 12 Derecha)
+const ACTIVE_SLOTS = [];
+for(let i=1; i<=12; i++) {
+    // Proporción por lado: 6 Azules (rápidos), 4 Rojos (medios), 2 Morados (lentos)
+    let type = i <= 6 ? 'blue' : (i <= 10 ? 'red' : 'purple');
+    ACTIVE_SLOTS.push({ id: `L${i}`, side: 'left', type: type });
+    ACTIVE_SLOTS.push({ id: `R${i}`, side: 'right', type: type });
+}
 
-// Malla de posibles coordenadas (Evita superposiciones)
-const POSITIONS_POOL = {
-    left:  [ {t:'15%', l:'20px'}, {t:'30%', l:'50px'}, {t:'45%', l:'15px'}, {t:'60%', l:'45px'}, {t:'75%', l:'25px'}, {t:'88%', l:'55px'} ],
-    right: [ {t:'18%', r:'20px'}, {t:'33%', r:'50px'}, {t:'48%', r:'15px'}, {t:'63%', r:'45px'}, {t:'78%', r:'25px'}, {t:'90%', r:'55px'} ]
-};
+// Algoritmo de Malla Zig-Zag para Posicionamiento (30 slots por lado)
+const POSITIONS_POOL = { left: [], right: [] };
+const cols = ['15px', '75px', '135px', '45px', '105px'];
+for(let i=0; i<30; i++) {
+    let topPct = 2 + (i * 3.1); // Va desde el 2% hasta el 92% verticalmente
+    POSITIONS_POOL.left.push({ t: `${topPct}%`, l: cols[i % cols.length] });
+    POSITIONS_POOL.right.push({ t: `${topPct}%`, r: cols[i % cols.length] });
+}
 
 let localVault = 0;
 let occupiedPositions = { left: new Set(), right: new Set() };
 
 function initMiner() {
+    // Mantenemos el progreso del puntaje (v2), pero renovamos el layout (v3)
     localVault = parseInt(localStorage.getItem('qv_vault_v2')) || 0;
     updateVaultUI();
 
@@ -183,7 +154,6 @@ function initMiner() {
         const gem = GEM_TYPES[slot.type];
         const riftEl = document.getElementById(`rift-${slot.side}`);
         
-        // Crear elemento DOM
         const node = document.createElement('div');
         node.id = `gem-${slot.id}`;
         node.className = 'crystal-node';
@@ -192,12 +162,11 @@ function initMiner() {
         node.onclick = () => mineCrystal(slot.id);
         riftEl.appendChild(node);
 
-        // Control de tiempo y posición persistente
-        if (!localStorage.getItem(`qv_time_v2_${slot.id}`)) {
-            localStorage.setItem(`qv_time_v2_${slot.id}`, Date.now());
-            assignNewRandomPosition(slot.id); // Primera posición
+        if (!localStorage.getItem(`qv_time_v3_${slot.id}`)) {
+            localStorage.setItem(`qv_time_v3_${slot.id}`, Date.now());
+            assignNewRandomPosition(slot.id);
         } else {
-            loadStoredPosition(slot.id); // Cargar posición guardada
+            loadStoredPosition(slot.id);
         }
     });
 
@@ -210,25 +179,20 @@ function assignNewRandomPosition(slotId) {
     const pool = POSITIONS_POOL[slot.side];
     const el = document.getElementById(`gem-${slotId}`);
 
-    // Liberar posición antigua si existe
-    const oldPosIdx = localStorage.getItem(`qv_pos_v2_${slotId}`);
+    const oldPosIdx = localStorage.getItem(`qv_pos_v3_${slotId}`);
     if (oldPosIdx !== null) occupiedPositions[slot.side].delete(parseInt(oldPosIdx));
 
-    // Buscar nueva posición no ocupada
-    let newIdx;
-    let attempts = 0;
+    let newIdx; let attempts = 0;
     do {
         newIdx = Math.floor(Math.random() * pool.length);
         attempts++;
-    } while (occupiedPositions[slot.side].has(newIdx) && attempts < 20);
+    } while (occupiedPositions[slot.side].has(newIdx) && attempts < 25);
 
-    // Bloquear y aplicar nueva posición
     occupiedPositions[slot.side].add(newIdx);
-    localStorage.setItem(`qv_pos_v2_${slotId}`, newIdx);
+    localStorage.setItem(`qv_pos_v3_${slotId}`, newIdx);
     
     const pos = pool[newIdx];
     el.style.top = pos.t;
-    // resetear ejes horizontales
     el.style.left = ''; el.style.right = ''; 
     if(slot.side === 'left') el.style.left = pos.l;
     else el.style.right = pos.r;
@@ -236,17 +200,15 @@ function assignNewRandomPosition(slotId) {
 
 function loadStoredPosition(slotId) {
     const slot = ACTIVE_SLOTS.find(s => s.id === slotId);
-    const posIdx = parseInt(localStorage.getItem(`qv_pos_v2_${slotId}`));
+    const posIdx = parseInt(localStorage.getItem(`qv_pos_v3_${slotId}`));
     const el = document.getElementById(`gem-${slotId}`);
     
-    // Si por alguna razón no hay posición guardada (error de storage), asignar una
     if (isNaN(posIdx)) { assignNewRandomPosition(slotId); return; }
 
     occupiedPositions[slot.side].add(posIdx);
     const pos = POSITIONS_POOL[slot.side][posIdx];
     el.style.top = pos.t;
-    if(slot.side === 'left') el.style.left = pos.l;
-    else el.style.right = pos.r;
+    if(slot.side === 'left') el.style.left = pos.l; else el.style.right = pos.r;
 }
 
 function checkGrowth() {
@@ -254,7 +216,7 @@ function checkGrowth() {
     ACTIVE_SLOTS.forEach(slot => {
         const gem = GEM_TYPES[slot.type];
         const el = document.getElementById(`gem-${slot.id}`);
-        const lastMined = parseInt(localStorage.getItem(`qv_time_v2_${slot.id}`));
+        const lastMined = parseInt(localStorage.getItem(`qv_time_v3_${slot.id}`));
         
         const elapsed = now - lastMined;
         const progress = Math.min(elapsed / gem.time, 1.0);
@@ -266,7 +228,6 @@ function checkGrowth() {
             }
         } else {
             el.classList.remove('ready');
-            // Crecimiento visual: escala 0.1 a 0.9, opacidad 0.1 a 0.6
             const scale = 0.1 + (progress * 0.8); 
             const opacity = 0.1 + (progress * 0.5);
             el.style.transform = `scale(${scale})`;
@@ -282,21 +243,15 @@ function mineCrystal(slotId) {
     const slot = ACTIVE_SLOTS.find(s => s.id === slotId);
     const gem = GEM_TYPES[slot.type];
 
-    // 1. Sumar puntos
     localVault += gem.points;
     localStorage.setItem('qv_vault_v2', localVault);
+    localStorage.setItem(`qv_time_v3_${slotId}`, Date.now());
     
-    // 2. Reiniciar temporizador
-    localStorage.setItem(`qv_time_v2_${slotId}`, Date.now());
-    
-    // 3. Feedback Visual y HUD
     el.classList.remove('ready');
     updateVaultUI(gem.color);
     spawnFloatingText(gem.points, gem.color, el);
     
-    // 4. CAMBIO DE POSICIÓN DINÁMICO (Teletransportación)
     assignNewRandomPosition(slotId);
-
     checkGrowth();
 }
 
@@ -340,7 +295,7 @@ function computeWeeklyTab(){ const d = getLocalDate(); const start = new Date(d.
 async function fetchSheet(id, range) { try { const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${encodeURIComponent(range)}?key=${API_KEY}`); return r.ok ? await r.json() : null; } catch (e) { return null; } }
 
 async function updateData() {
-    setDiag("📡 Sincronizandouplink...");
+    setDiag("📡 Sincronizando Uplink...");
     const weeklyTab = computeWeeklyTab();
     const master = await fetchSheet(WEEKLY_ID, `${weeklyTab}!A3:O96`);
     if (!master) { setDiag("❌ Error Weekly Sheets", "#FF44CC"); return; }
@@ -373,7 +328,7 @@ function drawMatrix() { mCtx.fillStyle = 'rgba(10, 10, 10, 0.1)'; mCtx.fillRect(
 /* INICIALIZACIÓN MAESTRA */
 (async function init() { 
     initMatrix(); setInterval(drawMatrix, 50); 
-    initMiner(); // Iniciar capa de minería V2
+    initMiner(); 
     await updateData(); setInterval(updateData, 60000); 
 })();
 </script>
