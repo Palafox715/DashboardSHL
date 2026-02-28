@@ -3,7 +3,7 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>Leaderboard — Guardian Protocol: Evolution</title>
+<title>Leaderboard — Guardian Protocol: Apex Evolution</title>
 <style>
   :root{
     --vh: 1vh;
@@ -16,12 +16,13 @@
     --neon-red: #FF4444;
     --neon-yellow: #FFDD44;
     --neon-green: #44FF88;
+    --neon-white: #FFFFFF;
     
     --glow-blue: rgba(44, 204, 255, .6);
     --glow-purple: rgba(255, 68, 204, .5);
   }
   
-  html,body{ margin:0; min-height:100%; width:100%; background:var(--dark-bg); color:var(--ink); font-family:system-ui,-apple-system,sans-serif; overflow-x: hidden; overflow-y: hidden; }
+  html,body{ margin:0; min-height:100%; width:100%; background:var(--dark-bg); color:var(--ink); font-family:system-ui,-apple-system,sans-serif; overflow: hidden; }
 
   /* FONDO MATRIX Y GRADIENTES */
   #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; opacity: 0.12; pointer-events: none; }
@@ -49,7 +50,7 @@
   #diag { position: fixed; top: 10px; left: 10px; font-size: 10px; padding: 5px 10px; border-radius: 5px; background: rgba(0,0,0,0.8); border-left: 3px solid var(--neon-blue); z-index: 100; }
 
   /* =========================================
-     CAPA DE MINERÍA DE ALTA FIDELIDAD (24 NODOS) 
+     CAPA DE MINERÍA (24 NODOS)
      ========================================= */
   .rift-overlay { position: fixed; top: 0; bottom: 0; width: 200px; z-index: 50; pointer-events: none; }
   #rift-left { left: 0; background: linear-gradient(to right, rgba(0,0,0,0.95), rgba(0,0,0,0.4) 80%, transparent); border-right: 1px solid rgba(255,255,255,0.02); }
@@ -61,67 +62,72 @@
     cursor: not-allowed; opacity: 0.1; transform: scale(0.1); filter: brightness(0.5) grayscale(1);
   }
   .crystal-node.ready { cursor: pointer; opacity: 1; filter: brightness(1.2) grayscale(0); animation: levitate-neon-pulse 2s infinite alternate ease-in-out; }
-
-  @keyframes levitate-neon-pulse {
-    0% { transform: scale(1) translateY(0px); filter: drop-shadow(0 0 10px var(--node-color)) brightness(1.1); }
-    100% { transform: scale(1.1) translateY(-10px); filter: drop-shadow(0 0 15px var(--node-color)) drop-shadow(0 0 30px var(--node-color)) brightness(1.5); }
-  }
+  @keyframes levitate-neon-pulse { 0% { transform: scale(1) translateY(0px); filter: drop-shadow(0 0 10px var(--node-color)) brightness(1.1); } 100% { transform: scale(1.1) translateY(-10px); filter: drop-shadow(0 0 15px var(--node-color)) drop-shadow(0 0 30px var(--node-color)) brightness(1.5); } }
 
   /* BÓVEDA LOCAL */
-  #vault-hud {
-    position: fixed; top: 30px; right: 30px; z-index: 100; background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 15px 25px; text-align: right; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-right: 3px solid #FFF; transition: border-color 0.5s;
-  }
+  #vault-hud { position: fixed; top: 30px; right: 30px; z-index: 100; background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 15px 25px; text-align: right; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-right: 3px solid #FFF; transition: border-color 0.5s; }
   .vault-title { font-size: 10px; color: var(--ink); letter-spacing: 2px; opacity: 0.6; margin-bottom: 5px; }
   .vault-score { font-size: 32px; font-weight: 900; color: #FFF; line-height: 1; text-shadow: 0 0 10px rgba(255,255,255,0.5); transition: color 0.3s; }
   .floating-text { position: fixed; font-weight: 900; font-size: 24px; z-index: 200; pointer-events: none; animation: floatUp 1s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; }
   @keyframes floatUp { 0% { transform: translateY(0) scale(0.5); opacity: 1; } 100% { transform: translateY(-70px) scale(1.5); opacity: 0; } }
 
   /* =========================================
-     SUBSISTEMA GUARDIÁN (LÍNEA EVOLUTIVA POKÉMON)
+     SUBSISTEMA GUARDIÁN Y EVOLUCIÓN
      ========================================= */
-  #guardian-area { position: fixed; bottom: 0; left: 0; width: 100vw; height: 120px; z-index: 90; pointer-events: none; }
+  #guardian-area { position: fixed; bottom: 0; left: 0; width: 100vw; height: 100vh; z-index: 90; pointer-events: none; }
   
-  /* Contenedor de Movimiento (Para no estropear animaciones de acción) */
   #guardian-wrapper {
-    position: absolute; bottom: 20px; left: 50%; width: 90px; height: 90px;
-    pointer-events: none; transition: transform 0.1s;
+    position: absolute; bottom: 20px; left: 50%;
+    /* Tamaño dinámico asignado por JS */
+    pointer-events: none; 
+    transition: width 1s, height 1s; /* Transición suave al evolucionar */
   }
 
-  /* El Sprite Visual (GIF) */
   #guardian-sprite {
-    width: 100%; height: 100%;
-    pointer-events: auto; cursor: pointer;
-    background-size: contain; background-position: bottom center; background-repeat: no-repeat;
-    filter: drop-shadow(0 0 8px rgba(255, 68, 68, 0.3));
-    transition: filter 0.3s;
+    width: 100%; height: 100%; pointer-events: auto; cursor: pointer;
+    background-size: contain; background-position: center; background-repeat: no-repeat;
+    filter: drop-shadow(0 0 10px rgba(255, 68, 68, 0.4));
+    transition: filter 0.3s, transform 0.2s;
   }
 
-  /* Animaciones de Acción (No alteran el GIF, solo la caja) */
+  /* Animaciones y Efectos de Evolución */
+  #evo-flash {
+      position: fixed; inset: 0; background: white; z-index: 999;
+      opacity: 0; pointer-events: none; transition: opacity 0.5s;
+  }
+  .anim-evolving { animation: evo-pulse 0.2s infinite alternate !important; filter: brightness(5) drop-shadow(0 0 50px white) !important; }
+  @keyframes evo-pulse { 0% { transform: scale(1); filter: brightness(2); } 100% { transform: scale(1.2); filter: brightness(5); } }
+
   .anim-eat { animation: jump-eat 0.4s ease; filter: drop-shadow(0 0 15px var(--neon-green)) brightness(1.2) !important; }
   .anim-train { animation: shake-train 0.2s infinite; filter: drop-shadow(0 0 15px var(--neon-red)) brightness(1.5) !important; }
-  .anim-sleep { filter: grayscale(1) brightness(0.5) !important; } /* Cansado / Sin color */
+  .anim-sleep { filter: grayscale(1) brightness(0.4) !important; }
 
   @keyframes jump-eat { 0% { transform: scale(1) translateY(0); } 50% { transform: scale(1.2) translateY(-30px); } 100% { transform: scale(1) translateY(0); } }
   @keyframes shake-train { 0% { transform: translateX(0); } 25% { transform: translateX(-5px) rotate(-5deg); } 75% { transform: translateX(5px) rotate(5deg); } 100% { transform: translateX(0); } }
 
-  /* HUD del Guardián (Barra y Menú) */
+  /* HUD del Guardián (Estadísticas y EXP) */
   #guardian-hud {
     position: fixed; bottom: 20px; right: 30px; z-index: 95;
     background: var(--glass-strong); padding: 15px; border-radius: 12px;
     border: 1px solid var(--neon-red); display: none;
     backdrop-filter: blur(5px); box-shadow: 0 5px 20px rgba(0,0,0,0.8);
-    pointer-events: auto; width: 220px;
+    pointer-events: auto; width: 240px;
   }
-  .g-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .g-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
   .g-title { font-size: 14px; font-weight: 900; color: #FFF; text-transform: uppercase; }
   .g-level { font-size: 11px; font-weight: 900; color: #FFF; background: linear-gradient(45deg, #FF4444, #FF8800); padding: 3px 8px; border-radius: 4px; box-shadow: 0 0 5px rgba(255, 68, 68, 0.5); }
   
-  /* Barra de Satisfacción */
-  .sat-bar-bg { width: 100%; height: 8px; background: #222; border-radius: 4px; overflow: hidden; margin-bottom: 15px; }
-  .sat-bar-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #FF4444, #FFDD44, #44FF88); transition: width 0.5s ease; }
+  /* Estadísticas Tácticas */
+  .g-stats-box { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 5px 10px; margin-bottom: 10px; display: flex; justify-content: space-between; font-size: 10px; color: #aaa; }
+  .g-stats-box span { font-weight: bold; color: var(--neon-blue); }
 
-  /* Botones de Acción */
+  /* Barras (SAT y EXP) */
+  .bar-label { font-size:9px; margin-bottom:2px; color:#aaa; display:flex; justify-content:space-between; }
+  .bar-bg { width: 100%; height: 6px; background: #222; border-radius: 3px; overflow: hidden; margin-bottom: 10px; }
+  .sat-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #FF4444, #FFDD44, #44FF88); transition: width 0.5s ease; }
+  .exp-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #44CCFF, #FF44CC); transition: width 0.5s ease; }
+
+  /* Botones */
   .g-btn {
     width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.2);
     color: var(--ink); padding: 8px; border-radius: 6px; margin-bottom: 5px;
@@ -135,6 +141,7 @@
 </head>
 <body>
 
+<div id="evo-flash"></div>
 <canvas id="matrix-canvas"></canvas>
 
 <div id="rift-left" class="rift-overlay"></div>
@@ -156,18 +163,26 @@
         <div class="g-title" id="g-name-display">Familiar</div>
         <div class="g-level" id="g-lvl-display">Lv. 1</div>
     </div>
-    <div style="font-size:9px; margin-bottom:3px; color:#aaa; display:flex; justify-content:space-between;">
-        <span>Satisfacción</span> <span id="g-buff-status" style="color:var(--neon-green)">+20% Vel. Mina</span>
+    
+    <div class="g-stats-box">
+        <div>PODER: <span id="s-pwr">10</span></div>
+        <div>VEL: <span id="s-spd">1x</span></div>
+        <div>TIPO: <span id="s-type">Terrestre</span></div>
     </div>
-    <div class="sat-bar-bg"><div class="sat-bar-fill" id="g-sat-fill"></div></div>
+
+    <div class="bar-label"><span>Satisfacción (Acelera Minería)</span> <span id="g-buff-status">+20%</span></div>
+    <div class="bar-bg"><div class="sat-fill" id="g-sat-fill"></div></div>
+
+    <div class="bar-label"><span>Experiencia (EXP)</span> <span id="g-exp-txt">0 / 100</span></div>
+    <div class="bar-bg"><div class="exp-fill" id="g-exp-fill"></div></div>
     
     <button class="g-btn" id="btn-feed" onclick="feedGuardian()">
-        <span>🥩 Alimentar (+30%)</span> <span class="cost">500 pts</span>
+        <span>🥩 Alimentar (+30 SAT)</span> <span class="cost">500 pts</span>
     </button>
     <button class="g-btn" id="btn-train" onclick="trainGuardian()">
-        <span>⚔️ Entrenar (EXP)</span> <span class="cost">1500 pts</span>
+        <span>⚔️ Entrenar (+50 EXP)</span> <span class="cost">1500 pts</span>
     </button>
-    <div style="font-size: 9px; color: #888; text-align: center; margin-top: 5px;">*El nivel no restaura el hambre</div>
+    <div style="font-size: 9px; color: #FF4444; text-align: center; margin-top: 5px; font-weight:bold;">*Entrenar NO restaura el hambre</div>
     <button class="g-btn" onclick="toggleGuardianMenu()" style="text-align:center; display:block; margin-top:10px; border:none; color:#888;">Cerrar Panel</button>
 </div>
 
@@ -195,129 +210,157 @@
    MÓDULO 1: ECONOMÍA Y BÓVEDA LOCAL
    ========================================================================== */
 let localVault = 0;
-
-function initVault() {
-    localVault = parseInt(localStorage.getItem('qv_vault_v3')) || 0;
-    updateVaultUI();
-}
-
+function initVault() { localVault = parseInt(localStorage.getItem('qv_vault_apex')) || 0; updateVaultUI(); }
 function updateVaultUI(glowColor = '#FFF') {
     const scoreEl = document.getElementById('vault-score');
-    const hudEl = document.getElementById('vault-hud');
     scoreEl.innerText = localVault.toLocaleString();
-    hudEl.style.borderRightColor = glowColor;
-    scoreEl.style.color = glowColor;
-    scoreEl.style.textShadow = `0 0 20px ${glowColor}`;
+    scoreEl.style.color = glowColor; scoreEl.style.textShadow = `0 0 20px ${glowColor}`;
     checkGuardianButtons();
-    setTimeout(() => {
-        hudEl.style.borderRightColor = '#FFF';
-        scoreEl.style.color = '#FFF';
-        scoreEl.style.textShadow = `0 0 10px rgba(255,255,255,0.5)`;
-    }, 600);
+    setTimeout(() => { scoreEl.style.color = '#FFF'; scoreEl.style.textShadow = `0 0 10px rgba(255,255,255,0.5)`; }, 600);
 }
-
 function deductPoints(amount) {
     if (localVault >= amount) {
-        localVault -= amount;
-        localStorage.setItem('qv_vault_v3', localVault);
-        updateVaultUI(document.documentElement.style.getPropertyValue('--neon-red') || '#FF4444');
-        return true;
-    }
-    return false;
+        localVault -= amount; localStorage.setItem('qv_vault_apex', localVault);
+        updateVaultUI('#FF4444'); return true;
+    } return false;
 }
 
 /* ==========================================================================
-   MÓDULO 2: SISTEMA DEL GUARDIÁN (EVOLUCIÓN POKÉMON)
+   MÓDULO 2: SISTEMA DEL GUARDIÁN (EVOLUCIÓN Y VUELO)
    ========================================================================== */
 let gStats = { sat: 100, exp: 0, level: 1, lastTick: Date.now() };
 let gState = 'walk'; 
-let gPos = window.innerWidth / 2;
-let gDir = 1; // 1 derecha, -1 izquierda
+let gPosX = window.innerWidth / 2;
+let gPosY = 20; // Se usa 'bottom'
+let gDirX = 1; // 1 derecha, -1 izquierda
+let gDirY = 1; // 1 sube, -1 baja (Solo Charizard)
+let facingAway = false;
+let isEvolving = false;
 
-// Lógica de Sprites por Nivel
+// Datos de Evolución y URLs de Imágenes
 function getEvolutionData(level) {
-    if (level <= 5)  return { name: "Charmander", img: "https://projectpokemon.org/images/normal-sprite/charmander.gif" };
-    if (level <= 10) return { name: "Charmeleon", img: "https://projectpokemon.org/images/normal-sprite/charmeleon.gif" };
-    if (level <= 19) return { name: "Charizard",  img: "https://projectpokemon.org/images/normal-sprite/charizard.gif" };
-    return { name: "Mega Charizard Y", img: "https://projectpokemon.org/images/normal-sprite/charizard-megay.gif" };
+    if (level < 6) return { 
+        stage: 1, name: "Charmander", size: 60, speed: 1, type: "Terrestre",
+        imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/charmander.gif", 
+        imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/charmander.gif" 
+    };
+    if (level < 11) return { 
+        stage: 2, name: "Charmeleon", size: 120, speed: 2, type: "Terrestre (Agresivo)",
+        imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/charmeleon.gif", 
+        imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/charmeleon.gif" 
+    };
+    return { 
+        stage: 3, name: "Charizard", size: 240, speed: 3.5, type: "Volador",
+        imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/charizard.gif", 
+        imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/charizard.gif" 
+    };
 }
 
 function initGuardian() {
-    const saved = localStorage.getItem('qv_guardian_v2');
+    const saved = localStorage.getItem('qv_guardian_apex');
     if(saved) {
         gStats = JSON.parse(saved);
         const minsOffline = Math.floor((Date.now() - gStats.lastTick) / 60000);
         gStats.sat = Math.max(0, gStats.sat - (minsOffline * 0.5)); 
     }
     gStats.lastTick = Date.now();
-    updateGuardianUI();
+    
+    // Cambiar de vista front/back aleatoriamente
+    setInterval(() => { if(!isEvolving && Math.random() > 0.6) facingAway = !facingAway; updateGuardianVisuals(); }, 4000);
     
     setInterval(guardianLogicTick, 1000);
     requestAnimationFrame(guardianMoveLoop);
+    updateGuardianUI();
+    updateGuardianVisuals();
 }
 
-function saveGuardian() {
-    gStats.lastTick = Date.now();
-    localStorage.setItem('qv_guardian_v2', JSON.stringify(gStats));
-}
+function saveGuardian() { gStats.lastTick = Date.now(); localStorage.setItem('qv_guardian_apex', JSON.stringify(gStats)); }
 
 function guardianLogicTick() {
-    // Reducción constante de satisfacción (Hambre)
-    gStats.sat = Math.max(0, gStats.sat - 0.05); 
-    
+    if(isEvolving) return;
+    gStats.sat = Math.max(0, gStats.sat - 0.05); // Hambre constante
     const sprite = document.getElementById('guardian-sprite');
     
-    // Si no hay satisfacción, se vuelve gris y se detiene
     if (gStats.sat <= 0 && gState !== 'act') {
-        if (gState !== 'sleep') { gState = 'sleep'; sprite.className = 'anim-sleep'; updateGuardianUI(); }
+        if (gState !== 'sleep') { gState = 'sleep'; sprite.className = 'anim-sleep'; }
     } else if (gStats.sat > 0 && gState === 'sleep') {
-        gState = 'walk'; sprite.className = ''; updateGuardianUI();
+        gState = 'walk'; sprite.className = '';
     }
-    
-    saveGuardian();
-    updateGuardianUI(); 
+    saveGuardian(); updateGuardianUI(); 
 }
 
 function guardianMoveLoop() {
-    if (gState === 'walk') {
-        // Mover solo si no está dormido (hambre 0) o actuando
-        gPos += 1 * gDir;
-        const padding = 220;
-        if (gPos > window.innerWidth - padding) gDir = -1;
-        if (gPos < 220) gDir = 1;
+    if (gState === 'walk' && !isEvolving) {
+        const evo = getEvolutionData(gStats.level);
+        const paddingX = 220; // Espacio de las grietas
+        
+        // Movimiento X (Todos)
+        gPosX += evo.speed * gDirX;
+        if (gPosX > window.innerWidth - paddingX - evo.size) gDirX = -1;
+        if (gPosX < paddingX) gDirX = 1;
+        
+        // Movimiento Y (Solo Charizard - Stage 3)
+        if (evo.stage === 3) {
+            gPosY += evo.speed * 0.8 * gDirY;
+            if (gPosY > window.innerHeight - evo.size - 50) gDirY = -1;
+            if (gPosY < 20) gDirY = 1;
+        } else {
+            gPosY = 20; // En el suelo
+        }
         
         const wrapper = document.getElementById('guardian-wrapper');
-        wrapper.style.left = `${gPos}px`;
-        // Invertir horizontalmente el contenedor para que el GIF mire hacia donde camina
-        wrapper.style.transform = `scaleX(${gDir})`; 
+        wrapper.style.left = `${gPosX}px`;
+        wrapper.style.bottom = `${gPosY}px`;
+        
+        // Espejeo de Sprite: Los sprites frontales de Pokémon miran hacia la izquierda por defecto.
+        // Entonces, si camina a la izquierda (gDirX = -1), no volteamos (scaleX = 1).
+        // Si camina a la derecha (gDirX = 1), volteamos (scaleX = -1).
+        let flip = gDirX === 1 ? -1 : 1; 
+        wrapper.style.transform = `scaleX(${flip})`; 
     }
     requestAnimationFrame(guardianMoveLoop);
 }
 
+function updateGuardianVisuals() {
+    if(isEvolving) return;
+    const evo = getEvolutionData(gStats.level);
+    const sprite = document.getElementById('guardian-sprite');
+    const wrapper = document.getElementById('guardian-wrapper');
+    
+    wrapper.style.width = `${evo.size}px`;
+    wrapper.style.height = `${evo.size}px`;
+    
+    const imgUrl = facingAway ? evo.imgB : evo.imgF;
+    sprite.style.backgroundImage = `url('${imgUrl}')`;
+}
+
 function getGuardianBuff() {
-    if (gStats.sat > 70) return 1.2; // +20% Velocidad de minería
-    if (gStats.sat <= 0) return 0.8; // -20% Velocidad de minería (Dormido)
+    if (gStats.sat > 70) return 1.2; 
+    if (gStats.sat <= 0) return 0.8; 
     return 1.0;
 }
 
-function toggleGuardianMenu() {
-    const menu = document.getElementById('guardian-hud');
-    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-    checkGuardianButtons();
-}
-
-function checkGuardianButtons() {
-    document.getElementById('btn-feed').disabled = localVault < 500;
-    document.getElementById('btn-train').disabled = localVault < 1500;
-}
+// UI Y MENÚ
+function toggleGuardianMenu() { const menu = document.getElementById('guardian-hud'); menu.style.display = menu.style.display === 'block' ? 'none' : 'block'; checkGuardianButtons(); }
+function checkGuardianButtons() { document.getElementById('btn-feed').disabled = localVault < 500 || isEvolving; document.getElementById('btn-train').disabled = localVault < 1500 || isEvolving; }
 
 function updateGuardianUI() {
+    if(isEvolving) return;
     document.getElementById('g-sat-fill').style.width = `${Math.min(100, Math.max(0, gStats.sat))}%`;
     document.getElementById('g-lvl-display').innerText = `Lv. ${gStats.level}`;
     
+    // Experiencia
+    const expReq = gStats.level * 100;
+    const expPct = Math.min(100, (gStats.exp / expReq) * 100);
+    document.getElementById('g-exp-fill').style.width = `${expPct}%`;
+    document.getElementById('g-exp-txt').innerText = `${gStats.exp} / ${expReq}`;
+
+    // Estadísticas
     const evo = getEvolutionData(gStats.level);
     document.getElementById('g-name-display').innerText = evo.name;
-    document.getElementById('guardian-sprite').style.backgroundImage = `url('${evo.img}')`;
+    document.getElementById('s-pwr').innerText = gStats.level * 10;
+    document.getElementById('s-spd').innerText = `${evo.speed}x`;
+    document.getElementById('s-type').innerText = evo.type;
     
     const buffTxt = document.getElementById('g-buff-status');
     if(gStats.sat > 70) { buffTxt.innerText = "+20% Vel. Mina"; buffTxt.style.color = "var(--neon-green)"; }
@@ -326,9 +369,9 @@ function updateGuardianUI() {
 }
 
 function playActionAnimation(animClass) {
+    if(isEvolving) return;
     const sprite = document.getElementById('guardian-sprite');
-    gState = 'act';
-    sprite.className = animClass; 
+    gState = 'act'; sprite.className = animClass; 
     setTimeout(() => {
         gState = gStats.sat > 0 ? 'walk' : 'sleep';
         sprite.className = gState === 'sleep' ? 'anim-sleep' : '';
@@ -338,23 +381,59 @@ function playActionAnimation(animClass) {
 function feedGuardian() {
     if (deductPoints(500)) {
         gStats.sat = Math.min(100, gStats.sat + 30);
-        saveGuardian();
-        updateGuardianUI();
-        playActionAnimation('anim-eat');
+        saveGuardian(); updateGuardianUI(); playActionAnimation('anim-eat');
     }
+}
+
+// ESPECTÁCULO DE EVOLUCIÓN
+function triggerEvolutionSpectacle() {
+    isEvolving = true;
+    const sprite = document.getElementById('guardian-sprite');
+    const flash = document.getElementById('evo-flash');
+    
+    // 1. Iniciar parpadeo y ocultar menú
+    sprite.className = 'anim-evolving';
+    document.getElementById('guardian-hud').style.display = 'none';
+
+    // 2. Destello blanco masivo a los 2 segundos
+    setTimeout(() => {
+        flash.style.opacity = '1';
+    }, 2000);
+
+    // 3. Cambiar Sprite y tamaño mientras está cegado por el destello
+    setTimeout(() => {
+        updateGuardianVisuals(); 
+        updateGuardianUI();
+    }, 2500);
+
+    // 4. Desvanecer destello y reanudar
+    setTimeout(() => {
+        flash.style.opacity = '0';
+        sprite.className = '';
+        isEvolving = false;
+        gState = 'walk';
+    }, 3500);
 }
 
 function trainGuardian() {
     if (deductPoints(1500)) {
-        // ATENCIÓN: Solo da EXP. No sube satisfacción.
+        const expReq = gStats.level * 100;
         gStats.exp += 50;
-        if(gStats.exp >= gStats.level * 100) {
+        const oldStage = getEvolutionData(gStats.level).stage;
+
+        if(gStats.exp >= expReq) {
             gStats.level++; 
             gStats.exp = 0; 
+            const newStage = getEvolutionData(gStats.level).stage;
+            
+            // Si el nivel cruza un umbral de etapa (Ej. Lv 5->6), EVOLUCIONA.
+            if(newStage > oldStage) {
+                saveGuardian();
+                triggerEvolutionSpectacle();
+                return; // Sale para no reproducir anim-train
+            }
         }
-        saveGuardian();
-        updateGuardianUI();
-        playActionAnimation('anim-train');
+        saveGuardian(); updateGuardianUI(); playActionAnimation('anim-train');
     }
 }
 
@@ -389,105 +468,57 @@ function initMiner() {
         const gem = GEM_TYPES[slot.type];
         const riftEl = document.getElementById(`rift-${slot.side}`);
         const node = document.createElement('div');
-        node.id = `gem-${slot.id}`;
-        node.className = 'crystal-node';
-        node.style.backgroundImage = `url('${gem.img}')`;
-        node.style.setProperty('--node-color', gem.color);
+        node.id = `gem-${slot.id}`; node.className = 'crystal-node';
+        node.style.backgroundImage = `url('${gem.img}')`; node.style.setProperty('--node-color', gem.color);
         node.onclick = () => mineCrystal(slot.id);
         riftEl.appendChild(node);
 
-        if (!localStorage.getItem(`qv_time_v3_${slot.id}`)) {
-            localStorage.setItem(`qv_time_v3_${slot.id}`, Date.now());
-            assignNewRandomPosition(slot.id);
-        } else {
-            loadStoredPosition(slot.id);
-        }
+        if (!localStorage.getItem(`qv_time_apex_${slot.id}`)) { localStorage.setItem(`qv_time_apex_${slot.id}`, Date.now()); assignNewRandomPosition(slot.id); }
+        else { loadStoredPosition(slot.id); }
     });
-
-    setInterval(checkGrowth, 1000);
-    checkGrowth();
+    setInterval(checkGrowth, 1000); checkGrowth();
 }
 
 function assignNewRandomPosition(slotId) {
-    const slot = ACTIVE_SLOTS.find(s => s.id === slotId);
-    const pool = POSITIONS_POOL[slot.side];
-    const el = document.getElementById(`gem-${slotId}`);
-
-    const oldPosIdx = localStorage.getItem(`qv_pos_v3_${slotId}`);
+    const slot = ACTIVE_SLOTS.find(s => s.id === slotId); const pool = POSITIONS_POOL[slot.side]; const el = document.getElementById(`gem-${slotId}`);
+    const oldPosIdx = localStorage.getItem(`qv_pos_apex_${slotId}`);
     if (oldPosIdx !== null) occupiedPositions[slot.side].delete(parseInt(oldPosIdx));
-
-    let newIdx; let attempts = 0;
-    do { newIdx = Math.floor(Math.random() * pool.length); attempts++; } while (occupiedPositions[slot.side].has(newIdx) && attempts < 25);
-
-    occupiedPositions[slot.side].add(newIdx);
-    localStorage.setItem(`qv_pos_v3_${slotId}`, newIdx);
-    
-    const pos = pool[newIdx];
-    el.style.top = pos.t; el.style.left = ''; el.style.right = ''; 
+    let newIdx; let attempts = 0; do { newIdx = Math.floor(Math.random() * pool.length); attempts++; } while (occupiedPositions[slot.side].has(newIdx) && attempts < 25);
+    occupiedPositions[slot.side].add(newIdx); localStorage.setItem(`qv_pos_apex_${slotId}`, newIdx);
+    const pos = pool[newIdx]; el.style.top = pos.t; el.style.left = ''; el.style.right = ''; 
     if(slot.side === 'left') el.style.left = pos.l; else el.style.right = pos.r;
 }
-
 function loadStoredPosition(slotId) {
-    const slot = ACTIVE_SLOTS.find(s => s.id === slotId);
-    const posIdx = parseInt(localStorage.getItem(`qv_pos_v3_${slotId}`));
-    const el = document.getElementById(`gem-${slotId}`);
+    const slot = ACTIVE_SLOTS.find(s => s.id === slotId); const posIdx = parseInt(localStorage.getItem(`qv_pos_apex_${slotId}`)); const el = document.getElementById(`gem-${slotId}`);
     if (isNaN(posIdx)) { assignNewRandomPosition(slotId); return; }
-    occupiedPositions[slot.side].add(posIdx);
-    const pos = POSITIONS_POOL[slot.side][posIdx];
-    el.style.top = pos.t;
-    if(slot.side === 'left') el.style.left = pos.l; else el.style.right = pos.r;
+    occupiedPositions[slot.side].add(posIdx); const pos = POSITIONS_POOL[slot.side][posIdx];
+    el.style.top = pos.t; if(slot.side === 'left') el.style.left = pos.l; else el.style.right = pos.r;
 }
 
 function checkGrowth() {
-    const now = Date.now();
-    const currentBuff = getGuardianBuff(); // Aplica el multiplicador del Pokémon
-
+    const now = Date.now(); const currentBuff = getGuardianBuff();
     ACTIVE_SLOTS.forEach(slot => {
-        const gem = GEM_TYPES[slot.type];
-        const el = document.getElementById(`gem-${slot.id}`);
-        const lastMined = parseInt(localStorage.getItem(`qv_time_v3_${slot.id}`));
-        
-        const elapsed = (now - lastMined) * currentBuff;
-        const progress = Math.min(elapsed / gem.time, 1.0);
-
-        if (progress >= 1.0) {
-            if (!el.classList.contains('ready')) { el.classList.add('ready'); el.style.transform = `scale(1)`; }
-        } else {
-            el.classList.remove('ready');
-            const scale = 0.1 + (progress * 0.8); 
-            const opacity = 0.1 + (progress * 0.5);
-            el.style.transform = `scale(${scale})`; el.style.opacity = opacity;
-        }
+        const gem = GEM_TYPES[slot.type]; const el = document.getElementById(`gem-${slot.id}`); const lastMined = parseInt(localStorage.getItem(`qv_time_apex_${slot.id}`));
+        const elapsed = (now - lastMined) * currentBuff; const progress = Math.min(elapsed / gem.time, 1.0);
+        if (progress >= 1.0) { if (!el.classList.contains('ready')) { el.classList.add('ready'); el.style.transform = `scale(1)`; } }
+        else { el.classList.remove('ready'); el.style.transform = `scale(${0.1 + (progress * 0.8)})`; el.style.opacity = 0.1 + (progress * 0.5); }
     });
 }
 
 function mineCrystal(slotId) {
     const el = document.getElementById(`gem-${slotId}`);
     if (!el.classList.contains('ready')) return;
-
-    const slot = ACTIVE_SLOTS.find(s => s.id === slotId);
-    const gem = GEM_TYPES[slot.type];
-
-    localVault += gem.points;
-    localStorage.setItem('qv_vault_v3', localVault);
-    localStorage.setItem(`qv_time_v3_${slotId}`, Date.now());
-    
-    el.classList.remove('ready');
-    updateVaultUI(gem.color);
-    spawnFloatingText(gem.points, gem.color, el);
-    
-    assignNewRandomPosition(slotId);
-    checkGrowth();
+    const gem = GEM_TYPES[ACTIVE_SLOTS.find(s => s.id === slotId).type];
+    localVault += gem.points; localStorage.setItem('qv_vault_apex', localVault); localStorage.setItem(`qv_time_apex_${slotId}`, Date.now());
+    el.classList.remove('ready'); updateVaultUI(gem.color); spawnFloatingText(gem.points, gem.color, el);
+    assignNewRandomPosition(slotId); checkGrowth();
 }
 
 function spawnFloatingText(points, color, sourceEl) {
-    const rect = sourceEl.getBoundingClientRect();
-    const floating = document.createElement('div');
+    const rect = sourceEl.getBoundingClientRect(); const floating = document.createElement('div');
     floating.className = 'floating-text'; floating.innerText = `+${points}`;
     floating.style.color = color; floating.style.left = `${rect.left + (rect.width/2) - 20}px`; floating.style.top = `${rect.top}px`;
-    floating.style.textShadow = `0 0 15px ${color}`;
-    document.body.appendChild(floating);
-    setTimeout(() => floating.remove(), 1000);
+    floating.style.textShadow = `0 0 15px ${color}`; document.body.appendChild(floating); setTimeout(() => floating.remove(), 1000);
 }
 
 /* ==========================================================================
@@ -504,22 +535,18 @@ async function fetchSheet(id, range) { try { const r = await fetch(`https://shee
 
 async function updateData() {
     setDiag("📡 Sincronizando Uplink...");
-    const weeklyTab = computeWeeklyTab();
-    const master = await fetchSheet(WEEKLY_ID, `${weeklyTab}!A3:O96`);
+    const weeklyTab = computeWeeklyTab(); const master = await fetchSheet(WEEKLY_ID, `${weeklyTab}!A3:O96`);
     if (!master) { setDiag("❌ Error Weekly Sheets", "#FF44CC"); return; }
     const today = getLocalDate(); const fmt = today.toLocaleString('en-US', {month:'short', day:'2-digit'});
-    let daily = await fetchSheet(DAILY_ID, `${fmt}!A2:D100`);
-    if (!daily) daily = await fetchSheet(DAILY_ID, `Tabla_25!A2:D100`);
+    let daily = await fetchSheet(DAILY_ID, `${fmt}!A2:D100`); if (!daily) daily = await fetchSheet(DAILY_ID, `Tabla_25!A2:D100`);
     const dailyRows = daily?.values || [];
     const agents = master.values.map(row => {
         const id = (row[0] || "").toString().trim(); const name = (row[1] || "").toString().trim(); if (!id || !name) return null;
-        const match = dailyRows.find(d => (d[1] || "").toString().trim() === id);
-        return { name, today: match ? parseInt(match[2]) || 0 : 0, total: parseInt(row[14]) || 0 };
+        const match = dailyRows.find(d => (d[1] || "").toString().trim() === id); return { name, today: match ? parseInt(match[2]) || 0 : 0, total: parseInt(row[14]) || 0 };
     }).filter(x => x).sort((a,b) => b.today - a.today);
     renderList(agents);
     document.getElementById('totalTodayValue').innerText = agents.reduce((s, a) => s + a.today, 0);
-    document.getElementById('chipWeekly').innerText = `Week: ${weeklyTab}`;
-    document.getElementById('chipDaily').innerText = `Daily: ${daily ? (daily.range.split('!')[0]) : '---'}`;
+    document.getElementById('chipWeekly').innerText = `Week: ${weeklyTab}`; document.getElementById('chipDaily').innerText = `Daily: ${daily ? (daily.range.split('!')[0]) : '---'}`;
     setDiag("✅ Uplink Estable");
 }
 
@@ -536,9 +563,7 @@ function drawMatrix() { mCtx.fillStyle = 'rgba(10, 10, 10, 0.1)'; mCtx.fillRect(
 /* INICIALIZACIÓN MAESTRA */
 (async function init() { 
     initMatrix(); setInterval(drawMatrix, 50); 
-    initVault();
-    initGuardian(); // Iniciar Familiar Evolutivo
-    initMiner(); 
+    initVault(); initGuardian(); initMiner(); 
     await updateData(); setInterval(updateData, 60000); 
 })();
 </script>
