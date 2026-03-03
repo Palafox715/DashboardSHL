@@ -3,7 +3,7 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>Leaderboard — Guardian Protocol: Hall of Fame Elite</title>
+<title>Leaderboard — Guardian Protocol: Team Elite</title>
 <style>
   :root{
     --vh: 1vh;
@@ -21,9 +21,9 @@
   
   html,body{ margin:0; min-height:100%; width:100%; background:var(--dark-bg); color:var(--ink); font-family:system-ui,-apple-system,sans-serif; overflow: hidden; }
 
-  /* FONDO Y ANIMACIÓN */
+  /* FONDO MATRIX */
   #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; opacity: 0.12; pointer-events: none; }
-  body::before, body::after{ content:""; position:fixed; inset:-20%; background: radial-gradient(40% 40% at 20% 20%, var(--neon-blue), transparent), radial-gradient(30% 30% at 50% 90%, var(--neon-purple), transparent); z-index:-1; pointer-events:none; mix-blend-mode:lighten; animation:float 22s linear infinite; }
+  body::before, body::after{ content:""; position:fixed; inset:-20%; background: radial-gradient(40% 40% at 20% 20%, var(--glow-blue), transparent), radial-gradient(30% 30% at 50% 90%, var(--glow-purple), transparent); z-index:-1; pointer-events:none; mix-blend-mode:lighten; animation:float 22s linear infinite; }
   @keyframes float{ 0%, 100%{transform:translate3d(0,0,0)} 50%{transform:translate3d(2%, -2%, 0)} }
 
   /* DASHBOARD CENTRAL */
@@ -31,12 +31,10 @@
   .top-header-flex{ display: flex; justify-content: space-between; align-items: center; }
   #dailyTotalDisplay{ background: var(--glass-strong); padding: 8px 16px; border-radius: 10px; border: 1px solid var(--neon-blue); text-align: right; }
   #dailyTotalDisplay .value{ font-size: 24px; font-weight: 900; color: var(--neon-blue); }
-
   .table-wrap{ flex:1; overflow-x: auto; background: var(--glass); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
   table{ width:100%; border-collapse:separate; border-spacing:0 8px; table-layout:fixed; }
   thead th{ background:var(--glass-strong); text-transform:uppercase; font-size:12px; padding:10px; }
   tbody td{ padding:10px; text-align:center; border-top:1px solid rgba(255,255,255,0.05); }
-
   .bar{ position:relative; height:18px; border-radius:10px; background:rgba(255,255,255,0.1); overflow:hidden; }
   .bar > .fill{ position:absolute; left:0; top:0; bottom:0; width:0%; transition: width 0.8s ease; }
   .bar.today > .fill{ background: var(--neon-blue); }
@@ -50,28 +48,24 @@
   .team-slot img { width: 85%; height: 85%; object-fit: contain; }
 
   /* OVERLAYS */
-  .overlay-screen { position: fixed; inset: 0; background: radial-gradient(circle, rgba(10,10,30,0.98), #000); z-index: 10000; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; overflow-y: auto; padding: 20px; }
+  .overlay-screen { position: fixed; inset: 0; background: radial-gradient(circle, rgba(10,10,30,0.98), #000); z-index: 10000; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
   .starter-grid { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; max-width: 900px; padding: 20px; }
   .starter-card { background: var(--glass-strong); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 15px; width: 130px; cursor: pointer; transition: 0.3s; }
-  .starter-card:hover { transform: translateY(-5px); border-color: var(--neon-blue); }
+  .starter-card:hover { border-color: var(--neon-blue); transform: translateY(-5px); }
   .s-img { width: 70px; height: 70px; background-size: contain; background-repeat: no-repeat; background-position: center; margin-bottom: 10px; }
 
-  .vic-rays { position: absolute; width: 200vw; height: 200vw; background: repeating-conic-gradient(from 0deg, transparent 0deg 15deg, rgba(255,221,68,0.1) 15deg 30deg); animation: spin-rays 20s linear infinite; z-index: -1; }
-  @keyframes spin-rays { 100% { transform: rotate(360deg); } }
-  .victory-img { width: 250px; height: 250px; background-size: contain; background-repeat: no-repeat; background-position: center; filter: drop-shadow(0 0 30px #FFF); }
+  /* CELEBRACIÓN EQUIPO COMPLETO */
+  .celebration-grid { display: flex; gap: 20px; margin: 40px 0; }
+  .celeb-member { display: flex; flex-direction: column; align-items: center; }
+  .celeb-img { width: 120px; height: 120px; background-size: contain; background-repeat: no-repeat; background-position: center; filter: drop-shadow(0 0 15px rgba(255,255,255,0.5)); }
 
   /* GUARDIÁN */
   #guardian-area { position: fixed; bottom: 0; left: 0; width: 100vw; height: 100vh; z-index: 90; pointer-events: none; }
   #guardian-wrapper { position: absolute; bottom: 20px; left: 50%; pointer-events: none; transition: width 0.8s, height 0.8s; }
   #guardian-sprite { width: 100%; height: 100%; pointer-events: auto; cursor: pointer; background-size: contain; background-position: center; background-repeat: no-repeat; }
-
   #guardian-hud { position: fixed; bottom: 20px; right: 30px; z-index: 95; background: var(--glass-strong); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.3); display: none; width: 240px; }
-  .bar-bg { width: 100%; height: 6px; background: #222; border-radius: 3px; overflow: hidden; margin-bottom: 10px; }
-  .sat-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #FF4444, #44FF88); transition: width 0.5s; }
-  .exp-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #44CCFF, #FF44CC); }
-  .g-btn { width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #FFF; padding: 8px; border-radius: 6px; margin-bottom: 5px; cursor: pointer; font-size: 11px; display: flex; justify-content: space-between; align-items: center; }
-  .g-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
+  /* MINERÍA */
   .rift-overlay { position: fixed; top: 0; bottom: 0; width: 200px; z-index: 50; pointer-events: none; }
   #rift-left { left: 0; background: linear-gradient(to right, rgba(0,0,0,0.9), transparent); }
   #rift-right { right: 0; background: linear-gradient(to left, rgba(0,0,0,0.9), transparent); }
@@ -86,73 +80,57 @@
 <canvas id="matrix-canvas"></canvas>
 
 <div id="starter-selection" class="overlay-screen">
-    <div class="starter-title">INCUBADORA</div>
-    <div class="starter-subtitle">Selecciona un huevo para entrenar o retoma uno existente.</div>
+    <div class="starter-title">INCUBADORA DE DATOS</div>
     <div class="starter-grid" id="starter-grid-container"></div>
     <button class="btn-vic" style="margin-top:20px; background:none; border:1px solid gray; color:gray;" onclick="closeStarterSelection()">CANCELAR (ESC)</button>
 </div>
 
 <div id="victory-screen" class="overlay-screen">
-    <div class="vic-rays"></div>
-    <div class="starter-title" style="color:var(--neon-yellow)">¡NIVEL MÁXIMO!</div>
-    <div id="vic-img" class="victory-img"></div>
-    <div id="vic-name" style="font-size: 30px; font-weight: 900; margin-bottom: 20px; color:white;">NOM POKÉMON</div>
-    <button class="btn-vic" style="background:var(--neon-blue); color:#000; padding:15px 30px; font-weight:900; border:none; border-radius:10px; cursor:pointer;" onclick="closeVictoryScreen()">RECLAMAR Y VOLVER (ESC)</button>
+    <div style="position: absolute; width: 200vw; height: 200vw; background: repeating-conic-gradient(from 0deg, transparent 0deg 15deg, rgba(255,221,68,0.1) 15deg 30deg); animation: spin-rays 20s linear infinite; z-index: -1;"></div>
+    <div class="starter-title" style="color:var(--neon-yellow)">¡EVOLUCIÓN MÁXIMA!</div>
+    <div id="vic-img" style="width:200px; height:200px; background-size:contain; background-repeat:no-repeat; background-position:center; filter:drop-shadow(0 0 30px #FFF);"></div>
+    <div id="vic-name" style="font-size: 30px; font-weight: 900; margin-bottom: 20px; color:white; text-transform:uppercase;">NOM</div>
+    <button class="btn-vic" style="background:var(--neon-blue); border:none; padding:15px 30px; font-weight:900; border-radius:10px; cursor:pointer;" onclick="closeVictoryScreen()">RECLAMAR Y VOLVER (ESC)</button>
+</div>
+
+<div id="team-celebration" class="overlay-screen">
+    <div class="starter-title" style="color:var(--neon-green)">¡HALL OF FAME COMPLETO!</div>
+    <div class="celebration-grid" id="celeb-grid"></div>
+    <button class="btn-vic" style="background:var(--neon-yellow); color:#000; border:none; padding:15px 40px; font-weight:900; border-radius:10px; cursor:pointer;" onclick="closeCelebration()">CONTINUAR OPERACIONES</button>
 </div>
 
 <div id="team-dock">
     <div style="position:absolute; top:-18px; left:10px; font-size:9px; color:var(--neon-blue); font-weight:bold;">HALL OF FAME</div>
-    <div class="team-slot" id="ts-0" onclick="switchGuardian(0)"></div>
-    <div class="team-slot" id="ts-1" onclick="switchGuardian(1)"></div>
-    <div class="team-slot" id="ts-2" onclick="switchGuardian(2)"></div>
-    <div class="team-slot" id="ts-3" onclick="switchGuardian(3)"></div>
-    <div class="team-slot" id="ts-4" onclick="switchGuardian(4)"></div>
-    <div class="team-slot" id="ts-5" onclick="switchGuardian(5)"></div>
-</div>
-
-<div id="vault-hud">
-    <div class="vault-title">BÓVEDA LOCAL</div>
-    <div id="vault-score" class="vault-score">0</div>
-</div>
-
-<div id="guardian-area">
-    <div id="guardian-wrapper">
-        <div id="guardian-sprite" onclick="toggleGuardianMenu()"></div>
-    </div>
+    <div class="team-slot" id="ts-0" onclick="switchGuardian(0)"></div><div class="team-slot" id="ts-1" onclick="switchGuardian(1)"></div>
+    <div class="team-slot" id="ts-2" onclick="switchGuardian(2)"></div><div class="team-slot" id="ts-3" onclick="switchGuardian(3)"></div>
+    <div class="team-slot" id="ts-4" onclick="switchGuardian(4)"></div><div class="team-slot" id="ts-5" onclick="switchGuardian(5)"></div>
 </div>
 
 <div id="guardian-hud">
-    <div class="g-header">
-        <div class="g-title" id="g-name-display">Huevo</div>
-        <div class="g-level" id="g-lvl-display">Lv. 1</div>
-    </div>
+    <div class="g-header"><div class="g-title" id="g-name-display">Huevo</div><div class="g-level" id="g-lvl-display">Lv. 1</div></div>
     <div style="font-size:9px; margin-bottom:4px; opacity:0.6;">SATISFACCIÓN</div>
     <div class="bar-bg"><div class="sat-fill" id="g-sat-fill"></div></div>
     <div style="font-size:9px; margin-bottom:4px; opacity:0.6;">EXPERIENCIA</div>
     <div class="bar-bg"><div class="exp-fill" id="g-exp-fill"></div></div>
     <button class="g-btn" id="btn-feed" onclick="feedGuardian()"><span>🥩 Alimentar</span> <span style="color:var(--neon-purple)">500 pts</span></button>
     <button class="g-btn" id="btn-train" onclick="trainGuardian()"><span id="txt-train">⚔️ Entrenar</span> <span id="cost-train" style="color:var(--neon-purple)">1500 pts</span></button>
-    <button class="g-btn" style="border-color:var(--neon-blue); margin-top:10px; justify-content:center;" onclick="openStarterSelection()">🔄 Reclutar / Cambiar</button>
-    <button class="g-btn" style="border:none; color:#888; justify-content:center; margin-top:5px;" onclick="toggleGuardianMenu()">Cerrar Panel</button>
+    <button class="g-btn" style="border-color:var(--neon-blue); margin-top:10px; justify-content:center;" onclick="openStarterSelection()">🔄 Cambiar / Reclutar</button>
+    <button class="g-btn" style="border:none; color:#888; justify-content:center;" onclick="toggleGuardianMenu()">Cerrar Panel</button>
 </div>
 
-<div id="rift-left" class="rift-overlay"></div>
-<div id="rift-right" class="rift-overlay"></div>
+<div id="vault-hud"><div class="vault-title">BÓVEDA LOCAL</div><div id="vault-score" class="vault-score">0</div></div>
+
+<div id="guardian-area"><div id="guardian-wrapper"><div id="guardian-sprite" onclick="toggleGuardianMenu()"></div></div></div>
+
+<div id="rift-left" class="rift-overlay"></div><div id="rift-right" class="rift-overlay"></div>
 
 <div id='board'>
-  <div class='top-header-flex'> 
-    <h2 style="margin:0; font-size: 28px;">🏁 Leaderboard</h2>
-    <div id='dailyTotalDisplay'><div class='value' id='totalTodayValue'>0</div></div>
-  </div>
-  <div class='table-wrap'>
-    <table id='tbl'><thead><tr><th>#</th><th style="text-align:left">Agent</th><th>Today</th><th>Total</th></tr></thead><tbody></tbody></table>
-  </div>
+  <div class='top-header-flex'><h2 style="margin:0; font-size: 28px;">🏁 Leaderboard</h2><div id='dailyTotalDisplay'><div class='value' id='totalTodayValue'>0</div></div></div>
+  <div class='table-wrap'><table id='tbl'><thead><tr><th>#</th><th style="text-align:left">Agent</th><th>Today</th><th>Total</th></tr></thead><tbody></tbody></table></div>
 </div>
 
-<div id="diag" style="position:fixed; bottom:10px; right:10px; font-size:10px; opacity:0.5;">Iniciando sistema...</div>
-
 <script>
-/* --- BASE DE DATOS POKÉDEX CORREGIDA --- */
+/* --- BASE DE DATOS UNIFICADA (27 POKÉMON) --- */
 const EGG_IMG = "https://archives.bulbagarden.net/media/upload/0/06/HOMEEgg.png";
 const POKEDEX_DB = {
   "fire": { baseName: "Charmander", color: "#FF4444", stages: [
@@ -170,94 +148,46 @@ const POKEDEX_DB = {
     { minLevel: 7, name: "Ivysaur", size: 120, speed: 2.2, type: "Planta", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/ivysaur.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/ivysaur.gif" },
     { minLevel: 12, name: "Venusaur", size: 240, speed: 3.8, type: "Planta Colosal", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/venusaur.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/venusaur.gif" }
   ]},
+  "bug": { baseName: "Caterpie", color: "#AABB22", stages: [
+    { minLevel: 3, name: "Caterpie", size: 60, speed: 1, type: "Bicho", imgF: "https://projectpokemon.org/images/normal-sprite/caterpie.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/caterpie.gif" },
+    { minLevel: 7, name: "Metapod", size: 100, speed: 0.5, type: "Bicho", imgF: "https://projectpokemon.org/images/normal-sprite/metapod.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/metapod.gif" },
+    { minLevel: 12, name: "Butterfree", size: 200, speed: 3.5, type: "Bicho/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/butterfree.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/butterfree.gif" }
+  ]},
+  "electric": { baseName: "Pikachu", color: "#FFDD44", stages: [
+    { minLevel: 3, name: "Pikachu", size: 80, speed: 2, type: "Eléctrico", imgF: "https://projectpokemon.org/images/normal-sprite/pikachu.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/pikachu.gif" },
+    { minLevel: 12, name: "Raichu", size: 140, speed: 3, type: "Eléctrico", imgF: "https://projectpokemon.org/images/normal-sprite/raichu.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/raichu.gif" }
+  ]},
   "normal": { baseName: "Snorlax", color: "#336688", stages: [
     { minLevel: 3, name: "Snorlax", size: 260, speed: 0.3, type: "Normal", imgF: "https://projectpokemon.org/images/normal-sprite/snorlax.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/snorlax.gif" }
   ]},
   "psychic": { baseName: "Abra", color: "#FFCC44", stages: [
     { minLevel: 3, name: "Abra", size: 60, speed: 1.5, type: "Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/abra.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/abra.gif" },
-    { minLevel: 7, name: "Kadabra", size: 120, speed: 2.2, type: "Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/kadabra.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/kadabra.gif" },
     { minLevel: 12, name: "Mega Alakazam", size: 240, speed: 3.5, type: "Psíquico Supremo", imgF: "https://projectpokemon.org/images/normal-sprite/alakazam-mega.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/alakazam-mega.gif" }
   ]},
-  "rock": { baseName: "Geodude", color: "#AA9966", stages: [
-    { minLevel: 3, name: "Geodude", size: 50, speed: 0.8, type: "Roca", imgF: "https://projectpokemon.org/images/normal-sprite/geodude.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/geodude.gif" },
-    { minLevel: 12, name: "Golem", size: 250, speed: 1.2, type: "Roca", imgF: "https://projectpokemon.org/images/normal-sprite/golem.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/golem.gif" }
-  ]},
-  "poison": { baseName: "Nidoran", color: "#AA44FF", stages: [
-    { minLevel: 3, name: "Nidoran", size: 60, speed: 1.5, type: "Veneno", imgF: "https://projectpokemon.org/images/normal-sprite/nidoran_m.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/nidoran_m.gif" },
-    { minLevel: 12, name: "Nidoking", size: 260, speed: 3.0, type: "Veneno/Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/nidoking.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/nidoking.gif" }
-  ]},
-  "flying": { baseName: "Pidgey", color: "#DDCCAA", stages: [
-    { minLevel: 3, name: "Pidgey", size: 50, speed: 1.8, type: "Normal/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/pidgey.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/pidgey.gif" },
-    { minLevel: 12, name: "Pidgeot", size: 220, speed: 4.0, type: "Normal/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/pidgeot.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/pidgeot.gif" }
-  ]},
-  "dragon": { baseName: "Dratini", color: "#4488FF", stages: [
-    { minLevel: 3, name: "Dratini", size: 70, speed: 1.5, type: "Dragón", imgF: "https://projectpokemon.org/images/normal-sprite/dratini.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/dratini.gif" },
-    { minLevel: 12, name: "Dragonite", size: 250, speed: 3.5, type: "Dragón/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/dragonite.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/dragonite.gif" }
-  ]},
-  "atrocious": { baseName: "Magikarp", color: "#FF5533", stages: [
-    { minLevel: 3, name: "Magikarp", size: 60, speed: 0.5, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/magikarp.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/magikarp.gif" },
-    { minLevel: 12, name: "Mega Gyarados", size: 260, speed: 3.2, type: "Agua/Siniestro", imgF: "https://projectpokemon.org/images/normal-sprite/gyarados-mega.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/gyarados-mega.gif" }
-  ]},
-  "fire_fox": { baseName: "Vulpix", color: "#FF8844", stages: [
-    { minLevel: 3, name: "Vulpix", size: 60, speed: 1.2, type: "Fuego", imgF: "https://projectpokemon.org/images/normal-sprite/vulpix.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/vulpix.gif" },
-    { minLevel: 12, name: "Ninetales", size: 140, speed: 2.0, type: "Fuego místico", imgF: "https://projectpokemon.org/images/normal-sprite/ninetales.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/ninetales.gif" }
-  ]},
-  "odd_plant": { baseName: "Oddish", color: "#4466AA", stages: [
-    { minLevel: 3, name: "Oddish", size: 50, speed: 0.8, type: "Planta", imgF: "https://projectpokemon.org/images/normal-sprite/oddish.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/oddish.gif" },
-    { minLevel: 12, name: "Vileplume", size: 180, speed: 1.0, type: "Planta", imgF: "https://projectpokemon.org/images/normal-sprite/vileplume.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/vileplume.gif" }
+  "legendary": { baseName: "Mewtwo", color: "#CC44FF", stages: [
+    { minLevel: 3, name: "Mewtwo", size: 180, speed: 2.5, type: "Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/mewtwo.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/mewtwo.gif" },
+    { minLevel: 12, name: "Mega Mewtwo Y", size: 260, speed: 4.5, type: "Psíquico/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/mewtwo-megay.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/mewtwo-megay.gif" }
   ]},
   "canine": { baseName: "Growlithe", color: "#FF6600", stages: [
     { minLevel: 3, name: "Growlithe", size: 65, speed: 1.5, type: "Fuego", imgF: "https://projectpokemon.org/images/normal-sprite/growlithe.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/growlithe.gif" },
     { minLevel: 12, name: "Arcanine", size: 180, speed: 3.0, type: "Fuego Legendario", imgF: "https://projectpokemon.org/images/normal-sprite/arcanine.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/arcanine.gif" }
   ]},
-  "horse": { baseName: "Ponyta", color: "#FFCC99", stages: [
-    { minLevel: 3, name: "Ponyta", size: 90, speed: 2.0, type: "Fuego", imgF: "https://projectpokemon.org/images/normal-sprite/ponyta.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/ponyta.gif" },
-    { minLevel: 12, name: "Rapidash", size: 160, speed: 3.8, type: "Fuego Veloz", imgF: "https://projectpokemon.org/images/normal-sprite/rapidash.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/rapidash.gif" }
-  ]},
-  "slow_psyc": { baseName: "Slowpoke", color: "#FF99AA", stages: [
-    { minLevel: 3, name: "Slowpoke", size: 70, speed: 0.4, type: "Agua/Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/slowpoke.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/slowpoke.gif" },
-    { minLevel: 12, name: "Mega Slowbro", size: 210, speed: 0.8, type: "Acorazado Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/slowbro-mega.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/slowbro-mega.gif" }
-  ]},
-  "pearl": { baseName: "Shellder", color: "#9977AA", stages: [
-    { minLevel: 3, name: "Shellder", size: 50, speed: 0.7, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/shellder.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/shellder.gif" },
-    { minLevel: 12, name: "Cloyster", size: 150, speed: 1.2, type: "Agua/Hielo", imgF: "https://projectpokemon.org/images/normal-sprite/cloyster.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/cloyster.gif" }
-  ]},
-  "rhino_armor": { baseName: "Rhyhorn", color: "#999988", stages: [
-    { minLevel: 3, name: "Rhyhorn", size: 90, speed: 0.9, type: "Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/rhyhorn.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/rhyhorn.gif" },
-    { minLevel: 12, name: "Rhydon", size: 170, speed: 1.1, type: "Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/rhydon.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/rhydon.gif" }
-  ]},
-  "seahorse": { baseName: "Horsea", color: "#55AACC", stages: [
-    { minLevel: 3, name: "Horsea", size: 45, speed: 1, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/horsea.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/horsea.gif" },
-    { minLevel: 12, name: "Seadra", size: 110, speed: 1.8, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/seadra.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/seadra.gif" }
-  ]},
-  "star_core": { baseName: "Staryu", color: "#CCAA66", stages: [
-    { minLevel: 3, name: "Staryu", size: 60, speed: 1.5, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/staryu.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/staryu.gif" },
-    { minLevel: 12, name: "Starmie", size: 130, speed: 2.5, type: "Agua/Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/starmie.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/starmie.gif" }
-  ]},
   "ancient_fly": { baseName: "Aerodactyl", color: "#BBBBCC", stages: [
-    { minLevel: 3, name: "Aerodactyl", size: 160, speed: 3.0, type: "Roca/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/aerodactyl.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/aerodactyl.gif" },
-    { minLevel: 12, name: "Mega Aerodactyl", size: 240, speed: 4.5, type: "Roca/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/aerodactyl-mega.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/aerodactyl-mega.gif" }
-  ]},
-  "ice": { baseName: "Lapras", color: "#44AAFF", stages: [
-    { minLevel: 3, name: "Lapras", size: 240, speed: 1.5, type: "Agua/Hielo", imgF: "https://projectpokemon.org/images/normal-sprite/lapras.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/lapras.gif" }
-  ]},
-  "legendary": { baseName: "Mewtwo", color: "#CC44FF", stages: [
-    { minLevel: 3, name: "Mewtwo", size: 180, speed: 2.5, type: "Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/mewtwo.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/mewtwo.gif" },
-    { minLevel: 12, name: "Mega Mewtwo Y", size: 260, speed: 4.5, type: "Psíquico/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/mewtwo-megay.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/mewtwo-megay.gif" }
+    { minLevel: 3, name: "Aerodactyl", size: 160, speed: 3.0, type: "Volador", imgF: "https://projectpokemon.org/images/normal-sprite/aerodactyl.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/aerodactyl.gif" },
+    { minLevel: 12, name: "Mega Aerodactyl", size: 240, speed: 4.5, type: "Volador", imgF: "https://projectpokemon.org/images/normal-sprite/aerodactyl-mega.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/aerodactyl-mega.gif" }
   ]}
 };
 
-/* --- VARIABLES GLOBALES --- */
-let gStats = { active: null, sat: 100, team: [], progress: {}, lastTick: Date.now() };
+/* --- ESTADO GLOBAL --- */
+let gStats = { active: null, sat: 100, team: [], progress: {} };
 let localVault = 0, gPosX = window.innerWidth/2, gPosY = 20, gDirX = 1, gDirY = 1, facingAway = false, isEvolving = false;
 
-/* --- INICIALIZACIÓN --- */
-function saveAll() { localStorage.setItem('qv_hof_final', JSON.stringify(gStats)); localStorage.setItem('qv_hof_vault', localVault); }
+function saveAll() { localStorage.setItem('qv_elite_stats', JSON.stringify(gStats)); localStorage.setItem('qv_elite_vault', localVault); }
 
-function initVault() { localVault = parseInt(localStorage.getItem('qv_hof_vault')) || 0; updateVaultUI(); }
+function initVault() { localVault = parseInt(localStorage.getItem('qv_elite_vault')) || 0; updateVaultUI(); }
 
 function initGuardian() {
-    const saved = localStorage.getItem('qv_hof_final');
+    const saved = localStorage.getItem('qv_elite_stats');
     if(saved) gStats = JSON.parse(saved);
     renderTeamDock();
     if(!gStats.active) { openStarterSelection(); return; }
@@ -267,7 +197,6 @@ function initGuardian() {
     updateGuardianUI(); updateGuardianVisuals();
 }
 
-/* --- UI Y MENÚS --- */
 function openStarterSelection() {
     document.getElementById('guardian-hud').style.display='none';
     const container = document.getElementById('starter-grid-container');
@@ -277,7 +206,7 @@ function openStarterSelection() {
             const prog = gStats.progress[key] || {level:1};
             const card = document.createElement('div'); card.className = 'starter-card';
             card.onclick = () => { gStats.active = key; if(!gStats.progress[key]) gStats.progress[key]={level:1, exp:0}; saveAll(); closeStarterSelection(); };
-            card.innerHTML = `<div style="font-size:9px; opacity:0.6; color:#FFF;">${prog.level>1?'Nivel '+prog.level:'NUEVO'}</div>
+            card.innerHTML = `<div style="font-size:9px; opacity:0.6;">${prog.level>1?'Nivel '+prog.level:'Huevo'}</div>
                               <div class="s-img" style="background-image:url('${prog.level<3?EGG_IMG:POKEDEX_DB[key].stages[0].imgF}')"></div>
                               <div class="s-name" style="color:${POKEDEX_DB[key].color}">${POKEDEX_DB[key].baseName}</div>`;
             container.appendChild(card);
@@ -286,11 +215,10 @@ function openStarterSelection() {
     document.getElementById('starter-selection').style.display='flex';
 }
 
-function closeStarterSelection() { document.getElementById('starter-selection').style.display='none'; if(gStats.active) { updateGuardianUI(); updateGuardianVisuals(); } }
+function closeStarterSelection() { document.getElementById('starter-selection').style.display='none'; updateGuardianUI(); updateGuardianVisuals(); }
 
 function switchGuardian(idx) { if(gStats.team[idx]) { gStats.active = gStats.team[idx]; saveAll(); updateGuardianUI(); updateGuardianVisuals(); } }
 
-/* --- LÓGICA DE MOVIMIENTO Y SIMULACIÓN --- */
 function logicTick() {
     if(!gStats.active || isEvolving) return;
     gStats.sat = Math.max(0, gStats.sat - 0.05);
@@ -304,15 +232,12 @@ function moveLoop() {
         const prog = gStats.progress[gStats.active];
         const stages = POKEDEX_DB[gStats.active].stages;
         const stage = [...stages].reverse().find(s => prog.level >= s.minLevel) || {size:50, speed:0.5, type:"Incubando"};
-        
         gPosX += stage.speed * gDirX;
         if(gPosX > window.innerWidth-250 || gPosX < 220) gDirX *= -1;
-        
-        if(prog.level >= 12 || stage.type.includes("Volador") || stage.type.includes("Psíquico Supremo")) {
-            gPosY += stage.speed * gDirY;
+        if(prog.level >= 12 || stage.type.includes("Volador")) {
+            gPosY += stage.speed * 0.8 * gDirY;
             if(gPosY > window.innerHeight-300 || gPosY < 20) gDirY *= -1;
         } else gPosY = 20;
-
         const wrap = document.getElementById('guardian-wrapper');
         wrap.style.left = gPosX+'px'; wrap.style.bottom = gPosY+'px';
         wrap.style.transform = `scaleX(${gDirX === 1 ? -1 : 1})`;
@@ -335,19 +260,12 @@ function updateGuardianVisuals() {
 function updateGuardianUI() {
     if(!gStats.active) return;
     const prog = gStats.progress[gStats.active];
-    const stages = POKEDEX_DB[gStats.active].stages;
-    const stage = [...stages].reverse().find(s => prog.level >= s.minLevel) || {name:"Huevo", type:"Incubando"};
-    
+    const stage = [...POKEDEX_DB[gStats.active].stages].reverse().find(s => prog.level >= s.minLevel) || {name:"Huevo"};
     document.getElementById('g-name-display').innerText = stage.name;
     document.getElementById('g-lvl-display').innerText = 'Lv. ' + prog.level;
     document.getElementById('g-sat-fill').style.width = gStats.sat+'%';
-    
-    const expReq = prog.level * 100;
-    document.getElementById('g-exp-fill').style.width = (prog.level >= 12 ? 100 : (prog.exp/expReq)*100)+'%';
-    
+    document.getElementById('g-exp-fill').style.width = (prog.level >= 12 ? 100 : (prog.exp/(prog.level*100))*100)+'%';
     document.getElementById('btn-train').disabled = prog.level >= 12 || localVault < 1500;
-    document.getElementById('txt-train').innerText = prog.level >= 12 ? "NIVEL MÁXIMO" : "⚔️ Entrenar";
-    document.getElementById('cost-train').innerText = prog.level >= 12 ? "---" : "1500 pts";
 }
 
 function trainGuardian() {
@@ -358,10 +276,11 @@ function trainGuardian() {
             p.level++; p.exp = 0;
             if(p.level === 12) {
                 if(!gStats.team.includes(gStats.active)) gStats.team.push(gStats.active);
-                saveAll(); showVictoryScreen();
-            } else { saveAll(); triggerEvo(); }
+                saveAll();
+                if(gStats.team.length === 6) showCelebration(); else showVictoryScreen();
+            } else triggerEvo();
         }
-        updateGuardianUI(); updateGuardianVisuals();
+        saveAll(); updateGuardianUI(); updateGuardianVisuals();
     }
 }
 
@@ -372,9 +291,20 @@ function showVictoryScreen() {
     document.getElementById('vic-img').style.backgroundImage = `url('${stage.imgF}')`;
     document.getElementById('vic-name').innerText = stage.name;
     document.getElementById('victory-screen').style.display = 'flex';
-    renderTeamDock();
 }
 function closeVictoryScreen() { document.getElementById('victory-screen').style.display='none'; }
+
+function showCelebration() {
+    const grid = document.getElementById('celeb-grid');
+    grid.innerHTML = '';
+    gStats.team.forEach(key => {
+        const stage = POKEDEX_DB[key].stages[POKEDEX_DB[key].stages.length-1];
+        grid.innerHTML += `<div class="celeb-member"><div class="celeb-img" style="background-image:url('${stage.imgF}')"></div><div style="font-weight:900; color:#FFF;">${stage.name}</div></div>`;
+    });
+    document.getElementById('team-celebration').style.display = 'flex';
+}
+function closeCelebration() { document.getElementById('team-celebration').style.display = 'none'; }
+
 function triggerEvo() { isEvolving=true; document.getElementById('evo-flash').style.opacity=1; setTimeout(()=>{ updateGuardianVisuals(); document.getElementById('evo-flash').style.opacity=0; isEvolving=false; }, 800); }
 
 function renderTeamDock() {
@@ -393,9 +323,9 @@ function deductPoints(v) { if(localVault >= v) { localVault -= v; updateVaultUI(
 function updateVaultUI() { document.getElementById('vault-score').innerText = localVault.toLocaleString(); }
 function toggleGuardianMenu() { const h = document.getElementById('guardian-hud'); h.style.display = h.style.display==='block'?'none':'block'; }
 
-window.addEventListener('keydown', (e) => { if(e.key === "Escape") { closeVictoryScreen(); closeStarterSelection(); } });
+window.addEventListener('keydown', (e) => { if(e.key === "Escape") { closeVictoryScreen(); closeStarterSelection(); closeCelebration(); } });
 
-/* --- MINERÍA Y DASHBOARD (ESTÁNDAR) --- */
+/* --- MINERÍA Y DATA --- */
 const API_KEY = "AIzaSyCCBAapFj9Fd-8cOIfpDJxrOP__76zxAxM", WEEKLY_ID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
 async function updateData() {
     try {
@@ -403,9 +333,7 @@ async function updateData() {
         const data = await r.json();
         if(data.values) {
             const tbody = document.querySelector("#tbl tbody"); tbody.innerHTML = '';
-            data.values.slice(0,10).forEach((row, i) => {
-                tbody.innerHTML += `<tr><td>${i+1}</td><td style="text-align:left; font-weight:800">${row[1]}</td><td>${row[14]||0}</td><td>${row[14]||0}</td></tr>`;
-            });
+            data.values.slice(0,10).forEach((row, i) => { tbody.innerHTML += `<tr><td>${i+1}</td><td style="text-align:left; font-weight:800">${row[1]}</td><td>${row[14]||0}</td><td>${row[14]||0}</td></tr>`; });
             document.getElementById('totalTodayValue').innerText = data.values.reduce((s, r) => s + (parseInt(r[14])||0), 0);
         }
     } catch(e) {}
@@ -417,8 +345,7 @@ function initMiner() {
     for(let i=0; i<12; i++) { createNode(left, 'blue'); createNode(right, 'red'); }
 }
 function createNode(parent, type) {
-    const n = document.createElement('div'); n.className = 'crystal-node';
-    n.style.backgroundImage = `url('${GEM_TYPES[type].img}')`;
+    const n = document.createElement('div'); n.className = 'crystal-node'; n.style.backgroundImage = `url('${GEM_TYPES[type].img}')`;
     n.style.top = Math.random()*80+10+'%'; n.style.left = Math.random()*60+20+'px';
     n.style.setProperty('--node-color', GEM_TYPES[type].c); parent.appendChild(n);
     setTimeout(() => n.classList.add('ready'), GEM_TYPES[type].t);
