@@ -84,17 +84,21 @@
   .starter-card:hover { transform: translateY(-10px); }
   .s-img { width: 70px; height: 70px; background-size: contain; background-position: center; background-repeat: no-repeat; margin: 0 auto 15px auto; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.8)); }
   .s-name { font-weight: 900; font-size: 14px; color: #FFF; text-transform: uppercase; }
-  .team-full-msg { font-size: 30px; color: var(--neon-yellow); font-weight: 900; text-shadow: 0 0 20px var(--neon-yellow); display: none; }
+  .team-full-msg { font-size: 30px; color: var(--neon-yellow); font-weight: 900; text-shadow: 0 0 20px var(--neon-yellow); display: none; margin-top: 20px;}
 
   /* =========================================
-     NUEVO: PANTALLA DE VICTORIA
+     PANTALLA DE VICTORIA Y CAPTURA PERFECTA
      ========================================= */
-  #victory-screen { position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(20px); z-index: 10000; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
-  .victory-title { font-size: 50px; font-weight: 900; color: var(--neon-yellow); text-shadow: 0 0 30px rgba(255, 221, 68, 0.8); margin-bottom: 15px; animation: evo-pulse 2s infinite alternate; letter-spacing: 3px; text-transform: uppercase; }
-  .victory-subtitle { color: #FFF; font-size: 18px; margin-bottom: 50px; max-width: 600px; opacity: 0.8; }
-  .victory-team { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-bottom: 60px; }
-  .v-member { width: 120px; height: 120px; background: rgba(255,255,255,0.05); border: 3px solid var(--neon-yellow); border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 0 25px rgba(255,221,68,0.4); opacity: 0; animation: victory-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-  .v-member img { width: 90%; height: 90%; object-fit: contain; filter: drop-shadow(0 10px 15px rgba(0,0,0,1)); }
+  #victory-screen { position: fixed; inset: 0; background: rgba(10,10,15,1); z-index: 10000; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; overflow: hidden;}
+  .rays-bg { position: absolute; top: 50%; left: 50%; width: 200vw; height: 200vw; background: repeating-conic-gradient(from 0deg, rgba(255,221,68,0.1) 0deg 10deg, transparent 10deg 20deg); transform: translate(-50%, -50%); animation: spin-rays 30s linear infinite; z-index: -1; }
+  @keyframes spin-rays { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+  .victory-title { font-size: 60px; font-weight: 900; color: var(--neon-yellow); text-shadow: 0 0 40px rgba(255, 221, 68, 1); margin-bottom: 5px; letter-spacing: 5px; text-transform: uppercase; animation: float 3s ease-in-out infinite alternate; }
+  .victory-subtitle { color: #FFF; font-size: 16px; margin-bottom: 50px; max-width: 600px; opacity: 0.9; text-shadow: 0 2px 5px black;}
+  .victory-team { display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; margin-bottom: 50px; position: relative; z-index: 10;}
+  .v-member { width: 140px; height: 140px; background: rgba(0,0,0,0.6); border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.8); opacity: 0; animation: victory-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; cursor: pointer; transition: 0.3s; position: relative;}
+  .v-member:hover { transform: scale(1.1); border-color: var(--neon-blue); }
+  .v-member.selected { border-color: #FFF; box-shadow: 0 0 40px #FFF, inset 0 0 20px #FFF; transform: scale(1.2); z-index: 100; }
+  .v-member img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 10px 15px rgba(0,0,0,1)); }
   @keyframes victory-pop { 0% { transform: scale(0); opacity: 0; } 80% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
 
   /* =========================================
@@ -104,6 +108,8 @@
   #guardian-wrapper { position: absolute; bottom: 20px; left: 50%; pointer-events: none; transition: width 1s, height 1s; }
   #guardian-sprite { width: 100%; height: 100%; pointer-events: auto; cursor: pointer; background-size: contain; background-position: center; background-repeat: no-repeat; filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2)); transition: filter 0.3s, transform 0.2s; }
   
+  .aura-prestige { filter: drop-shadow(0 0 15px var(--neon-yellow)) drop-shadow(0 0 30px var(--neon-yellow)) brightness(1.3) !important; animation: levitate-neon-pulse 1.5s infinite alternate ease-in-out; }
+
   .guardian-emote { position: absolute; top: -30px; right: -10px; font-size: 24px; pointer-events: none; animation: emote-pop 2s forwards ease-out; filter: drop-shadow(0 0 5px rgba(255,255,255,0.8)); }
   @keyframes emote-pop { 0% { transform: translateY(0) scale(0); opacity: 0; } 20% { transform: translateY(-15px) scale(1.2); opacity: 1; } 80% { transform: translateY(-25px) scale(1); opacity: 1; } 100% { transform: translateY(-35px) scale(0.5); opacity: 0; } }
 
@@ -132,7 +138,9 @@
   .g-btn span.cost { color: var(--neon-purple); }
   .g-btn:disabled { opacity: 0.4; cursor: not-allowed; border-color: rgba(255,255,255,0.1); }
   
-  .btn-prestige { background: linear-gradient(90deg, #FFDD44, #FF8800) !important; color: #000 !important; border: none !important; font-weight: 900 !important; text-align: center !important; justify-content: center !important; animation: evo-pulse 2s infinite alternate; cursor: pointer; padding: 12px; font-size: 14px;}
+  .btn-prestige { background: linear-gradient(90deg, #FFDD44, #FF8800) !important; color: #000 !important; border: none !important; font-weight: 900 !important; text-align: center !important; justify-content: center !important; animation: evo-pulse 2s infinite alternate; cursor: pointer; padding: 15px; font-size: 14px; box-shadow: 0 0 20px rgba(255, 221, 68, 0.5);}
+  .btn-prestige:hover { transform: scale(1.05); }
+  .auto-mine-msg { font-size: 12px; font-weight: 900; color: var(--neon-yellow); text-align: center; margin-bottom: 10px; text-transform: uppercase; animation: float 2s infinite alternate; }
 </style>
 </head>
 <body>
@@ -141,19 +149,22 @@
 <canvas id="matrix-canvas"></canvas>
 
 <div id="victory-screen">
-    <div class="victory-title">¡EQUIPO COMPLETADO!</div>
-    <div class="victory-subtitle">Felicidades, Guardián. Has maximizado la extracción elemental y ensamblado tu equipo definitivo en el Salón de la Fama.</div>
+    <div class="rays-bg"></div>
+    <div class="victory-title">HALL OF FAME</div>
+    <div class="victory-subtitle">Extracción elemental al 100%. Protocolo Guardián ensamblado.<br><strong>Seleccione a su Campeón para activar el minado automático permanente.</strong></div>
     <div class="victory-team" id="victory-team-container">
         </div>
-    <button class="g-btn btn-prestige" style="width: auto; padding: 15px 30px;" onclick="closeVictoryScreen()">CERRAR Y CONTINUAR AL DASHBOARD</button>
+    <button class="g-btn btn-prestige" style="width: auto; padding: 15px 40px;" onclick="activatePrestige()">ACTIVAR PRESTIGIO: AUTO-MINADO</button>
 </div>
 
 <div id="starter-selection">
     <div class="starter-title">INCUBADORA DE DATOS</div>
     <div class="starter-subtitle" id="starter-sub">Seleccione una semilla elemental para comenzar la extracción. Maxícela al Nivel 12 para añadirla a su equipo.</div>
-    <div id="team-full-msg" class="team-full-msg">¡EQUIPO DE 6 COMPLETADO!</div>
-    <div class="starter-grid" id="starter-grid-container">
-        </div>
+    <div class="starter-grid" id="starter-grid-container"></div>
+    <div id="team-full-msg" class="team-full-msg">
+        ¡EQUIPO DE 6 COMPLETADO!<br>
+        <button class="g-btn btn-prestige" style="margin-top:20px; margin-left:auto; margin-right:auto; width:auto;" onclick="showVictoryScreen()">VER SALÓN DE LA FAMA</button>
+    </div>
 </div>
 
 <div id="team-dock">
@@ -178,35 +189,45 @@
 </div>
 
 <div id="guardian-hud">
-    <div class="g-header">
-        <div class="g-title" id="g-name-display">Huevo</div>
-        <div class="g-level" id="g-lvl-display">Lv. 1</div>
+    <div id="hud-normal">
+        <div class="g-header">
+            <div class="g-title" id="g-name-display">Huevo</div>
+            <div class="g-level" id="g-lvl-display">Lv. 1</div>
+        </div>
+        
+        <div class="g-stats-box">
+            <div>PODER: <span id="s-pwr">10</span></div>
+            <div>VEL: <span id="s-spd">1x</span></div>
+            <div>TIPO: <span id="s-type">Incubando</span></div>
+        </div>
+
+        <div class="bar-label"><span>Satisfacción (Acelera Minería)</span> <span id="g-buff-status">+20%</span></div>
+        <div class="bar-bg"><div class="sat-fill" id="g-sat-fill"></div></div>
+
+        <div class="bar-label"><span>Experiencia (EXP)</span> <span id="g-exp-txt">0 / 100</span></div>
+        <div class="bar-bg"><div class="exp-fill" id="g-exp-fill"></div></div>
+        
+        <button class="g-btn" id="btn-feed" onclick="feedGuardian()">
+            <span>🥩 Alimentar (+30 SAT)</span> <span class="cost">500 pts</span>
+        </button>
+        <button class="g-btn" id="btn-train" onclick="trainGuardian()">
+            <span id="txt-train-btn">⚔️ Entrenar (+50 EXP)</span> <span class="cost" id="cost-train-btn">1500 pts</span>
+        </button>
+        
+        <button class="g-btn btn-prestige" id="btn-prestige" onclick="archiveToTeam()" style="display:none; padding: 10px;">
+            📥 GUARDAR EN EQUIPO
+        </button>
     </div>
     
-    <div class="g-stats-box">
-        <div>PODER: <span id="s-pwr">10</span></div>
-        <div>VEL: <span id="s-spd">1x</span></div>
-        <div>TIPO: <span id="s-type">Incubando</span></div>
+    <div id="hud-auto" style="display:none;">
+        <div class="auto-mine-msg">⚡ PRESTIGIO ACTIVO ⚡</div>
+        <div class="g-stats-box" style="text-align:center; display:block;">
+            <span id="auto-name" style="color:#FFF; font-size:16px;">Pokémon</span><br>
+            Auto-minado operando al 100% de eficiencia.
+        </div>
     </div>
 
-    <div class="bar-label"><span>Satisfacción (Acelera Minería)</span> <span id="g-buff-status">+20%</span></div>
-    <div class="bar-bg"><div class="sat-fill" id="g-sat-fill"></div></div>
-
-    <div class="bar-label"><span>Experiencia (EXP)</span> <span id="g-exp-txt">0 / 100</span></div>
-    <div class="bar-bg"><div class="exp-fill" id="g-exp-fill"></div></div>
-    
-    <button class="g-btn" id="btn-feed" onclick="feedGuardian()">
-        <span>🥩 Alimentar (+30 SAT)</span> <span class="cost">500 pts</span>
-    </button>
-    <button class="g-btn" id="btn-train" onclick="trainGuardian()">
-        <span id="txt-train-btn">⚔️ Entrenar (+50 EXP)</span> <span class="cost" id="cost-train-btn">1500 pts</span>
-    </button>
-    
-    <button class="g-btn btn-prestige" id="btn-prestige" onclick="archiveToTeam()" style="display:none;">
-        📥 GUARDAR EN EQUIPO
-    </button>
-
-    <div style="font-size: 9px; color: #FF4444; text-align: center; margin-top: 5px; font-weight:bold;">*Entrenar NO restaura el hambre</div>
+    <div style="font-size: 9px; color: #FF4444; text-align: center; margin-top: 5px; font-weight:bold;" id="txt-warning">*Entrenar NO restaura el hambre</div>
     <button class="g-btn" onclick="toggleGuardianMenu()" style="text-align:center; display:block; margin-top:10px; border:none; color:#888;">Cerrar Panel</button>
 </div>
 
@@ -233,7 +254,7 @@
 /* ==========================================================================
    MOTOR POKÉDEX: ESTRUCTURA ESCALABLE
    ========================================================================== */
-const EGG_DATA = { name: "Huevo Misterioso", size: 50, speed: 0.5, type: "Incubando", color: '#FFF', imgF: "https://rebekahlang.com/wp-content/uploads/2015/08/pokemon-egg-png.png", imgB: "https://rebekahlang.com/wp-content/uploads/2015/08/pokemon-egg-png.png" };
+const EGG_DATA = { name: "Huevo Misterioso", size: 50, speed: 0.5, type: "Incubando", color: '#FFF', imgF: "https://archives.bulbagarden.net/media/upload/0/06/HOMEEgg.png", imgB: "https://archives.bulbagarden.net/media/upload/0/06/HOMEEgg.png" };
 
 const POKEDEX_DB = {
     "fire": { baseName: "Charmander", color: "#FF4444", stages: [
@@ -398,7 +419,7 @@ function deductPoints(amount) {
 /* ==========================================================================
    MÓDULO 2: SISTEMA DEL GUARDIÁN Y EQUIPO
    ========================================================================== */
-let gStats = { line: null, sat: 100, exp: 0, level: 1, lastTick: Date.now(), team: [] };
+let gStats = { line: null, sat: 100, exp: 0, level: 1, lastTick: Date.now(), team: [], isAutoMining: false };
 let gState = 'walk'; 
 let gPosX = window.innerWidth / 2;
 let gPosY = 20; 
@@ -410,6 +431,7 @@ function initGuardian() {
     if(saved) {
         gStats = JSON.parse(saved);
         if(!gStats.team) gStats.team = [];
+        if(gStats.isAutoMining === undefined) gStats.isAutoMining = false;
         const minsOffline = Math.floor((Date.now() - gStats.lastTick) / 60000);
         gStats.sat = Math.max(0, gStats.sat - (minsOffline * 0.5)); 
     }
@@ -421,6 +443,7 @@ function initGuardian() {
     gStats.lastTick = Date.now();
     setInterval(() => { if(!isEvolving && Math.random() > 0.6 && gStats.level >= 3) facingAway = !facingAway; updateGuardianVisuals(); }, 4000);
     setInterval(guardianLogicTick, 1000);
+    setInterval(autoMineTick, 1500); // LOOP DE AUTO-MINADO
     setInterval(spawnRandomEmote, 6000); 
     requestAnimationFrame(guardianMoveLoop);
     updateGuardianUI(); updateGuardianVisuals();
@@ -428,7 +451,7 @@ function initGuardian() {
 
 function saveGuardian() { gStats.lastTick = Date.now(); localStorage.setItem('qv_guardian_hof', JSON.stringify(gStats)); }
 
-// Renderizar Selección Inicial Dinámica
+// SELECCIÓN INICIAL
 function openStarterSelection() {
     document.getElementById('guardian-hud').style.display = 'none';
     const container = document.getElementById('starter-grid-container');
@@ -436,6 +459,7 @@ function openStarterSelection() {
     
     if (gStats.team.length >= 6) {
         document.getElementById('starter-sub').style.display = 'none';
+        container.style.display = 'none';
         document.getElementById('team-full-msg').style.display = 'block';
         document.getElementById('starter-selection').style.display = 'flex';
         return;
@@ -450,10 +474,7 @@ function openStarterSelection() {
             card.onclick = () => chooseStarter(key);
             card.onmouseover = () => { card.style.borderColor = pk.color; card.style.boxShadow = `0 0 30px ${pk.color}`; };
             card.onmouseout = () => { card.style.borderColor = 'rgba(255,255,255,0.1)'; card.style.boxShadow = 'none'; };
-            card.innerHTML = `
-                <div class="s-img" style="background-image: url('${stage1.imgF}');"></div>
-                <div class="s-name" style="color:${pk.color}">${pk.baseName}</div>
-            `;
+            card.innerHTML = `<div class="s-img" style="background-image: url('${stage1.imgF}');"></div><div class="s-name" style="color:${pk.color}">${pk.baseName}</div>`;
             container.appendChild(card);
         }
     });
@@ -461,30 +482,58 @@ function openStarterSelection() {
 }
 
 function chooseStarter(type) {
-    gStats.line = type; gStats.level = 1; gStats.exp = 0; gStats.sat = 100;
+    gStats.line = type; gStats.level = 1; gStats.exp = 0; gStats.sat = 100; gStats.isAutoMining = false;
     document.getElementById('starter-selection').style.display = 'none';
     saveGuardian();
-    if (!document.getElementById('guardian-sprite').style.backgroundImage) {
-        initGuardian(); 
-    } else {
-        updateGuardianUI(); updateGuardianVisuals();
-    }
+    if (!document.getElementById('guardian-sprite').style.backgroundImage) { initGuardian(); } else { updateGuardianUI(); updateGuardianVisuals(); }
 }
 
-// NUEVO MÓDULO: PANTALLA DE VICTORIA
+// PANTALLA DE VICTORIA Y PRESTIGIO
+let selectedForPrestige = null;
 function showVictoryScreen() {
+    document.getElementById('starter-selection').style.display = 'none';
     const container = document.getElementById('victory-team-container');
     container.innerHTML = '';
+    selectedForPrestige = gStats.team[0]; // Por defecto selecciona el primero
+    
     gStats.team.forEach((lineKey, index) => {
         const finalImg = getFinalStageImage(lineKey);
-        container.innerHTML += `<div class="v-member" style="animation-delay: ${index * 0.2}s"><img src="${finalImg}" /></div>`;
+        const mem = document.createElement('div');
+        mem.className = 'v-member' + (index === 0 ? ' selected' : '');
+        mem.style.animationDelay = `${index * 0.2}s`;
+        mem.innerHTML = `<img src="${finalImg}" />`;
+        
+        mem.onclick = () => {
+            document.querySelectorAll('.v-member').forEach(el => el.classList.remove('selected'));
+            mem.classList.add('selected');
+            selectedForPrestige = lineKey;
+        };
+        container.appendChild(mem);
     });
     document.getElementById('victory-screen').style.display = 'flex';
-    document.getElementById('starter-selection').style.display = 'none'; // Asegurar que la selección no interfiera
 }
 
-function closeVictoryScreen() {
+function activatePrestige() {
+    gStats.line = selectedForPrestige;
+    gStats.level = 12; // Se asegura de que esté al máximo
+    gStats.isAutoMining = true;
+    saveGuardian();
     document.getElementById('victory-screen').style.display = 'none';
+    
+    if (!document.getElementById('guardian-sprite').style.backgroundImage) { initGuardian(); } 
+    else { updateGuardianVisuals(); updateGuardianUI(); }
+}
+
+function autoMineTick() {
+    if (gStats.isAutoMining && gStats.line && !isEvolving) {
+        const readyCrystals = document.querySelectorAll('.crystal-node.ready');
+        if (readyCrystals.length > 0) {
+            const target = readyCrystals[0];
+            target.click(); // Simula el click de minería
+            spawnSpecificEmote('⚡');
+            playActionAnimation('anim-train');
+        }
+    }
 }
 
 function archiveToTeam() {
@@ -519,13 +568,14 @@ function renderTeamDock() {
 
 function guardianLogicTick() {
     if(isEvolving || !gStats.line) return;
-    gStats.sat = Math.max(0, gStats.sat - 0.05); 
+    if(!gStats.isAutoMining) gStats.sat = Math.max(0, gStats.sat - 0.05); 
+    
     const sprite = document.getElementById('guardian-sprite');
     
-    if (gStats.sat <= 0 && gState !== 'act') {
+    if (gStats.sat <= 0 && gState !== 'act' && !gStats.isAutoMining) {
         if (gState !== 'sleep') { gState = 'sleep'; sprite.className = 'anim-sleep'; spawnSpecificEmote('💤'); }
-    } else if (gStats.sat > 0 && gState === 'sleep') {
-        gState = 'walk'; sprite.className = ''; spawnSpecificEmote('✨');
+    } else if ((gStats.sat > 0 || gStats.isAutoMining) && gState === 'sleep') {
+        gState = 'walk'; sprite.className = gStats.isAutoMining ? 'aura-prestige' : ''; spawnSpecificEmote('✨');
     }
     saveGuardian(); updateGuardianUI(); 
 }
@@ -538,8 +588,8 @@ function spawnSpecificEmote(emoji) {
 
 function spawnRandomEmote() {
     if (isEvolving || gState === 'sleep' || !gStats.line) return;
-    let emotes = ['✨', '❓', '🎵', '💬'];
-    if (gStats.sat < 40) emotes = ['🍖', '😫', '💢', '💧']; 
+    let emotes = gStats.isAutoMining ? ['⚡', '💎', '🔥'] : ['✨', '❓', '🎵', '💬'];
+    if (gStats.sat < 40 && !gStats.isAutoMining) emotes = ['🍖', '😫', '💢', '💧']; 
     if (gStats.sat > 80 && Math.random() > 0.5) emotes.push('❤️', '🔥');
     if (Math.random() > 0.4) spawnSpecificEmote(emotes[Math.floor(Math.random() * emotes.length)]);
 }
@@ -549,12 +599,14 @@ function guardianMoveLoop() {
         const stageData = getCurrentStageData(gStats.line, gStats.level);
         const paddingX = 220; 
         
-        gPosX += stageData.speed * gDirX;
+        let speedMult = gStats.isAutoMining ? 1.5 : 1; // Se mueve más rápido si auto-mina
+        
+        gPosX += stageData.speed * speedMult * gDirX;
         if (gPosX > window.innerWidth - paddingX - stageData.size) gDirX = -1;
         if (gPosX < paddingX) gDirX = 1;
         
-        if (stageData.type.includes("Volador")) {
-            gPosY += stageData.speed * 0.8 * gDirY;
+        if (stageData.type.includes("Volador") || gStats.isAutoMining) { // Si auto-mina vuela un poco
+            gPosY += stageData.speed * 0.8 * speedMult * gDirY;
             if (gPosY > window.innerHeight - stageData.size - 50) gDirY = -1;
             if (gPosY < 20) gDirY = 1;
         } else { gPosY = 20; }
@@ -579,10 +631,17 @@ function updateGuardianVisuals() {
     
     const imgUrl = (facingAway && gStats.level >= 3) ? stageData.imgB : stageData.imgF;
     sprite.style.backgroundImage = `url('${imgUrl}')`;
+    
+    if(gStats.isAutoMining) {
+        sprite.classList.add('aura-prestige');
+    } else {
+        sprite.classList.remove('aura-prestige');
+    }
 }
 
 function getGuardianBuff() {
     if(!gStats.line) return 1.0;
+    if(gStats.isAutoMining) return 2.0; // Buff masivo pasivo en modo auto
     if (gStats.sat > 70) return 1.2; 
     if (gStats.sat <= 0) return 0.8; 
     return 1.0;
@@ -591,6 +650,8 @@ function getGuardianBuff() {
 function toggleGuardianMenu() { if(gStats.line) { const menu = document.getElementById('guardian-hud'); menu.style.display = menu.style.display === 'block' ? 'none' : 'block'; checkGuardianButtons(); } }
 
 function checkGuardianButtons() {
+    if(gStats.isAutoMining) return; // Si auto-mina, no hace falta validar botones normales
+    
     const isMax = gStats.level >= 12;
     document.getElementById('btn-feed').disabled = localVault < 500 || isEvolving;
     document.getElementById('btn-train').disabled = localVault < 1500 || isEvolving || isMax;
@@ -610,37 +671,55 @@ function updateGuardianUI() {
     if(isEvolving || !gStats.line) return;
     const stageData = getCurrentStageData(gStats.line, gStats.level);
     
-    document.getElementById('g-sat-fill').style.width = `${Math.min(100, Math.max(0, gStats.sat))}%`;
-    document.getElementById('g-lvl-display').innerText = `Lv. ${gStats.level}`;
-    document.getElementById('g-lvl-display').style.background = `linear-gradient(45deg, #222, ${stageData.color})`;
-    
-    if (gStats.level >= 12) {
-        document.getElementById('g-exp-fill').style.width = `100%`;
-        document.getElementById('g-exp-txt').innerText = `MAX`;
+    if(gStats.isAutoMining) {
+        document.getElementById('hud-normal').style.display = 'none';
+        document.getElementById('txt-warning').style.display = 'none';
+        document.getElementById('hud-auto').style.display = 'block';
+        document.getElementById('auto-name').innerText = stageData.name;
+        document.getElementById('auto-name').style.color = stageData.color;
     } else {
-        const expReq = gStats.level * 100;
-        document.getElementById('g-exp-fill').style.width = `${Math.min(100, (gStats.exp / expReq) * 100)}%`;
-        document.getElementById('g-exp-txt').innerText = `${gStats.exp} / ${expReq}`;
-    }
+        document.getElementById('hud-auto').style.display = 'none';
+        document.getElementById('txt-warning').style.display = 'block';
+        document.getElementById('hud-normal').style.display = 'block';
+        
+        document.getElementById('g-sat-fill').style.width = `${Math.min(100, Math.max(0, gStats.sat))}%`;
+        document.getElementById('g-lvl-display').innerText = `Lv. ${gStats.level}`;
+        document.getElementById('g-lvl-display').style.background = `linear-gradient(45deg, #222, ${stageData.color})`;
+        
+        if (gStats.level >= 12) {
+            document.getElementById('g-exp-fill').style.width = `100%`;
+            document.getElementById('g-exp-txt').innerText = `MAX`;
+        } else {
+            const expReq = gStats.level * 100;
+            document.getElementById('g-exp-fill').style.width = `${Math.min(100, (gStats.exp / expReq) * 100)}%`;
+            document.getElementById('g-exp-txt').innerText = `${gStats.exp} / ${expReq}`;
+        }
 
-    document.getElementById('g-name-display').innerText = stageData.name;
-    document.getElementById('s-pwr').innerText = gStats.level * 15;
-    document.getElementById('s-spd').innerText = `${stageData.speed}x`;
-    document.getElementById('s-type').innerText = stageData.type;
-    
-    const buffTxt = document.getElementById('g-buff-status');
-    if(gStats.sat > 70) { buffTxt.innerText = "+20% Vel. Mina"; buffTxt.style.color = "var(--neon-green)"; }
-    else if(gStats.sat <= 0) { buffTxt.innerText = "-20% Vel. Mina"; buffTxt.style.color = "var(--neon-red)"; }
-    else { buffTxt.innerText = "Estado Nominal"; buffTxt.style.color = "var(--ink)"; }
-    
-    checkGuardianButtons();
+        document.getElementById('g-name-display').innerText = stageData.name;
+        document.getElementById('s-pwr').innerText = gStats.level * 15;
+        document.getElementById('s-spd').innerText = `${stageData.speed}x`;
+        document.getElementById('s-type').innerText = stageData.type;
+        
+        const buffTxt = document.getElementById('g-buff-status');
+        if(gStats.sat > 70) { buffTxt.innerText = "+20% Vel. Mina"; buffTxt.style.color = "var(--neon-green)"; }
+        else if(gStats.sat <= 0) { buffTxt.innerText = "-20% Vel. Mina"; buffTxt.style.color = "var(--neon-red)"; }
+        else { buffTxt.innerText = "Estado Nominal"; buffTxt.style.color = "var(--ink)"; }
+        
+        checkGuardianButtons();
+    }
 }
 
 function playActionAnimation(animClass) {
     if(isEvolving) return;
     const sprite = document.getElementById('guardian-sprite');
-    gState = 'act'; sprite.className = animClass; 
-    setTimeout(() => { gState = gStats.sat > 0 ? 'walk' : 'sleep'; sprite.className = gState === 'sleep' ? 'anim-sleep' : ''; }, 1000);
+    gState = 'act'; 
+    // Mantiene el aura si está en auto-minado, de lo contrario reemplaza todo.
+    sprite.className = gStats.isAutoMining ? `aura-prestige ${animClass}` : animClass; 
+    setTimeout(() => { 
+        gState = (gStats.sat > 0 || gStats.isAutoMining) ? 'walk' : 'sleep'; 
+        if(gStats.isAutoMining) { sprite.className = 'aura-prestige'; }
+        else { sprite.className = gState === 'sleep' ? 'anim-sleep' : ''; }
+    }, 1000);
 }
 
 function feedGuardian() {
@@ -675,7 +754,7 @@ function trainGuardian() {
    MÓDULO 3: MINERÍA
    ========================================================================== */
 const GEM_TYPES = {
-    blue:   { points: 5500,  time: 1 * 60 * 1000, color: 'var(--neon-blue)',   img: 'https://i.ibb.co/7sBBH4c/pngwing-com-1.png' },
+    blue:   { points: 500,  time: 1 * 60 * 1000, color: 'var(--neon-blue)',   img: 'https://i.ibb.co/7sBBH4c/pngwing-com-1.png' },
     red:    { points: 1000,  time: 5 * 60 * 1000, color: 'var(--neon-red)',    img: 'https://i.ibb.co/XZrXPwGc/pngwing-com.png' },
     purple: { points: 3500, time: 10 * 60 * 1000,color: 'var(--neon-purple)', img: 'https://i.ibb.co/4gwYj5LG/pngegg.png' }
 };
@@ -746,7 +825,7 @@ function spawnFloatingText(points, color, sourceEl) {
 }
 
 /* ==========================================================================
-   MÓDULO 4: DASHBOARD Y RED (INTACTOS)
+   MÓDULO 4: DASHBOARD Y RED
    ========================================================================== */
 const API_KEY = "AIzaSyCCBAapFj9Fd-8cOIfpDJxrOP__76zxAxM"; const WEEKLY_ID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo"; const DAILY_ID = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
 function setDiag(msg, color = "#44CCFF") { const d = document.getElementById('diag'); if(d) { d.innerText = msg; d.style.borderLeftColor = color; } }
@@ -781,5 +860,3 @@ function drawMatrix() { mCtx.fillStyle = 'rgba(10, 10, 10, 0.1)'; mCtx.fillRect(
 </script>
 </body>
 </html>
-
-
