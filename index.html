@@ -16,120 +16,68 @@
     --neon-red: #FF4444;
     --neon-yellow: #FFDD44;
     --neon-green: #44FF88;
-    --glow-blue: rgba(44, 204, 255, .6);
-    --glow-purple: rgba(255, 68, 204, .5);
+    --neon-white: #FFFFFF;
   }
   
   html,body{ margin:0; min-height:100%; width:100%; background:var(--dark-bg); color:var(--ink); font-family:system-ui,-apple-system,sans-serif; overflow: hidden; }
 
-  /* FONDO MATRIX Y GRADIENTES */
   #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; opacity: 0.12; pointer-events: none; }
-  body::before, body::after{ content:""; position:fixed; inset:-20%; background: radial-gradient(40% 40% at 20% 20%, var(--glow-blue), transparent), radial-gradient(30% 30% at 50% 90%, var(--glow-purple), transparent); z-index:-1; pointer-events:none; mix-blend-mode:lighten; animation:float 22s linear infinite; }
+  body::before, body::after{ content:""; position:fixed; inset:-20%; background: radial-gradient(40% 40% at 20% 20%, var(--neon-blue), transparent), radial-gradient(30% 30% at 50% 90%, var(--neon-purple), transparent); z-index:-1; pointer-events:none; mix-blend-mode:lighten; animation:float 22s linear infinite; }
   @keyframes float{ 0%, 100%{transform:translate3d(0,0,0)} 50%{transform:translate3d(2%, -2%, 0)} }
 
-  /* ESTRUCTURA DEL DASHBOARD CENTRAL */
   #board{ position:relative; z-index:1; width:100vw; height: 100vh; padding:calc(1.2*var(--vh)) calc(1.6*var(--vh)); box-sizing:border-box; display:flex;flex-direction:column;gap:calc(0.8*var(--vh)); max-width: 1200px; margin: 0 auto; overflow-y: auto; padding-bottom: 150px; }
-  .top-header-flex{ display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-  .header-controls { display: flex; align-items: center; gap: 15px; }
-  #dailyTotalDisplay{ background: var(--glass-strong); padding: 8px 16px; border-radius: 10px; border: 1px solid var(--neon-blue); box-shadow: 0 0 15px var(--glow-blue); text-align: right; }
-  #dailyTotalDisplay .label{ font-size: 10px; font-weight: 600; color: var(--neon-blue); text-transform: uppercase; }
-  #dailyTotalDisplay .value{ font-size: 24px; font-weight: 900; color: var(--neon-blue); line-height: 1; }
-  .chips{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
-  .chip{ padding: 5px 12px; border-radius:999px; background:var(--glass); border:1px solid rgba(255,255,255,.2); font-weight:800; font-size:12px; }
+  
+  .top-header-flex{ display: flex; justify-content: space-between; align-items: center; }
+  #dailyTotalDisplay{ background: var(--glass-strong); padding: 8px 16px; border-radius: 10px; border: 1px solid var(--neon-blue); text-align: right; }
+  #dailyTotalDisplay .value{ font-size: 24px; font-weight: 900; color: var(--neon-blue); }
+
   .table-wrap{ flex:1; overflow-x: auto; background: var(--glass); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
   table{ width:100%; border-collapse:separate; border-spacing:0 8px; table-layout:fixed; }
-  thead th{ background:var(--glass-strong); text-transform:uppercase; font-size:12px; padding:10px; border-bottom: 2px solid rgba(255,255,255,.1); }
-  tbody td{ padding:10px; text-align:center; border-top:1px solid rgba(255,255,255,.05); }
+  thead th{ background:var(--glass-strong); text-transform:uppercase; font-size:12px; padding:10px; }
+  tbody td{ padding:10px; text-align:center; border-top:1px solid rgba(255,255,255,0.05); }
+
   .bar{ position:relative; height:18px; border-radius:10px; background:rgba(255,255,255,0.1); overflow:hidden; }
   .bar > .fill{ position:absolute; left:0; top:0; bottom:0; width:0%; transition: width 0.8s ease; }
-  .bar.today > .fill{ background: var(--neon-blue); box-shadow: 0 0 10px var(--glow-blue); }
-  .bar.total > .fill{ background: var(--neon-purple); box-shadow: 0 0 10px var(--glow-purple); }
-  .bar .value{ position:relative; z-index:1; font-size:11px; font-weight:900; color:white; text-shadow: 1px 1px 2px black; }
-  #diag { position: fixed; top: 10px; left: 10px; font-size: 10px; padding: 5px 10px; border-radius: 5px; background: rgba(0,0,0,0.8); border-left: 3px solid var(--neon-blue); z-index: 100; }
+  .bar.today > .fill{ background: var(--neon-blue); }
+  .bar.total > .fill{ background: var(--neon-purple); }
 
-  /* =========================================
-     CAPA DE MINERÍA (24 NODOS)
-     ========================================= */
-  .rift-overlay { position: fixed; top: 0; bottom: 0; width: 200px; z-index: 50; pointer-events: none; }
-  #rift-left { left: 0; background: linear-gradient(to right, rgba(0,0,0,0.95), rgba(0,0,0,0.4) 80%, transparent); border-right: 1px solid rgba(255,255,255,0.02); }
-  #rift-right { right: 0; background: linear-gradient(to left, rgba(0,0,0,0.95), rgba(0,0,0,0.4) 80%, transparent); border-left: 1px solid rgba(255,255,255,0.02); }
-  .crystal-node { position: absolute; width: 60px; height: 70px; pointer-events: auto; background-size: contain; background-position: center; background-repeat: no-repeat; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease, filter 0.4s ease, top 0.6s ease-in-out, left 0.6s ease-in-out, right 0.6s ease-in-out; cursor: not-allowed; opacity: 0.1; transform: scale(0.1); filter: brightness(0.5) grayscale(1); }
-  .crystal-node.ready { cursor: pointer; opacity: 1; filter: brightness(1.2) grayscale(0); animation: levitate-neon-pulse 2s infinite alternate ease-in-out; }
-  @keyframes levitate-neon-pulse { 0% { transform: scale(1) translateY(0px); filter: drop-shadow(0 0 10px var(--node-color)) brightness(1.1); } 100% { transform: scale(1.1) translateY(-10px); filter: drop-shadow(0 0 15px var(--node-color)) drop-shadow(0 0 30px var(--node-color)) brightness(1.5); } }
+  /* DOCK DEL EQUIPO */
+  #team-dock { position: fixed; bottom: 30px; left: 30px; z-index: 95; display: flex; gap: 10px; background: var(--glass-strong); padding: 10px 15px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
+  .team-slot { width: 50px; height: 50px; border-radius: 50%; background: rgba(0,0,0,0.5); border: 2px dashed rgba(255,255,255,0.2); display: flex; justify-content: center; align-items: center; overflow: hidden; transition: 0.3s; cursor: pointer; }
+  .team-slot.filled { border-style: solid; border-color: var(--neon-yellow); box-shadow: 0 0 15px rgba(255,221,68,0.3); }
+  .team-slot.active-slot { border-color: var(--neon-blue); box-shadow: 0 0 20px var(--neon-blue); transform: scale(1.1); }
+  .team-slot img { width: 85%; height: 85%; object-fit: contain; }
 
-  /* BÓVEDA LOCAL */
-  #vault-hud { position: fixed; top: 30px; right: 30px; z-index: 100; background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 15px 25px; text-align: right; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-right: 3px solid #FFF; transition: border-color 0.5s; }
-  .vault-title { font-size: 10px; color: var(--ink); letter-spacing: 2px; opacity: 0.6; margin-bottom: 5px; }
-  .vault-score { font-size: 32px; font-weight: 900; color: #FFF; line-height: 1; text-shadow: 0 0 10px rgba(255,255,255,0.5); transition: color 0.3s; }
-  .floating-text { position: fixed; font-weight: 900; font-size: 24px; z-index: 200; pointer-events: none; animation: floatUp 1s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; }
-  @keyframes floatUp { 0% { transform: translateY(0) scale(0.5); opacity: 1; } 100% { transform: translateY(-70px) scale(1.5); opacity: 0; } }
+  /* PANTALLAS OVERLAY */
+  .overlay-screen { position: fixed; inset: 0; background: radial-gradient(circle, rgba(10,10,30,0.98), #000); z-index: 10000; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+  .starter-grid { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; max-width: 900px; padding: 20px; }
+  .starter-card { background: var(--glass-strong); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 15px; width: 130px; cursor: pointer; transition: 0.3s; }
+  .starter-card:hover { transform: translateY(-5px); border-color: var(--neon-blue); }
+  .s-img { width: 70px; height: 70px; background-size: contain; background-repeat: no-repeat; background-position: center; margin-bottom: 10px; }
 
-  /* =========================================
-     NUEVO: EQUIPO / SALÓN DE LA FAMA (Dock Izquierdo)
-     ========================================= */
-  #team-dock { position: fixed; bottom: 30px; left: 30px; z-index: 95; display: flex; gap: 10px; background: var(--glass-strong); padding: 10px 15px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.8); align-items: center; }
-  .team-slot { width: 50px; height: 50px; border-radius: 50%; background: rgba(0,0,0,0.5); border: 2px dashed rgba(255,255,255,0.2); display: flex; justify-content: center; align-items: center; overflow: hidden; transition: 0.3s; cursor: not-allowed; }
-  .team-slot.filled { cursor: pointer; border-style: solid; border-color: var(--neon-yellow); box-shadow: 0 0 15px rgba(255,221,68,0.3); background: rgba(255,255,255,0.1); }
-  .team-slot.filled:hover { transform: translateY(-5px); box-shadow: 0 5px 20px var(--neon-yellow); }
-  .team-slot.active-slot { border-color: var(--neon-blue); box-shadow: 0 0 20px var(--neon-blue); }
-  .team-slot img { width: 80%; height: 80%; object-fit: contain; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.8)); }
-  .dock-title { position: absolute; top: -20px; left: 15px; font-size: 10px; color: var(--neon-blue); font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
+  /* VICTORIA */
+  .vic-rays { position: absolute; width: 200vw; height: 200vw; background: repeating-conic-gradient(from 0deg, transparent 0deg 15deg, rgba(255,221,68,0.1) 15deg 30deg); animation: spin-rays 20s linear infinite; z-index: -1; }
+  @keyframes spin-rays { 100% { transform: rotate(360deg); } }
+  .victory-img { width: 200px; height: 200px; background-size: contain; background-repeat: no-repeat; background-position: center; filter: drop-shadow(0 0 30px #FFF); }
 
-  /* =========================================
-     PANTALLAS: SELECCIÓN Y VICTORIA ÉPICA
-     ========================================= */
-  .overlay-screen { position: fixed; inset: 0; background: radial-gradient(circle at center, rgba(10,10,30,0.95), rgba(0,0,0,0.98)); backdrop-filter: blur(15px); z-index: 10000; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; overflow-y: auto; padding: 20px; }
-  
-  .starter-title { font-size: 40px; font-weight: 900; color: #FFF; margin-bottom: 10px; letter-spacing: 5px; text-shadow: 0 0 20px var(--neon-blue); }
-  .starter-subtitle { font-size: 14px; color: var(--ink); opacity: 0.7; margin-bottom: 40px; max-width: 600px; }
-  .starter-grid { display: flex; gap: 25px; flex-wrap: wrap; justify-content: center; max-width: 900px; }
-  .starter-card { background: var(--glass-strong); border: 2px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 20px; width: 140px; cursor: pointer; transition: 0.3s; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
-  .starter-card:hover { transform: translateY(-10px); border-color: var(--neon-blue); box-shadow: 0 0 30px rgba(44,204,255,0.4); }
-  .s-img { width: 80px; height: 80px; background-size: contain; background-position: center; background-repeat: no-repeat; margin-bottom: 10px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.8)); }
-  .s-name { font-weight: 900; font-size: 14px; color: #FFF; text-transform: uppercase; }
-  
-  /* Rayos de Luz para Victoria */
-  .vic-rays { position: absolute; top: 50%; left: 50%; width: 200vw; height: 200vw; background: repeating-conic-gradient(from 0deg, transparent 0deg 15deg, rgba(255,221,68,0.08) 15deg 30deg); transform: translate(-50%, -50%); animation: spin-rays 30s linear infinite; z-index: -1; }
-  @keyframes spin-rays { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
-  .victory-title { font-size: 50px; color: var(--neon-yellow); text-shadow: 0 0 20px var(--neon-yellow); font-weight: 900; animation: evo-pulse 1s infinite alternate; margin-bottom: 10px; }
-  .victory-img { width: 250px; height: 250px; background-size: contain; background-repeat: no-repeat; background-position: center; margin: 30px 0; filter: drop-shadow(0 0 40px var(--neon-white)); }
-  .btn-vic { padding: 15px 30px; font-size: 14px; border-radius: 10px; border: 2px solid; cursor: pointer; background: rgba(0,0,0,0.6); color: white; font-weight: bold; transition: 0.3s; text-transform: uppercase; }
-  .btn-vic:hover { background: var(--neon-blue); color: black; box-shadow: 0 0 20px var(--neon-blue); }
-
-  /* =========================================
-     SUBSISTEMA GUARDIÁN
-     ========================================= */
+  /* GUARDIÁN */
   #guardian-area { position: fixed; bottom: 0; left: 0; width: 100vw; height: 100vh; z-index: 90; pointer-events: none; }
-  #guardian-wrapper { position: absolute; bottom: 20px; left: 50%; pointer-events: none; transition: width 1s, height 1s; }
-  #guardian-sprite { width: 100%; height: 100%; pointer-events: auto; cursor: pointer; background-size: contain; background-position: center; background-repeat: no-repeat; filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2)); transition: filter 0.3s, transform 0.2s; }
-  
-  .guardian-emote { position: absolute; top: -30px; right: -10px; font-size: 24px; pointer-events: none; animation: emote-pop 2s forwards ease-out; filter: drop-shadow(0 0 5px rgba(255,255,255,0.8)); }
-  @keyframes emote-pop { 0% { transform: translateY(0) scale(0); opacity: 0; } 20% { transform: translateY(-15px) scale(1.2); opacity: 1; } 80% { transform: translateY(-25px) scale(1); opacity: 1; } 100% { transform: translateY(-35px) scale(0.5); opacity: 0; } }
+  #guardian-wrapper { position: absolute; bottom: 20px; left: 50%; pointer-events: none; transition: width 0.8s, height 0.8s; }
+  #guardian-sprite { width: 100%; height: 100%; pointer-events: auto; cursor: pointer; background-size: contain; background-position: center; background-repeat: no-repeat; }
 
-  #evo-flash { position: fixed; inset: 0; background: white; z-index: 99999; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
-  .anim-evolving { animation: evo-pulse 0.2s infinite alternate !important; filter: brightness(5) drop-shadow(0 0 50px white) !important; }
-  @keyframes evo-pulse { 0% { transform: scale(1); filter: brightness(2); } 100% { transform: scale(1.1); filter: brightness(5); } }
-
-  .anim-eat { animation: jump-eat 0.4s ease; filter: drop-shadow(0 0 15px var(--neon-green)) brightness(1.2) !important; }
-  .anim-train { animation: shake-train 0.2s infinite; filter: drop-shadow(0 0 15px var(--neon-red)) brightness(1.5) !important; }
-  .anim-sleep { filter: grayscale(1) brightness(0.4) !important; }
-  @keyframes jump-eat { 0% { transform: scale(1) translateY(0); } 50% { transform: scale(1.2) translateY(-30px); } 100% { transform: scale(1) translateY(0); } }
-  @keyframes shake-train { 0% { transform: translateX(0); } 25% { transform: translateX(-5px) rotate(-5deg); } 75% { transform: translateX(5px) rotate(5deg); } 100% { transform: translateX(0); } }
-
-  #guardian-hud { position: fixed; bottom: 20px; right: 30px; z-index: 95; background: var(--glass-strong); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.3); display: none; backdrop-filter: blur(5px); box-shadow: 0 5px 20px rgba(0,0,0,0.8); pointer-events: auto; width: 240px; }
-  .g-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-  .g-title { font-size: 14px; font-weight: 900; color: #FFF; text-transform: uppercase; }
-  .g-level { font-size: 11px; font-weight: 900; color: #FFF; background: linear-gradient(45deg, #444, #888); padding: 3px 8px; border-radius: 4px; }
-  .g-stats-box { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 5px 10px; margin-bottom: 10px; display: flex; justify-content: space-between; font-size: 10px; color: #aaa; }
-  .g-stats-box span { font-weight: bold; color: var(--neon-blue); }
-  .bar-label { font-size:9px; margin-bottom:2px; color:#aaa; display:flex; justify-content:space-between; }
+  #guardian-hud { position: fixed; bottom: 20px; right: 30px; z-index: 95; background: var(--glass-strong); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.3); display: none; width: 240px; }
   .bar-bg { width: 100%; height: 6px; background: #222; border-radius: 3px; overflow: hidden; margin-bottom: 10px; }
-  .sat-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #FF4444, #FFDD44, #44FF88); transition: width 0.5s ease; }
-  .exp-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #44CCFF, #FF44CC); transition: width 0.5s ease; }
-  .g-btn { width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: var(--ink); padding: 8px; border-radius: 6px; margin-bottom: 5px; cursor: pointer; font-size: 11px; font-weight: bold; text-align: left; display: flex; justify-content: space-between; transition: 0.2s; }
-  .g-btn:hover { background: rgba(255,255,255,0.1); border-color: var(--neon-yellow); }
-  .g-btn span.cost { color: var(--neon-purple); }
-  .g-btn:disabled { opacity: 0.4; cursor: not-allowed; border-color: rgba(255,255,255,0.1); }
+  .sat-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #FF4444, #44FF88); transition: width 0.5s; }
+  .exp-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #44CCFF, #FF44CC); }
+  .g-btn { width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #FFF; padding: 8px; border-radius: 6px; margin-bottom: 5px; cursor: pointer; font-size: 11px; display: flex; justify-content: space-between; }
+  .g-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .rift-overlay { position: fixed; top: 0; bottom: 0; width: 200px; z-index: 50; pointer-events: none; }
+  #rift-left { left: 0; background: linear-gradient(to right, rgba(0,0,0,0.9), transparent); }
+  #rift-right { right: 0; background: linear-gradient(to left, rgba(0,0,0,0.9), transparent); }
+  .crystal-node { position: absolute; width: 60px; height: 70px; background-size: contain; background-position: center; background-repeat: no-repeat; transition: all 0.4s; opacity: 0.1; }
+  .crystal-node.ready { opacity: 1; cursor: pointer; pointer-events: auto; animation: levitate-neon-pulse 2s infinite alternate; }
+  @keyframes levitate-neon-pulse { 0% { transform: scale(1); filter: brightness(1); } 100% { transform: scale(1.1); filter: brightness(1.5) drop-shadow(0 0 10px var(--node-color)); } }
 </style>
 </head>
 <body>
@@ -138,33 +86,29 @@
 <canvas id="matrix-canvas"></canvas>
 
 <div id="starter-selection" class="overlay-screen">
-    <div class="starter-title">INCUBADORA DE DATOS</div>
-    <div class="starter-subtitle" id="starter-sub">Recluta un huevo nuevo o retoma el entrenamiento de un Pokémon en progreso. Maxímizalo al Nivel 12 para añadirlo al Hall of Fame.</div>
+    <div class="starter-title">INCUBADORA</div>
+    <div class="starter-subtitle">Selecciona un huevo para entrenar o retoma uno existente.</div>
     <div class="starter-grid" id="starter-grid-container"></div>
-    <button class="btn-vic" style="margin-top:40px; border-color:gray; font-size:12px;" onclick="closeStarterSelection()">Volver al Dashboard (ESC)</button>
+    <button class="btn-vic" style="margin-top:20px;" onclick="closeStarterSelection()">CANCELAR (ESC)</button>
 </div>
 
 <div id="victory-screen" class="overlay-screen">
     <div class="vic-rays"></div>
-    <div class="victory-title">¡MÁXIMO POTENCIAL!</div>
-    <div style="font-size: 16px; color: white; opacity: 0.8;">Tu compañero ha alcanzado el Nivel 12 y se ha unido al Salón de la Fama.</div>
+    <div class="starter-title" style="color:var(--neon-yellow)">¡NIVEL MÁXIMO!</div>
     <div id="vic-img" class="victory-img"></div>
-    <div id="vic-name" style="font-size: 40px; font-weight: 900; color: white; text-transform: uppercase; margin-bottom: 30px;">CHARIZARD</div>
-    <div style="display: flex; gap: 20px;">
-        <button class="btn-vic" style="border-color: var(--neon-green)" onclick="openStarterSelectionFromVic()">Reclutar Nuevo Huevo</button>
-        <button class="btn-vic" style="border-color: var(--neon-blue)" onclick="closeVictoryScreen()">Cerrar y Ver Equipo</button>
-    </div>
+    <div id="vic-name" style="font-size: 30px; font-weight: 900; margin-bottom: 20px;">NOM POKÉMON</div>
+    <button class="btn-vic" style="background:var(--neon-blue); color:#000; padding:15px 30px; font-weight:900; border:none; border-radius:10px; cursor:pointer;" onclick="closeVictoryScreen()">RECLAMAR Y VOLVER (ESC)</button>
 </div>
 
 <div id="team-dock">
     <div class="dock-title">Hall of Fame</div>
-    <div class="team-slot" id="ts-0" onclick="switchGuardian(0)"></div><div class="team-slot" id="ts-1" onclick="switchGuardian(1)"></div>
-    <div class="team-slot" id="ts-2" onclick="switchGuardian(2)"></div><div class="team-slot" id="ts-3" onclick="switchGuardian(3)"></div>
-    <div class="team-slot" id="ts-4" onclick="switchGuardian(4)"></div><div class="team-slot" id="ts-5" onclick="switchGuardian(5)"></div>
+    <div class="team-slot" id="ts-0" onclick="switchGuardian(0)"></div>
+    <div class="team-slot" id="ts-1" onclick="switchGuardian(1)"></div>
+    <div class="team-slot" id="ts-2" onclick="switchGuardian(2)"></div>
+    <div class="team-slot" id="ts-3" onclick="switchGuardian(3)"></div>
+    <div class="team-slot" id="ts-4" onclick="switchGuardian(4)"></div>
+    <div class="team-slot" id="ts-5" onclick="switchGuardian(5)"></div>
 </div>
-
-<div id="rift-left" class="rift-overlay"></div>
-<div id="rift-right" class="rift-overlay"></div>
 
 <div id="vault-hud">
     <div class="vault-title">BÓVEDA LOCAL</div>
@@ -182,59 +126,32 @@
         <div class="g-title" id="g-name-display">Huevo</div>
         <div class="g-level" id="g-lvl-display">Lv. 1</div>
     </div>
-    
-    <div class="g-stats-box">
-        <div>PODER: <span id="s-pwr">10</span></div>
-        <div>VEL: <span id="s-spd">1x</span></div>
-        <div>TIPO: <span id="s-type">Incubando</span></div>
-    </div>
-
-    <div class="bar-label"><span>Satisfacción (Acelera Minería)</span> <span id="g-buff-status">+20%</span></div>
     <div class="bar-bg"><div class="sat-fill" id="g-sat-fill"></div></div>
-
-    <div class="bar-label"><span>Experiencia (EXP)</span> <span id="g-exp-txt">0 / 100</span></div>
     <div class="bar-bg"><div class="exp-fill" id="g-exp-fill"></div></div>
-    
-    <button class="g-btn" id="btn-feed" onclick="feedGuardian()">
-        <span>🥩 Alimentar (+30 SAT)</span> <span class="cost">500 pts</span>
-    </button>
-    <button class="g-btn" id="btn-train" onclick="trainGuardian()">
-        <span id="txt-train-btn">⚔️ Entrenar (+50 EXP)</span> <span class="cost" id="cost-train-btn">1500 pts</span>
-    </button>
-    
-    <button class="g-btn" onclick="openStarterSelection()" style="justify-content:center; border-color:var(--neon-blue); color:var(--neon-blue); margin-top:5px;">
-        🔄 Cambiar / Reclutar Nuevo
-    </button>
-
-    <div style="font-size: 9px; color: #FF4444; text-align: center; margin-top: 5px; font-weight:bold;">*Entrenar NO restaura el hambre</div>
-    <button class="g-btn" onclick="toggleGuardianMenu()" style="text-align:center; display:block; margin-top:5px; border:none; color:#888;">Cerrar Panel</button>
+    <button class="g-btn" id="btn-feed" onclick="feedGuardian()"><span>🥩 Alimentar</span> <span style="color:var(--neon-purple)">500 pts</span></button>
+    <button class="g-btn" id="btn-train" onclick="trainGuardian()"><span id="txt-train">⚔️ Entrenar</span> <span id="cost-train" style="color:var(--neon-purple)">1500 pts</span></button>
+    <button class="g-btn" style="border-color:var(--neon-blue); margin-top:5px; justify-content:center;" onclick="openStarterSelection()">🔄 Cambiar Pokémon</button>
+    <button class="g-btn" style="border:none; color:#888; justify-content:center;" onclick="toggleGuardianMenu()">Cerrar Panel</button>
 </div>
+
+<div id="rift-left" class="rift-overlay"></div>
+<div id="rift-right" class="rift-overlay"></div>
 
 <div id='board'>
   <div class='top-header-flex'> 
     <h2 style="margin:0; font-size: 28px;">🏁 Leaderboard</h2>
-    <div class="header-controls"><div id='dailyTotalDisplay'><div class='label'>Total Diario</div><div class='value' id='totalTodayValue'>0</div></div></div>
-  </div>
-  <div class='chips'>
-    <div id='chipWeekly' class='chip'>Week: —</div><div id='chipDaily' class='chip'>Daily: —</div>
-    <button class="chip" onclick="updateData()" style="cursor:pointer; background:rgba(255,255,255,0.1)">🔄 Refrescar Red</button>
+    <div id='dailyTotalDisplay'><div class='value' id='totalTodayValue'>0</div></div>
   </div>
   <div class='table-wrap'>
-    <table id='tbl'>
-      <thead><tr><th style="width:50px">#</th><th style="text-align:left">Agent</th><th>Today</th><th>Total</th></tr></thead>
-      <tbody></tbody>
-    </table>
+    <table id='tbl'><thead><tr><th>#</th><th style="text-align:left">Agent</th><th>Today</th><th>Total</th></tr></thead><tbody></tbody></table>
   </div>
 </div>
 
-<div id="diag">Iniciando sistemas...</div>
+<div id="diag">Iniciando...</div>
 
 <script>
-/* ==========================================================================
-   MOTOR POKÉDEX: ESTRUCTURA ESCALABLE (10 LÍNEAS INTEGRADAS)
-   ========================================================================== */
-const EGG_DATA = { name: "Huevo Misterioso", size: 50, speed: 0.5, type: "Incubando", color: '#FFF', imgF: "https://archives.bulbagarden.net/media/upload/0/06/HOMEEgg.png", imgB: "https://archives.bulbagarden.net/media/upload/0/06/HOMEEgg.png" };
-
+/* --- BASE DE DATOS POKÉDEX --- */
+const EGG_IMG = "https://64.media.tumblr.com/tumblr_lvwmhdE0lN1qg0dcvo1_500.gif";
 const POKEDEX_DB = {
     "fire": { baseName: "Charmander", color: "#FF4444", stages: [
         { minLevel: 3, name: "Charmander", size: 60, speed: 1, type: "Fuego", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/charmander.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/charmander.gif" },
@@ -445,455 +362,170 @@ const POKEDEX_DB = {
     },
 };
 
-function getCurrentStageData(lineKey, level) {
-    if (level < 3) return EGG_DATA;
-    const dex = POKEDEX_DB[lineKey];
-    return dex.stages.slice().reverse().find(s => level >= s.minLevel);
-}
+/* --- VARIABLES DE ESTADO --- */
+let gStats = { active: null, sat: 100, team: [], progress: {} };
+let localVault = 0, gPosX = window.innerWidth/2, gPosY = 20, gDirX = 1, gDirY = 1, facingAway = false, isEvolving = false;
 
-function isEvolutionThreshold(lineKey, oldLevel, newLevel) {
-    if (newLevel === 3) return true; 
-    const dex = POKEDEX_DB[lineKey];
-    const oldStage = dex.stages.slice().reverse().find(s => oldLevel >= s.minLevel);
-    const newStage = dex.stages.slice().reverse().find(s => newLevel >= s.minLevel);
-    return oldStage !== newStage; 
-}
+function saveAll() { localStorage.setItem('qv_v5_stats', JSON.stringify(gStats)); localStorage.setItem('qv_v5_vault', localVault); }
 
-
-/* ==========================================================================
-   MÓDULO 1: ECONOMÍA LOCAL
-   ========================================================================== */
-let localVault = 0;
-function initVault() { localVault = parseInt(localStorage.getItem('qv_vault_hof2')) || 0; updateVaultUI(); }
-function updateVaultUI(glowColor = '#FFF') {
-    const scoreEl = document.getElementById('vault-score');
-    scoreEl.innerText = localVault.toLocaleString();
-    scoreEl.style.color = glowColor; scoreEl.style.textShadow = `0 0 20px ${glowColor}`;
-    checkGuardianButtons();
-    setTimeout(() => { scoreEl.style.color = '#FFF'; scoreEl.style.textShadow = `0 0 10px rgba(255,255,255,0.5)`; }, 600);
-}
-function deductPoints(amount) {
-    if (localVault >= amount) { localVault -= amount; localStorage.setItem('qv_vault_hof2', localVault); updateVaultUI('#FF4444'); return true; }
-    return false;
-}
-
-/* ==========================================================================
-   MÓDULO 2: SISTEMA DEL GUARDIÁN, MULTITASKING Y EQUIPO
-   ========================================================================== */
-let gStats = { active: null, sat: 100, lastTick: Date.now(), team: [], progress: {} };
-let gState = 'walk'; 
-let gPosX = window.innerWidth / 2; let gPosY = 20; 
-let gDirX = 1; let gDirY = 1; 
-let facingAway = false; let isEvolving = false;
+function initVault() { localVault = parseInt(localStorage.getItem('qv_v5_vault')) || 0; updateVaultUI(); }
 
 function initGuardian() {
-    const saved = localStorage.getItem('qv_guardian_hof2');
-    if(saved) {
-        gStats = JSON.parse(saved);
-        if(!gStats.progress) gStats.progress = {};
-        const minsOffline = Math.floor((Date.now() - gStats.lastTick) / 60000);
-        gStats.sat = Math.max(0, gStats.sat - (minsOffline * 0.5)); 
-    }
-    
+    const saved = localStorage.getItem('qv_v5_stats');
+    if(saved) gStats = JSON.parse(saved);
     renderTeamDock();
-
     if(!gStats.active) { openStarterSelection(); return; }
-
-    gStats.lastTick = Date.now();
-    setInterval(() => { 
-        if(!isEvolving && Math.random() > 0.6 && gStats.progress[gStats.active].level >= 3) {
-            facingAway = !facingAway; updateGuardianVisuals(); 
-        }
-    }, 4000);
-    
-    setInterval(guardianLogicTick, 1000);
-    setInterval(spawnRandomEmote, 6000); 
-    requestAnimationFrame(guardianMoveLoop);
-    
+    setInterval(logicTick, 1000);
+    setInterval(() => { if(!isEvolving && gStats.progress[gStats.active].level >= 3) facingAway = !facingAway; }, 5000);
+    requestAnimationFrame(moveLoop);
     updateGuardianUI(); updateGuardianVisuals();
 }
 
-function saveGuardian() { gStats.lastTick = Date.now(); localStorage.setItem('qv_guardian_hof2', JSON.stringify(gStats)); }
-
-/* --- PANTALLAS Y MENÚS --- */
 function openStarterSelection() {
-    document.getElementById('guardian-hud').style.display = 'none';
+    document.getElementById('guardian-hud').style.display='none';
     const container = document.getElementById('starter-grid-container');
     container.innerHTML = '';
-    
     Object.keys(POKEDEX_DB).forEach(key => {
-        if (!gStats.team.includes(key)) {
-            const pk = POKEDEX_DB[key];
-            const prog = gStats.progress[key];
-            const isWIP = prog && prog.level > 1; // Ya empezó a entrenarlo
-            
-            const card = document.createElement('div');
-            card.className = 'starter-card';
-            card.onclick = () => chooseStarter(key);
-            
-            let titleText = isWIP ? `<span style="color:var(--neon-yellow)">Continuar (Lv.${prog.level})</span>` : `Reclutar Huevo`;
-            let imgSrc = isWIP ? getCurrentStageData(key, prog.level).imgF : EGG_DATA.imgF;
-            
-            card.innerHTML = `
-                <div style="font-size:10px; color:#aaa; margin-bottom:10px; font-weight:bold;">${titleText}</div>
-                <div class="s-img" style="background-image: url('${imgSrc}');"></div>
-                <div class="s-name" style="color:${pk.color}">${pk.baseName}</div>
-            `;
+        if(!gStats.team.includes(key)) {
+            const prog = gStats.progress[key] || {level:1};
+            const card = document.createElement('div'); card.className = 'starter-card';
+            card.onclick = () => { gStats.active = key; if(!gStats.progress[key]) gStats.progress[key]={level:1, exp:0}; saveAll(); closeStarterSelection(); };
+            card.innerHTML = `<div style="font-size:9px; opacity:0.6;">${prog.level>1?'Lv.'+prog.level:'NUEVO'}</div>
+                              <div class="s-img" style="background-image:url('${prog.level<3?EGG_IMG:POKEDEX_DB[key].stages[0].imgF}')"></div>
+                              <div class="s-name" style="color:${POKEDEX_DB[key].color}">${POKEDEX_DB[key].baseName}</div>`;
             container.appendChild(card);
         }
     });
-    document.getElementById('starter-selection').style.display = 'flex';
+    document.getElementById('starter-selection').style.display='flex';
 }
 
-function closeStarterSelection() {
-    document.getElementById('starter-selection').style.display = 'none';
-    if(gStats.active) { updateGuardianUI(); updateGuardianVisuals(); }
-}
+function closeStarterSelection() { document.getElementById('starter-selection').style.display='none'; updateGuardianUI(); updateGuardianVisuals(); }
 
-function chooseStarter(type) {
-    gStats.active = type;
-    if (!gStats.progress[type]) gStats.progress[type] = { level: 1, exp: 0 };
-    document.getElementById('starter-selection').style.display = 'none';
-    saveGuardian();
-    
-    if (!document.getElementById('guardian-sprite').style.backgroundImage) { initGuardian(); } 
-    else { updateGuardianUI(); updateGuardianVisuals(); spawnSpecificEmote('✨'); }
-}
+function switchGuardian(idx) { if(idx < gStats.team.length) { gStats.active = gStats.team[idx]; saveAll(); updateGuardianUI(); updateGuardianVisuals(); } }
 
-function switchGuardian(index) {
-    if (index < gStats.team.length) {
-        gStats.active = gStats.team[index];
-        saveGuardian();
-        updateGuardianUI(); updateGuardianVisuals();
-        spawnSpecificEmote('✨');
-    }
-}
-
-function renderTeamDock() {
-    for(let i=0; i<6; i++) {
-        const slot = document.getElementById(`ts-${i}`);
-        if (i < gStats.team.length) {
-            const lineKey = gStats.team[i];
-            const finalImg = getCurrentStageData(lineKey, 12).imgF;
-            slot.classList.add('filled');
-            if (gStats.active === lineKey) slot.classList.add('active-slot'); else slot.classList.remove('active-slot');
-            slot.innerHTML = `<img src="${finalImg}" title="${POKEDEX_DB[lineKey].baseName}" />`;
-        } else {
-            slot.classList.remove('filled', 'active-slot');
-            slot.innerHTML = '';
-        }
-    }
-}
-
-/* --- LÓGICA DE SIMULACIÓN --- */
-function guardianLogicTick() {
-    if(isEvolving || !gStats.active) return;
-    gStats.sat = Math.max(0, gStats.sat - 0.05); 
+function logicTick() {
+    if(!gStats.active || isEvolving) return;
+    gStats.sat = Math.max(0, gStats.sat - 0.05);
     const sprite = document.getElementById('guardian-sprite');
-    
-    if (gStats.sat <= 0 && gState !== 'act') {
-        if (gState !== 'sleep') { gState = 'sleep'; sprite.className = 'anim-sleep'; spawnSpecificEmote('💤'); }
-    } else if (gStats.sat > 0 && gState === 'sleep') {
-        gState = 'walk'; sprite.className = ''; spawnSpecificEmote('✨');
+    if(gStats.sat <= 0) sprite.className = 'anim-sleep'; else sprite.className = '';
+    saveAll(); updateGuardianUI();
+}
+
+function moveLoop() {
+    if(gStats.active && !isEvolving) {
+        const prog = gStats.progress[gStats.active];
+        const stage = POKEDEX_DB[gStats.active].stages.slice().reverse().find(s => prog.level >= s.minLevel) || {size:50, speed:0.5, type:"Incubando"};
+        gPosX += stage.speed * gDirX;
+        if(gPosX > window.innerWidth-250 || gPosX < 220) gDirX *= -1;
+        if(prog.level >= 12 || stage.type.includes("Volador") || stage.type.includes("Fantasma")) {
+            gPosY += stage.speed * gDirY;
+            if(gPosY > window.innerHeight-300 || gPosY < 20) gDirY *= -1;
+        } else gPosY = 20;
+        const wrap = document.getElementById('guardian-wrapper');
+        wrap.style.left = gPosX+'px'; wrap.style.bottom = gPosY+'px';
+        wrap.style.transform = `scaleX(${gDirX === 1 ? -1 : 1})`;
     }
-    saveGuardian(); updateGuardianUI(); 
-}
-
-function spawnSpecificEmote(emoji) {
-    if (isEvolving) return;
-    const el = document.createElement('div'); el.className = 'guardian-emote'; el.innerText = emoji;
-    document.getElementById('guardian-wrapper').appendChild(el); setTimeout(() => el.remove(), 2000);
-}
-
-function spawnRandomEmote() {
-    if (isEvolving || gState === 'sleep' || !gStats.active) return;
-    let emotes = ['✨', '❓', '🎵', '💬'];
-    if (gStats.sat < 40) emotes = ['🍖', '😫', '💢', '💧']; 
-    if (gStats.sat > 80 && Math.random() > 0.5) emotes.push('❤️', '🔥');
-    if (Math.random() > 0.4) spawnSpecificEmote(emotes[Math.floor(Math.random() * emotes.length)]);
-}
-
-function guardianMoveLoop() {
-    if (gState === 'walk' && !isEvolving && gStats.active) {
-        const lvl = gStats.progress[gStats.active].level;
-        const stageData = getCurrentStageData(gStats.active, lvl);
-        const paddingX = 220; 
-        
-        gPosX += stageData.speed * gDirX;
-        if (gPosX > window.innerWidth - paddingX - stageData.size) gDirX = -1;
-        if (gPosX < paddingX) gDirX = 1;
-        
-        if (stageData.type.includes("Volador") || stageData.type.includes("Fantasma")) {
-            gPosY += stageData.speed * 0.8 * gDirY;
-            if (gPosY > window.innerHeight - stageData.size - 50) gDirY = -1;
-            if (gPosY < 20) gDirY = 1;
-        } else { gPosY = 20; }
-        
-        const wrapper = document.getElementById('guardian-wrapper');
-        wrapper.style.left = `${gPosX}px`; wrapper.style.bottom = `${gPosY}px`;
-        let flip = (gDirX === 1 && lvl >= 3) ? -1 : 1; 
-        wrapper.style.transform = `scaleX(${flip})`; 
-    }
-    requestAnimationFrame(guardianMoveLoop);
+    requestAnimationFrame(moveLoop);
 }
 
 function updateGuardianVisuals() {
-    if(isEvolving || !gStats.active) return;
-    const lvl = gStats.progress[gStats.active].level;
-    const stageData = getCurrentStageData(gStats.active, lvl);
-    const sprite = document.getElementById('guardian-sprite');
-    const wrapper = document.getElementById('guardian-wrapper');
-    const hud = document.getElementById('guardian-hud');
-    
-    wrapper.style.width = `${stageData.size}px`; wrapper.style.height = `${stageData.size}px`;
-    hud.style.borderColor = stageData.color;
-    
-    const imgUrl = (facingAway && lvl >= 3) ? stageData.imgB : stageData.imgF;
-    sprite.style.backgroundImage = `url('${imgUrl}')`;
-    renderTeamDock(); // Actualiza resaltado en dock
-}
-
-function getGuardianBuff() {
-    if(!gStats.active) return 1.0;
-    if (gStats.sat > 70) return 1.2; 
-    if (gStats.sat <= 0) return 0.8; 
-    return 1.0;
-}
-
-/* --- INTERACCIONES Y ENTRENAMIENTO --- */
-function toggleGuardianMenu() { if(gStats.active) { const menu = document.getElementById('guardian-hud'); menu.style.display = menu.style.display === 'block' ? 'none' : 'block'; checkGuardianButtons(); } }
-
-function checkGuardianButtons() {
     if(!gStats.active) return;
-    const lvl = gStats.progress[gStats.active].level;
-    const isMax = lvl >= 12;
-    
-    document.getElementById('btn-feed').disabled = localVault < 500 || isEvolving;
-    document.getElementById('btn-train').disabled = localVault < 1500 || isEvolving || isMax;
-    
-    if(isMax) {
-        document.getElementById('txt-train-btn').innerText = "⚔️ NIVEL MÁXIMO";
-        document.getElementById('cost-train-btn').innerText = "---";
-    } else {
-        document.getElementById('txt-train-btn').innerText = "⚔️ Entrenar (+50 EXP)";
-        document.getElementById('cost-train-btn').innerText = "1500 pts";
-    }
+    const prog = gStats.progress[gStats.active];
+    const stage = POKEDEX_DB[gStats.active].stages.slice().reverse().find(s => prog.level >= s.minLevel) || {size:50, imgF:EGG_IMG, imgB:EGG_IMG, color:"#FFF"};
+    const sprite = document.getElementById('guardian-sprite');
+    const wrap = document.getElementById('guardian-wrapper');
+    wrap.style.width = stage.size+'px'; wrap.style.height = stage.size+'px';
+    sprite.style.backgroundImage = `url('${facingAway?stage.imgB:stage.imgF}')`;
 }
 
 function updateGuardianUI() {
-    if(isEvolving || !gStats.active) return;
-    const lvl = gStats.progress[gStats.active].level;
-    const exp = gStats.progress[gStats.active].exp;
-    const stageData = getCurrentStageData(gStats.active, lvl);
-    
-    document.getElementById('g-sat-fill').style.width = `${Math.min(100, Math.max(0, gStats.sat))}%`;
-    document.getElementById('g-lvl-display').innerText = `Lv. ${lvl}`;
-    document.getElementById('g-lvl-display').style.background = `linear-gradient(45deg, #222, ${stageData.color})`;
-    
-    if (lvl >= 12) {
-        document.getElementById('g-exp-fill').style.width = `100%`;
-        document.getElementById('g-exp-txt').innerText = `MAX`;
-    } else {
-        const expReq = lvl * 100;
-        document.getElementById('g-exp-fill').style.width = `${Math.min(100, (exp / expReq) * 100)}%`;
-        document.getElementById('g-exp-txt').innerText = `${exp} / ${expReq}`;
-    }
-
-    document.getElementById('g-name-display').innerText = stageData.name;
-    document.getElementById('s-pwr').innerText = lvl * 15;
-    document.getElementById('s-spd').innerText = `${stageData.speed}x`;
-    document.getElementById('s-type').innerText = stageData.type;
-    
-    const buffTxt = document.getElementById('g-buff-status');
-    if(gStats.sat > 70) { buffTxt.innerText = "+20% Vel. Mina"; buffTxt.style.color = "var(--neon-green)"; }
-    else if(gStats.sat <= 0) { buffTxt.innerText = "-20% Vel. Mina"; buffTxt.style.color = "var(--neon-red)"; }
-    else { buffTxt.innerText = "Estado Nominal"; buffTxt.style.color = "var(--ink)"; }
-    
-    checkGuardianButtons();
-}
-
-function playActionAnimation(animClass) {
-    if(isEvolving) return;
-    const sprite = document.getElementById('guardian-sprite');
-    gState = 'act'; sprite.className = animClass; 
-    setTimeout(() => { gState = gStats.sat > 0 ? 'walk' : 'sleep'; sprite.className = gState === 'sleep' ? 'anim-sleep' : ''; }, 1000);
-}
-
-function feedGuardian() {
-    if (deductPoints(500)) { gStats.sat = Math.min(100, gStats.sat + 30); saveGuardian(); updateGuardianUI(); playActionAnimation('anim-eat'); spawnSpecificEmote('❤️'); }
+    if(!gStats.active) return;
+    const prog = gStats.progress[gStats.active];
+    const stage = POKEDEX_DB[gStats.active].stages.slice().reverse().find(s => prog.level >= s.minLevel) || {name:"Huevo", type:"Incubando", color:"#FFF"};
+    document.getElementById('g-name-display').innerText = stage.name;
+    document.getElementById('g-lvl-display').innerText = 'Lv. ' + prog.level;
+    document.getElementById('g-sat-fill').style.width = gStats.sat+'%';
+    const expReq = prog.level * 100;
+    document.getElementById('g-exp-fill').style.width = (prog.level >= 12 ? 100 : (prog.exp/expReq)*100)+'%';
+    document.getElementById('btn-train').disabled = prog.level >= 12 || localVault < 1500;
+    document.getElementById('btn-feed').disabled = localVault < 500;
 }
 
 function trainGuardian() {
-    let prog = gStats.progress[gStats.active];
-    if (prog.level >= 12) return;
-    
-    if (deductPoints(1500)) {
-        const expReq = prog.level * 100;
-        prog.exp += 50;
-        const oldLvl = prog.level;
-
-        if(prog.exp >= expReq) {
-            prog.level++; prog.exp = 0; 
-            
-            // Check Victoria / Equipo
-            if (prog.level === 12) {
-                if (!gStats.team.includes(gStats.active) && gStats.team.length < 6) gStats.team.push(gStats.active);
-                saveGuardian(); showVictoryScreen(); return;
-            } 
-            // Check Evolución Normal
-            else if(isEvolutionThreshold(gStats.active, oldLvl, prog.level)) { 
-                saveGuardian(); triggerEvolutionSpectacle(); return; 
-            }
+    let p = gStats.progress[gStats.active];
+    if(p.level < 12 && deductPoints(1500)) {
+        p.exp += 50;
+        if(p.exp >= p.level * 100) {
+            p.level++; p.exp = 0;
+            if(p.level === 12) { if(!gStats.team.includes(gStats.active)) gStats.team.push(gStats.active); saveAll(); showVictoryScreen(); }
+            else { saveAll(); triggerEvo(); }
         }
-        saveGuardian(); updateGuardianUI(); playActionAnimation('anim-train'); spawnSpecificEmote('💢');
+        updateGuardianUI(); updateGuardianVisuals();
     }
 }
 
-/* --- PANTALLAS DE VICTORIA Y EVOLUCIÓN --- */
-function triggerEvolutionSpectacle() {
-    isEvolving = true;
-    const sprite = document.getElementById('guardian-sprite'); const flash = document.getElementById('evo-flash');
-    sprite.className = 'anim-evolving'; document.getElementById('guardian-hud').style.display = 'none';
-    setTimeout(() => { flash.style.opacity = '1'; }, 2000);
-    setTimeout(() => { facingAway = false; updateGuardianVisuals(); updateGuardianUI(); }, 2500);
-    setTimeout(() => { flash.style.opacity = '0'; sprite.className = ''; isEvolving = false; gState = 'walk'; spawnSpecificEmote('✨'); document.getElementById('guardian-hud').style.display = 'block'; }, 3500);
-}
+function feedGuardian() { if(deductPoints(500)) { gStats.sat = Math.min(100, gStats.sat+30); saveAll(); updateGuardianUI(); } }
 
 function showVictoryScreen() {
-    document.getElementById('guardian-hud').style.display = 'none';
-    const stageData = getCurrentStageData(gStats.active, 12);
-    document.getElementById('vic-img').style.backgroundImage = `url('${stageData.imgF}')`;
-    document.getElementById('vic-name').innerText = stageData.name;
-    document.getElementById('vic-name').style.color = stageData.color;
+    const stage = POKEDEX_DB[gStats.active].stages[POKEDEX_DB[gStats.active].stages.length-1];
+    document.getElementById('vic-img').style.backgroundImage = `url('${stage.imgF}')`;
+    document.getElementById('vic-name').innerText = stage.name;
     document.getElementById('victory-screen').style.display = 'flex';
     renderTeamDock();
 }
+function closeVictoryScreen() { document.getElementById('victory-screen').style.display='none'; }
+function openStarterSelectionFromVic() { closeVictoryScreen(); openStarterSelection(); }
+function triggerEvo() { isEvolving=true; document.getElementById('evo-flash').style.opacity=1; setTimeout(()=>{ updateGuardianVisuals(); document.getElementById('evo-flash').style.opacity=0; isEvolving=false; }, 1000); }
 
-function closeVictoryScreen() {
-    document.getElementById('victory-screen').style.display = 'none';
-    updateGuardianUI(); updateGuardianVisuals();
+function renderTeamDock() {
+    for(let i=0; i<6; i++) {
+        const slot = document.getElementById('ts-'+i);
+        if(gStats.team[i]) {
+            const key = gStats.team[i];
+            slot.innerHTML = `<img src="${POKEDEX_DB[key].stages[POKEDEX_DB[key].stages.length-1].imgF}">`;
+            slot.className = 'team-slot filled' + (gStats.active === key ? ' active-slot' : '');
+        } else { slot.innerHTML = ''; slot.className = 'team-slot'; }
+    }
 }
 
-function openStarterSelectionFromVic() {
-    closeVictoryScreen();
-    openStarterSelection();
-}
+function deductPoints(v) { if(localVault >= v) { localVault -= v; updateVaultUI(); return true; } return false; }
+function updateVaultUI() { document.getElementById('vault-score').innerText = localVault.toLocaleString(); }
+function toggleGuardianMenu() { const h = document.getElementById('guardian-hud'); h.style.display = h.style.display==='block'?'none':'block'; }
 
-// Cierre Global con tecla Escape
-window.addEventListener('keydown', (e) => { 
-    if(e.key === "Escape") { 
-        closeVictoryScreen(); 
-        closeStarterSelection(); 
-    } 
-});
+window.addEventListener('keydown', (e) => { if(e.key === "Escape") { closeVictoryScreen(); closeStarterSelection(); } });
 
-/* ==========================================================================
-   MÓDULO 3: MINERÍA (INTACTO CON BUFF)
-   ========================================================================== */
-const GEM_TYPES = {
-    blue:   { points: 250,  time: 1 * 60 * 1000, color: 'var(--neon-blue)',   img: 'https://i.ibb.co/7sBBH4c/pngwing-com-1.png' },
-    red:    { points: 500,  time: 5 * 60 * 1000, color: 'var(--neon-red)',    img: 'https://i.ibb.co/XZrXPwGc/pngwing-com.png' },
-    purple: { points: 1000, time: 10 * 60 * 1000,color: 'var(--neon-purple)', img: 'https://i.ibb.co/4gwYj5LG/pngegg.png' }
-};
-
-const ACTIVE_SLOTS = [];
-for(let i=1; i<=12; i++) {
-    let type = i <= 6 ? 'blue' : (i <= 10 ? 'red' : 'purple');
-    ACTIVE_SLOTS.push({ id: `L${i}`, side: 'left', type: type }); ACTIVE_SLOTS.push({ id: `R${i}`, side: 'right', type: type });
-}
-
-const POSITIONS_POOL = { left: [], right: [] };
-const cols = ['15px', '75px', '135px', '45px', '105px'];
-for(let i=0; i<30; i++) {
-    let topPct = 2 + (i * 3.1); POSITIONS_POOL.left.push({ t: `${topPct}%`, l: cols[i % cols.length] }); POSITIONS_POOL.right.push({ t: `${topPct}%`, r: cols[i % cols.length] });
-}
-
-let occupiedPositions = { left: new Set(), right: new Set() };
-
-function initMiner() {
-    ACTIVE_SLOTS.forEach(slot => {
-        const gem = GEM_TYPES[slot.type]; const riftEl = document.getElementById(`rift-${slot.side}`);
-        const node = document.createElement('div'); node.id = `gem-${slot.id}`; node.className = 'crystal-node';
-        node.style.backgroundImage = `url('${gem.img}')`; node.style.setProperty('--node-color', gem.color); node.onclick = () => mineCrystal(slot.id);
-        riftEl.appendChild(node);
-        if (!localStorage.getItem(`qv_time_hof2_${slot.id}`)) { localStorage.setItem(`qv_time_hof2_${slot.id}`, Date.now()); assignNewRandomPosition(slot.id); }
-        else { loadStoredPosition(slot.id); }
-    });
-    setInterval(checkGrowth, 1000); checkGrowth();
-}
-
-function assignNewRandomPosition(slotId) {
-    const slot = ACTIVE_SLOTS.find(s => s.id === slotId); const pool = POSITIONS_POOL[slot.side]; const el = document.getElementById(`gem-${slotId}`);
-    const oldPosIdx = localStorage.getItem(`qv_pos_hof2_${slotId}`); if (oldPosIdx !== null) occupiedPositions[slot.side].delete(parseInt(oldPosIdx));
-    let newIdx; let attempts = 0; do { newIdx = Math.floor(Math.random() * pool.length); attempts++; } while (occupiedPositions[slot.side].has(newIdx) && attempts < 25);
-    occupiedPositions[slot.side].add(newIdx); localStorage.setItem(`qv_pos_hof2_${slotId}`, newIdx);
-    const pos = pool[newIdx]; el.style.top = pos.t; el.style.left = ''; el.style.right = ''; if(slot.side === 'left') el.style.left = pos.l; else el.style.right = pos.r;
-}
-function loadStoredPosition(slotId) {
-    const slot = ACTIVE_SLOTS.find(s => s.id === slotId); const posIdx = parseInt(localStorage.getItem(`qv_pos_hof2_${slotId}`)); const el = document.getElementById(`gem-${slotId}`);
-    if (isNaN(posIdx)) { assignNewRandomPosition(slotId); return; }
-    occupiedPositions[slot.side].add(posIdx); const pos = POSITIONS_POOL[slot.side][posIdx];
-    el.style.top = pos.t; if(slot.side === 'left') el.style.left = pos.l; else el.style.right = pos.r;
-}
-
-function checkGrowth() {
-    const now = Date.now(); const currentBuff = getGuardianBuff();
-    ACTIVE_SLOTS.forEach(slot => {
-        const gem = GEM_TYPES[slot.type]; const el = document.getElementById(`gem-${slot.id}`); const lastMined = parseInt(localStorage.getItem(`qv_time_hof2_${slot.id}`));
-        const elapsed = (now - lastMined) * currentBuff; const progress = Math.min(elapsed / gem.time, 1.0);
-        if (progress >= 1.0) { if (!el.classList.contains('ready')) { el.classList.add('ready'); el.style.transform = `scale(1)`; } }
-        else { el.classList.remove('ready'); el.style.transform = `scale(${0.1 + (progress * 0.8)})`; el.style.opacity = 0.1 + (progress * 0.5); }
-    });
-}
-
-function mineCrystal(slotId) {
-    const el = document.getElementById(`gem-${slotId}`); if (!el.classList.contains('ready')) return;
-    const gem = GEM_TYPES[ACTIVE_SLOTS.find(s => s.id === slotId).type];
-    localVault += gem.points; localStorage.setItem('qv_vault_hof2', localVault); localStorage.setItem(`qv_time_hof2_${slotId}`, Date.now());
-    el.classList.remove('ready'); updateVaultUI(gem.color); spawnFloatingText(gem.points, gem.color, el);
-    assignNewRandomPosition(slotId); checkGrowth();
-}
-
-function spawnFloatingText(points, color, sourceEl) {
-    const rect = sourceEl.getBoundingClientRect(); const floating = document.createElement('div');
-    floating.className = 'floating-text'; floating.innerText = `+${points}`;
-    floating.style.color = color; floating.style.left = `${rect.left + (rect.width/2) - 20}px`; floating.style.top = `${rect.top}px`;
-    floating.style.textShadow = `0 0 15px ${color}`; document.body.appendChild(floating); setTimeout(() => floating.remove(), 1000);
-}
-
-/* ==========================================================================
-   MÓDULO 4: DASHBOARD Y RED (INTACTOS)
-   ========================================================================== */
-const API_KEY = "AIzaSyCCBAapFj9Fd-8cOIfpDJxrOP__76zxAxM"; const WEEKLY_ID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo"; const DAILY_ID = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
-function setDiag(msg, color = "#44CCFF") { const d = document.getElementById('diag'); if(d) { d.innerText = msg; d.style.borderLeftColor = color; } }
-function getLocalDate(){ return new Date(new Date().toLocaleString('en-US',{timeZone:"America/Tijuana"})); }
-function computeWeeklyTab(){ const d = getLocalDate(); const start = new Date(d.getFullYear(), 0, 1); const days = Math.floor((d - start) / 86400000); let week = Math.ceil((days + start.getDay() + 1) / 7); if (d.getDay() < 3 || (d.getDay() === 3 && d.getHours() < 12)) week--; return `W${week}`; }
-async function fetchSheet(id, range) { try { const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${encodeURIComponent(range)}?key=${API_KEY}`); return r.ok ? await r.json() : null; } catch (e) { return null; } }
+/* --- MINERÍA Y DASHBOARD (ESTÁNDAR) --- */
+const API_KEY = "AIzaSyCCBAapFj9Fd-8cOIfpDJxrOP__76zxAxM", WEEKLY_ID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo", DAILY_ID = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
 async function updateData() {
-    setDiag("📡 Sincronizando Uplink..."); const weeklyTab = computeWeeklyTab(); const master = await fetchSheet(WEEKLY_ID, `${weeklyTab}!A3:O96`);
-    if (!master) { setDiag("❌ Error Weekly Sheets", "#FF44CC"); return; }
-    const today = getLocalDate(); const fmt = today.toLocaleString('en-US', {month:'short', day:'2-digit'});
-    let daily = await fetchSheet(DAILY_ID, `${fmt}!A2:D100`); if (!daily) daily = await fetchSheet(DAILY_ID, `Tabla_25!A2:D100`);
-    const dailyRows = daily?.values || [];
-    const agents = master.values.map(row => {
-        const id = (row[0] || "").toString().trim(); const name = (row[1] || "").toString().trim(); if (!id || !name) return null;
-        const match = dailyRows.find(d => (d[1] || "").toString().trim() === id); return { name, today: match ? parseInt(match[2]) || 0 : 0, total: parseInt(row[14]) || 0 };
-    }).filter(x => x).sort((a,b) => b.today - a.today);
-    renderList(agents); document.getElementById('totalTodayValue').innerText = agents.reduce((s, a) => s + a.today, 0);
-    document.getElementById('chipWeekly').innerText = `Week: ${weeklyTab}`; document.getElementById('chipDaily').innerText = `Daily: ${daily ? (daily.range.split('!')[0]) : '---'}`;
-    setDiag("✅ Uplink Estable");
+    const wTab = "W9"; // Simplificado para pruebas
+    try {
+        const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_ID}/values/${wTab}!A3:O96?key=${API_KEY}`);
+        const data = await r.json();
+        if(data.values) {
+            const tbody = document.querySelector("#tbl tbody"); tbody.innerHTML = '';
+            data.values.slice(0,10).forEach((row, i) => {
+                tbody.innerHTML += `<tr><td>${i+1}</td><td style="text-align:left">${row[1]}</td><td>${row[14]||0}</td><td>${row[14]||0}</td></tr>`;
+            });
+        }
+    } catch(e) {}
 }
-function renderList(data) {
-    const tbody = document.querySelector("#tbl tbody"); if(!tbody) return; tbody.innerHTML = "";
-    const maxT = Math.max(1, ...data.map(d => d.today)); const maxW = Math.max(1, ...data.map(d => d.total));
-    data.forEach((a, i) => { tbody.innerHTML += `<tr><td>${i+1}</td><td style="text-align:left; font-weight:800">${a.name}</td><td><div class="bar today"><div class="fill" style="width:${(a.today/maxT)*100}%"></div><div class="value">${a.today}</div></div></td><td><div class="bar total"><div class="fill" style="width:${(a.total/maxW)*100}%"></div><div class="value">${a.total}</div></div></td></tr>`; });
-}
-const mCanvas = document.getElementById('matrix-canvas'); const mCtx = mCanvas.getContext('2d'); let mw, mh, mCols, mYpos;
-function initMatrix() { mw = mCanvas.width = window.innerWidth; mh = mCanvas.height = window.innerHeight; mCols = Math.floor(mw / 25); mYpos = Array(mCols).fill(0); }
-function drawMatrix() { mCtx.fillStyle = 'rgba(10, 10, 10, 0.1)'; mCtx.fillRect(0, 0, mw, mh); mCtx.fillStyle = '#44CCFF'; mCtx.font = '15px monospace'; mYpos.forEach((y, i) => { mCtx.fillText(String.fromCharCode(0x30A0 + Math.random() * 96), i * 25, y); mYpos[i] = y > 100 + Math.random() * 10000 ? 0 : y + 20; }); }
 
-/* INICIALIZACIÓN MAESTRA */
-(async function init() { initMatrix(); setInterval(drawMatrix, 50); initVault(); initGuardian(); initMiner(); await updateData(); setInterval(updateData, 60000); })();
+const GEM_TYPES = { blue:{p:250,t:60000,c:"#44CCFF",img:"https://i.ibb.co/7sBBH4c/pngwing-com-1.png"}, red:{p:500,t:300000,c:"#FF4444",img:"https://i.ibb.co/XZrXPwGc/pngwing-com.png"}, purple:{p:1000,t:600000,c:"#FF44CC",img:"https://i.ibb.co/4gwYj5LG/pngegg.png"} };
+function initMiner() {
+    const left = document.getElementById('rift-left'), right = document.getElementById('rift-right');
+    for(let i=0; i<12; i++) { createNode(left, 'blue'); createNode(right, 'red'); }
+}
+function createNode(parent, type) {
+    const n = document.createElement('div'); n.className = 'crystal-node';
+    n.style.backgroundImage = `url('${GEM_TYPES[type].img}')`;
+    n.style.top = Math.random()*80+10+'%'; n.style.left = Math.random()*60+20+'px';
+    n.style.setProperty('--node-color', GEM_TYPES[type].c);
+    parent.appendChild(n);
+    setTimeout(() => n.classList.add('ready'), GEM_TYPES[type].t);
+    n.onclick = () => { if(n.classList.contains('ready')) { localVault += GEM_TYPES[type].p; updateVaultUI(); n.classList.remove('ready'); setTimeout(()=>n.classList.add('ready'), GEM_TYPES[type].t); saveAll(); } };
+}
+
+(async function init() { initVault(); initGuardian(); initMiner(); updateData(); })();
 </script>
 </body>
 </html>
