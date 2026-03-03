@@ -3,7 +3,7 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>Leaderboard — Guardian Protocol: Hall of Fame</title>
+<title>Leaderboard — Guardian Protocol: Hall of Fame Elite</title>
 <style>
   :root{
     --vh: 1vh;
@@ -21,12 +21,13 @@
   
   html,body{ margin:0; min-height:100%; width:100%; background:var(--dark-bg); color:var(--ink); font-family:system-ui,-apple-system,sans-serif; overflow: hidden; }
 
+  /* FONDO Y ANIMACIÓN */
   #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; opacity: 0.12; pointer-events: none; }
   body::before, body::after{ content:""; position:fixed; inset:-20%; background: radial-gradient(40% 40% at 20% 20%, var(--neon-blue), transparent), radial-gradient(30% 30% at 50% 90%, var(--neon-purple), transparent); z-index:-1; pointer-events:none; mix-blend-mode:lighten; animation:float 22s linear infinite; }
   @keyframes float{ 0%, 100%{transform:translate3d(0,0,0)} 50%{transform:translate3d(2%, -2%, 0)} }
 
+  /* DASHBOARD CENTRAL */
   #board{ position:relative; z-index:1; width:100vw; height: 100vh; padding:calc(1.2*var(--vh)) calc(1.6*var(--vh)); box-sizing:border-box; display:flex;flex-direction:column;gap:calc(0.8*var(--vh)); max-width: 1200px; margin: 0 auto; overflow-y: auto; padding-bottom: 150px; }
-  
   .top-header-flex{ display: flex; justify-content: space-between; align-items: center; }
   #dailyTotalDisplay{ background: var(--glass-strong); padding: 8px 16px; border-radius: 10px; border: 1px solid var(--neon-blue); text-align: right; }
   #dailyTotalDisplay .value{ font-size: 24px; font-weight: 900; color: var(--neon-blue); }
@@ -48,17 +49,16 @@
   .team-slot.active-slot { border-color: var(--neon-blue); box-shadow: 0 0 20px var(--neon-blue); transform: scale(1.1); }
   .team-slot img { width: 85%; height: 85%; object-fit: contain; }
 
-  /* PANTALLAS OVERLAY */
-  .overlay-screen { position: fixed; inset: 0; background: radial-gradient(circle, rgba(10,10,30,0.98), #000); z-index: 10000; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+  /* OVERLAYS */
+  .overlay-screen { position: fixed; inset: 0; background: radial-gradient(circle, rgba(10,10,30,0.98), #000); z-index: 10000; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; overflow-y: auto; padding: 20px; }
   .starter-grid { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; max-width: 900px; padding: 20px; }
   .starter-card { background: var(--glass-strong); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 15px; width: 130px; cursor: pointer; transition: 0.3s; }
   .starter-card:hover { transform: translateY(-5px); border-color: var(--neon-blue); }
   .s-img { width: 70px; height: 70px; background-size: contain; background-repeat: no-repeat; background-position: center; margin-bottom: 10px; }
 
-  /* VICTORIA */
   .vic-rays { position: absolute; width: 200vw; height: 200vw; background: repeating-conic-gradient(from 0deg, transparent 0deg 15deg, rgba(255,221,68,0.1) 15deg 30deg); animation: spin-rays 20s linear infinite; z-index: -1; }
   @keyframes spin-rays { 100% { transform: rotate(360deg); } }
-  .victory-img { width: 200px; height: 200px; background-size: contain; background-repeat: no-repeat; background-position: center; filter: drop-shadow(0 0 30px #FFF); }
+  .victory-img { width: 250px; height: 250px; background-size: contain; background-repeat: no-repeat; background-position: center; filter: drop-shadow(0 0 30px #FFF); }
 
   /* GUARDIÁN */
   #guardian-area { position: fixed; bottom: 0; left: 0; width: 100vw; height: 100vh; z-index: 90; pointer-events: none; }
@@ -69,7 +69,7 @@
   .bar-bg { width: 100%; height: 6px; background: #222; border-radius: 3px; overflow: hidden; margin-bottom: 10px; }
   .sat-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #FF4444, #44FF88); transition: width 0.5s; }
   .exp-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #44CCFF, #FF44CC); }
-  .g-btn { width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #FFF; padding: 8px; border-radius: 6px; margin-bottom: 5px; cursor: pointer; font-size: 11px; display: flex; justify-content: space-between; }
+  .g-btn { width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #FFF; padding: 8px; border-radius: 6px; margin-bottom: 5px; cursor: pointer; font-size: 11px; display: flex; justify-content: space-between; align-items: center; }
   .g-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
   .rift-overlay { position: fixed; top: 0; bottom: 0; width: 200px; z-index: 50; pointer-events: none; }
@@ -82,26 +82,26 @@
 </head>
 <body>
 
-<div id="evo-flash"></div>
+<div id="evo-flash" style="position:fixed; inset:0; background:white; z-index:100001; opacity:0; pointer-events:none; transition:opacity 0.5s;"></div>
 <canvas id="matrix-canvas"></canvas>
 
 <div id="starter-selection" class="overlay-screen">
     <div class="starter-title">INCUBADORA</div>
     <div class="starter-subtitle">Selecciona un huevo para entrenar o retoma uno existente.</div>
     <div class="starter-grid" id="starter-grid-container"></div>
-    <button class="btn-vic" style="margin-top:20px;" onclick="closeStarterSelection()">CANCELAR (ESC)</button>
+    <button class="btn-vic" style="margin-top:20px; background:none; border:1px solid gray; color:gray;" onclick="closeStarterSelection()">CANCELAR (ESC)</button>
 </div>
 
 <div id="victory-screen" class="overlay-screen">
     <div class="vic-rays"></div>
     <div class="starter-title" style="color:var(--neon-yellow)">¡NIVEL MÁXIMO!</div>
     <div id="vic-img" class="victory-img"></div>
-    <div id="vic-name" style="font-size: 30px; font-weight: 900; margin-bottom: 20px;">NOM POKÉMON</div>
+    <div id="vic-name" style="font-size: 30px; font-weight: 900; margin-bottom: 20px; color:white;">NOM POKÉMON</div>
     <button class="btn-vic" style="background:var(--neon-blue); color:#000; padding:15px 30px; font-weight:900; border:none; border-radius:10px; cursor:pointer;" onclick="closeVictoryScreen()">RECLAMAR Y VOLVER (ESC)</button>
 </div>
 
 <div id="team-dock">
-    <div class="dock-title">Hall of Fame</div>
+    <div style="position:absolute; top:-18px; left:10px; font-size:9px; color:var(--neon-blue); font-weight:bold;">HALL OF FAME</div>
     <div class="team-slot" id="ts-0" onclick="switchGuardian(0)"></div>
     <div class="team-slot" id="ts-1" onclick="switchGuardian(1)"></div>
     <div class="team-slot" id="ts-2" onclick="switchGuardian(2)"></div>
@@ -126,12 +126,14 @@
         <div class="g-title" id="g-name-display">Huevo</div>
         <div class="g-level" id="g-lvl-display">Lv. 1</div>
     </div>
+    <div style="font-size:9px; margin-bottom:4px; opacity:0.6;">SATISFACCIÓN</div>
     <div class="bar-bg"><div class="sat-fill" id="g-sat-fill"></div></div>
+    <div style="font-size:9px; margin-bottom:4px; opacity:0.6;">EXPERIENCIA</div>
     <div class="bar-bg"><div class="exp-fill" id="g-exp-fill"></div></div>
     <button class="g-btn" id="btn-feed" onclick="feedGuardian()"><span>🥩 Alimentar</span> <span style="color:var(--neon-purple)">500 pts</span></button>
     <button class="g-btn" id="btn-train" onclick="trainGuardian()"><span id="txt-train">⚔️ Entrenar</span> <span id="cost-train" style="color:var(--neon-purple)">1500 pts</span></button>
-    <button class="g-btn" style="border-color:var(--neon-blue); margin-top:5px; justify-content:center;" onclick="openStarterSelection()">🔄 Cambiar Pokémon</button>
-    <button class="g-btn" style="border:none; color:#888; justify-content:center;" onclick="toggleGuardianMenu()">Cerrar Panel</button>
+    <button class="g-btn" style="border-color:var(--neon-blue); margin-top:10px; justify-content:center;" onclick="openStarterSelection()">🔄 Reclutar / Cambiar</button>
+    <button class="g-btn" style="border:none; color:#888; justify-content:center; margin-top:5px;" onclick="toggleGuardianMenu()">Cerrar Panel</button>
 </div>
 
 <div id="rift-left" class="rift-overlay"></div>
@@ -147,231 +149,115 @@
   </div>
 </div>
 
-<div id="diag">Iniciando...</div>
+<div id="diag" style="position:fixed; bottom:10px; right:10px; font-size:10px; opacity:0.5;">Iniciando sistema...</div>
 
 <script>
-/* --- BASE DE DATOS POKÉDEX --- */
-const EGG_IMG = "https://64.media.tumblr.com/tumblr_lvwmhdE0lN1qg0dcvo1_500.gif";
+/* --- BASE DE DATOS POKÉDEX CORREGIDA --- */
+const EGG_IMG = "https://archives.bulbagarden.net/media/upload/0/06/HOMEEgg.png";
 const POKEDEX_DB = {
-    "fire": { baseName: "Charmander", color: "#FF4444", stages: [
-        { minLevel: 3, name: "Charmander", size: 60, speed: 1, type: "Fuego", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/charmander.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/charmander.gif" },
-        { minLevel: 7, name: "Charmeleon", size: 120, speed: 2, type: "Fuego Feroz", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/charmeleon.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/charmeleon.gif" },
-        { minLevel: 12, name: "Charizard", size: 240, speed: 3.5, type: "Fuego/Volador", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/charizard.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/charizard.gif" }
-    ]},
-    "water": { baseName: "Squirtle", color: "#44CCFF", stages: [
-        { minLevel: 3, name: "Squirtle", size: 60, speed: 1, type: "Agua", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/squirtle.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/squirtle.gif" },
-        { minLevel: 7, name: "Wartortle", size: 120, speed: 2, type: "Agua", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/wartortle.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/wartortle.gif" },
-        { minLevel: 12, name: "Blastoise", size: 240, speed: 3.5, type: "Agua Pesada", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/blastoise.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/blastoise.gif" }
-    ]},
-    "grass": { baseName: "Bulbasaur", color: "#44FF88", stages: [
-        { minLevel: 3, name: "Bulbasaur", size: 60, speed: 1, type: "Planta", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/bulbasaur.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/bulbasaur.gif" },
-        { minLevel: 7, name: "Ivysaur", size: 120, speed: 2, type: "Planta/Veneno", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/ivysaur.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/ivysaur.gif" },
-        { minLevel: 12, name: "Venusaur", size: 240, speed: 3.5, type: "Planta Colosal", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/venusaur.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/venusaur.gif" }
-    ]},
-    "bug": { baseName: "Caterpie", color: "#AABB22", stages: [
-        { minLevel: 3, name: "Caterpie", size: 60, speed: 1, type: "Bicho", imgF: "https://projectpokemon.org/images/normal-sprite/caterpie.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/caterpie.gif" },
-        { minLevel: 7, name: "Metapod", size: 100, speed: 0.5, type: "Bicho", imgF: "https://projectpokemon.org/images/normal-sprite/metapod.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/metapod.gif" },
-        { minLevel: 12, name: "Butterfree", size: 200, speed: 3.5, type: "Bicho/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/butterfree.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/butterfree.gif" }
-    ]},
-    "electric": { baseName: "Pikachu", color: "#FFDD44", stages: [
-        { minLevel: 3, name: "Pikachu", size: 80, speed: 2, type: "Eléctrico", imgF: "https://projectpokemon.org/images/normal-sprite/pikachu.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/pikachu.gif" },
-        { minLevel: 7, name: "Raichu", size: 140, speed: 3, type: "Eléctrico", imgF: "https://projectpokemon.org/images/normal-sprite/raichu.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/raichu.gif" }
-    ]},
-    "water_fight": { baseName: "Poliwag", color: "#44CCFF", stages: [
-        { minLevel: 3, name: "Poliwag", size: 60, speed: 1, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/poliwag.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/poliwag.gif" },
-        { minLevel: 7, name: "Poliwhirl", size: 120, speed: 2, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/poliwhirl.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/poliwhirl.gif" },
-        { minLevel: 12, name: "Poliwrath", size: 220, speed: 2.5, type: "Agua/Lucha", imgF: "https://projectpokemon.org/images/normal-sprite/poliwrath.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/poliwrath.gif" }
-    ]},
-    "fighting": { baseName: "Machop", color: "#AAAAAA", stages: [
-        { minLevel: 3, name: "Machop", size: 70, speed: 1, type: "Lucha", imgF: "https://projectpokemon.org/images/normal-sprite/machop.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/machop.gif" },
-        { minLevel: 7, name: "Machoke", size: 140, speed: 2, type: "Lucha", imgF: "https://projectpokemon.org/images/normal-sprite/machoke.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/machoke.gif" },
-        { minLevel: 12, name: "Machamp", size: 240, speed: 2.5, type: "Lucha", imgF: "https://projectpokemon.org/images/normal-sprite/machamp.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/machamp.gif" }
-    ]},
-    "ghost": { baseName: "Gastly", color: "#8844AA", stages: [
-        { minLevel: 3, name: "Gastly", size: 70, speed: 1.5, type: "Fantasma", imgF: "https://projectpokemon.org/images/normal-sprite/gastly.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/gastly.gif" },
-        { minLevel: 7, name: "Haunter", size: 150, speed: 2.5, type: "Fantasma", imgF: "https://projectpokemon.org/images/normal-sprite/haunter.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/haunter.gif" },
-        { minLevel: 12, name: "Gengar", size: 230, speed: 3.5, type: "Fantasma", imgF: "https://projectpokemon.org/images/normal-sprite/gengar.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/gengar.gif" }
-    ]},
-    "ice": { baseName: "Lapras", color: "#44AAFF", stages: [
-        { minLevel: 3, name: "Lapras", size: 240, speed: 1.5, type: "Agua/Hielo", imgF: "https://projectpokemon.org/images/normal-sprite/lapras.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/lapras.gif" }
-    ]},
-    "normal": { baseName: "Snorlax", color: "#336688", stages: [
-        { minLevel: 3, name: "Snorlax", size: 260, speed: 0.3, type: "Normal", imgF: "https://projectpokemon.org/images/normal-sprite/snorlax.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/snorlax.gif" }
-    ]}
-  "psychic": {
-        id: "psychic",
-        baseName: "Abra",
-        color: "#FFCC44",
-        stages: [
-            { minLevel: 3, name: "Abra", size: 60, speed: 1.5, type: "Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/abra.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/abra.gif" },
-            { minLevel: 7, name: "Kadabra", size: 120, speed: 2, type: "Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/kadabra.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/kadabra.gif" },
-            { minLevel: 12, name: "Mega Alakazam", size: 240, speed: 3.5, type: "Psíquico Supremo", imgF: "https://projectpokemon.org/images/normal-sprite/alakazam-mega.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/alakazam-mega.gif" }
-        ]
-    },
-    "rock": {
-        id: "rock",
-        baseName: "Geodude",
-        color: "#AA9966",
-        stages: [
-            { minLevel: 3, name: "Geodude", size: 50, speed: 0.8, type: "Roca/Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/geodude.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/geodude.gif" },
-            { minLevel: 7, name: "Graveler", size: 140, speed: 1, type: "Roca/Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/graveler.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/graveler.gif" },
-            { minLevel: 12, name: "Golem", size: 250, speed: 1.2, type: "Roca/Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/golem.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/golem.gif" }
-        ]
-    },
-    "poison": {
-        id: "poison",
-        baseName: "Nidoran",
-        color: "#AA44FF",
-        stages: [
-            { minLevel: 3, name: "Nidoran", size: 60, speed: 1.5, type: "Veneno", imgF: "https://projectpokemon.org/images/normal-sprite/nidoran_m.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/nidoran_m.gif" },
-            { minLevel: 7, name: "Nidorino", size: 130, speed: 2.2, type: "Veneno", imgF: "https://projectpokemon.org/images/normal-sprite/nidorino.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/nidorino.gif" },
-            { minLevel: 12, name: "Nidoking", size: 260, speed: 3, type: "Veneno/Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/nidoking.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/nidoking.gif" }
-        ]
-    },
-    "flying": {
-        id: "flying",
-        baseName: "Pidgey",
-        color: "#DDCCAA",
-        stages: [
-            { minLevel: 3, name: "Pidgey", size: 50, speed: 1.8, type: "Normal/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/pidgey.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/pidgey.gif" },
-            { minLevel: 7, name: "Pidgeotto", size: 120, speed: 2.5, type: "Normal/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/pidgeotto.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/pidgeotto.gif" },
-            { minLevel: 12, name: "Pidgeot", size: 220, speed: 4, type: "Normal/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/pidgeot.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/pidgeot.gif" }
-        ]
-    },
-    "dragon": {
-        id: "dragon",
-        baseName: "Dratini",
-        color: "#4488FF",
-        stages: [
-            { minLevel: 3, name: "Dratini", size: 70, speed: 1.5, type: "Dragón", imgF: "https://projectpokemon.org/images/normal-sprite/dratini.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/dratini.gif" },
-            { minLevel: 7, name: "Dragonair", size: 150, speed: 2, type: "Dragón", imgF: "https://projectpokemon.org/images/normal-sprite/dragonair.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/dragonair.gif" },
-            { minLevel: 12, name: "Dragonite", size: 250, speed: 3.5, type: "Dragón/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/dragonite.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/dragonite.gif" }
-        ]
-    },
-    "atrocious": {
-        id: "atrocious",
-        baseName: "Magikarp",
-        color: "#FF5533",
-        stages: [
-            { minLevel: 3, name: "Magikarp", size: 60, speed: 0.5, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/magikarp.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/magikarp.gif" },
-            { minLevel: 7, name: "Gyarados", size: 220, speed: 2.5, type: "Agua/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/gyarados.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/gyarados.gif" },
-            { minLevel: 12, name: "Mega Gyarados", size: 260, speed: 3.2, type: "Agua/Siniestro", imgF: "https://projectpokemon.org/images/normal-sprite/gyarados-mega.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/gyarados-mega.gif" }
-        ]
-    },
-    "legendary": {
-        id: "legendary",
-        baseName: "Mewtwo",
-        color: "#CC44FF",
-        stages: [
-            { minLevel: 3, name: "Mewtwo", size: 180, speed: 2.5, type: "Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/mewtwo.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/mewtwo.gif" },
-            { minLevel: 12, name: "Mega Mewtwo Y", size: 260, speed: 4.5, type: "Psíquico/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/mewtwo-megay.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/mewtwo-megay.gif" }
-        ]
-    },
-
-  "fire_fox": {
-        id: "fire_fox",
-        baseName: "Vulpix",
-        color: "#FF8844",
-        stages: [
-            { minLevel: 3, name: "Vulpix", size: 60, speed: 1.2, type: "Fuego", imgF: "https://projectpokemon.org/images/normal-sprite/vulpix.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/vulpix.gif" },
-            { minLevel: 7, name: "Ninetales", size: 140, speed: 2, type: "Fuego místico", imgF: "https://projectpokemon.org/images/normal-sprite/ninetales.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/ninetales.gif" }
-        ]
-    },
-    "odd_plant": {
-        id: "odd_plant",
-        baseName: "Oddish",
-        color: "#4466AA",
-        stages: [
-            { minLevel: 3, name: "Oddish", size: 50, speed: 0.8, type: "Planta/Veneno", imgF: "https://projectpokemon.org/images/normal-sprite/oddish.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/oddish.gif" },
-            { minLevel: 7, name: "Gloom", size: 100, speed: 0.6, type: "Planta/Veneno", imgF: "https://projectpokemon.org/images/normal-sprite/gloom.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/gloom.gif" },
-            { minLevel: 12, name: "Vileplume", size: 180, speed: 1, type: "Planta/Veneno", imgF: "https://projectpokemon.org/images/normal-sprite/vileplume.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/vileplume.gif" }
-        ]
-    },
-    "canine": {
-        id: "canine",
-        baseName: "Growlithe",
-        color: "#FF6600",
-        stages: [
-            { minLevel: 3, name: "Growlithe", size: 65, speed: 1.5, type: "Fuego", imgF: "https://projectpokemon.org/images/normal-sprite/growlithe.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/growlithe.gif" },
-            { minLevel: 7, name: "Arcanine", size: 180, speed: 3, type: "Fuego Legendario", imgF: "https://projectpokemon.org/images/normal-sprite/arcanine.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/arcanine.gif" }
-        ]
-    },
-    "horse": {
-        id: "horse",
-        baseName: "Ponyta",
-        color: "#FFCC99",
-        stages: [
-            { minLevel: 3, name: "Ponyta", size: 90, speed: 2, type: "Fuego", imgF: "https://projectpokemon.org/images/normal-sprite/ponyta.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/ponyta.gif" },
-            { minLevel: 7, name: "Rapidash", size: 160, speed: 3.8, type: "Fuego Veloz", imgF: "https://projectpokemon.org/images/normal-sprite/rapidash.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/rapidash.gif" }
-        ]
-    },
-    "slow_psyc": {
-        id: "slow_psyc",
-        baseName: "Slowpoke",
-        color: "#FF99AA",
-        stages: [
-            { minLevel: 3, name: "Slowpoke", size: 70, speed: 0.4, type: "Agua/Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/slowpoke.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/slowpoke.gif" },
-            { minLevel: 7, name: "Slowbro", size: 130, speed: 0.6, type: "Agua/Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/slowbro.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/slowbro.gif" },
-            { minLevel: 12, name: "Mega Slowbro", size: 210, speed: 0.8, type: "Acorazado Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/slowbro-mega.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/slowbro-mega.gif" }
-        ]
-    },
-    "pearl": {
-        id: "pearl",
-        baseName: "Shellder",
-        color: "#9977AA",
-        stages: [
-            { minLevel: 3, name: "Shellder", size: 50, speed: 0.7, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/shellder.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/shellder.gif" },
-            { minLevel: 7, name: "Cloyster", size: 150, speed: 1.2, type: "Agua/Hielo", imgF: "https://projectpokemon.org/images/normal-sprite/cloyster.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/cloyster.gif" }
-        ]
-    },
-    "rhino_armor": {
-        id: "rhino_armor",
-        baseName: "Rhyhorn",
-        color: "#999988",
-        stages: [
-            { minLevel: 3, name: "Rhyhorn", size: 90, speed: 0.9, type: "Tierra/Roca", imgF: "https://projectpokemon.org/images/normal-sprite/rhyhorn.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/rhyhorn.gif" },
-            { minLevel: 7, name: "Rhydon", size: 170, speed: 1.1, type: "Tierra/Roca", imgF: "https://projectpokemon.org/images/normal-sprite/rhydon.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/rhydon.gif" }
-        ]
-    },
-    "seahorse": {
-        id: "seahorse",
-        baseName: "Horsea",
-        color: "#55AACC",
-        stages: [
-            { minLevel: 3, name: "Horsea", size: 45, speed: 1, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/horsea.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/horsea.gif" },
-            { minLevel: 7, name: "Seadra", size: 110, speed: 1.8, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/seadra.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/seadra.gif" }
-        ]
-    },
-    "star_core": {
-        id: "star_core",
-        baseName: "Staryu",
-        color: "#CCAA66",
-        stages: [
-            { minLevel: 3, name: "Staryu", size: 60, speed: 1.5, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/staryu.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/staryu.gif" },
-            { minLevel: 7, name: "Starmie", size: 130, speed: 2.5, type: "Agua/Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/starmie.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/starmie.gif" }
-        ]
-    },
-    "ancient_fly": {
-        id: "ancient_fly",
-        baseName: "Aerodactyl",
-        color: "#BBBBCC",
-        stages: [
-            { minLevel: 3, name: "Aerodactyl", size: 160, speed: 3, type: "Roca/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/aerodactyl.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/aerodactyl.gif" },
-            { minLevel: 12, name: "Mega Aerodactyl", size: 240, speed: 4.5, type: "Roca/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/aerodactyl-mega.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/aerodactyl-mega.gif" }
-        ]
-    },
+  "fire": { baseName: "Charmander", color: "#FF4444", stages: [
+    { minLevel: 3, name: "Charmander", size: 60, speed: 1.2, type: "Fuego", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/charmander.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/charmander.gif" },
+    { minLevel: 7, name: "Charmeleon", size: 120, speed: 2.2, type: "Fuego Feroz", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/charmeleon.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/charmeleon.gif" },
+    { minLevel: 12, name: "Charizard", size: 240, speed: 3.8, type: "Fuego/Volador", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/charizard.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/charizard.gif" }
+  ]},
+  "water": { baseName: "Squirtle", color: "#44CCFF", stages: [
+    { minLevel: 3, name: "Squirtle", size: 60, speed: 1.2, type: "Agua", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/squirtle.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/squirtle.gif" },
+    { minLevel: 7, name: "Wartortle", size: 120, speed: 2.2, type: "Agua", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/wartortle.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/wartortle.gif" },
+    { minLevel: 12, name: "Blastoise", size: 240, speed: 3.8, type: "Agua Pesada", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/blastoise.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/blastoise.gif" }
+  ]},
+  "grass": { baseName: "Bulbasaur", color: "#44FF88", stages: [
+    { minLevel: 3, name: "Bulbasaur", size: 60, speed: 1.2, type: "Planta", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/bulbasaur.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/bulbasaur.gif" },
+    { minLevel: 7, name: "Ivysaur", size: 120, speed: 2.2, type: "Planta", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/ivysaur.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/ivysaur.gif" },
+    { minLevel: 12, name: "Venusaur", size: 240, speed: 3.8, type: "Planta Colosal", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/venusaur.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/venusaur.gif" }
+  ]},
+  "normal": { baseName: "Snorlax", color: "#336688", stages: [
+    { minLevel: 3, name: "Snorlax", size: 260, speed: 0.3, type: "Normal", imgF: "https://projectpokemon.org/images/normal-sprite/snorlax.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/snorlax.gif" }
+  ]},
+  "psychic": { baseName: "Abra", color: "#FFCC44", stages: [
+    { minLevel: 3, name: "Abra", size: 60, speed: 1.5, type: "Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/abra.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/abra.gif" },
+    { minLevel: 7, name: "Kadabra", size: 120, speed: 2.2, type: "Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/kadabra.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/kadabra.gif" },
+    { minLevel: 12, name: "Mega Alakazam", size: 240, speed: 3.5, type: "Psíquico Supremo", imgF: "https://projectpokemon.org/images/normal-sprite/alakazam-mega.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/alakazam-mega.gif" }
+  ]},
+  "rock": { baseName: "Geodude", color: "#AA9966", stages: [
+    { minLevel: 3, name: "Geodude", size: 50, speed: 0.8, type: "Roca", imgF: "https://projectpokemon.org/images/normal-sprite/geodude.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/geodude.gif" },
+    { minLevel: 12, name: "Golem", size: 250, speed: 1.2, type: "Roca", imgF: "https://projectpokemon.org/images/normal-sprite/golem.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/golem.gif" }
+  ]},
+  "poison": { baseName: "Nidoran", color: "#AA44FF", stages: [
+    { minLevel: 3, name: "Nidoran", size: 60, speed: 1.5, type: "Veneno", imgF: "https://projectpokemon.org/images/normal-sprite/nidoran_m.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/nidoran_m.gif" },
+    { minLevel: 12, name: "Nidoking", size: 260, speed: 3.0, type: "Veneno/Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/nidoking.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/nidoking.gif" }
+  ]},
+  "flying": { baseName: "Pidgey", color: "#DDCCAA", stages: [
+    { minLevel: 3, name: "Pidgey", size: 50, speed: 1.8, type: "Normal/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/pidgey.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/pidgey.gif" },
+    { minLevel: 12, name: "Pidgeot", size: 220, speed: 4.0, type: "Normal/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/pidgeot.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/pidgeot.gif" }
+  ]},
+  "dragon": { baseName: "Dratini", color: "#4488FF", stages: [
+    { minLevel: 3, name: "Dratini", size: 70, speed: 1.5, type: "Dragón", imgF: "https://projectpokemon.org/images/normal-sprite/dratini.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/dratini.gif" },
+    { minLevel: 12, name: "Dragonite", size: 250, speed: 3.5, type: "Dragón/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/dragonite.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/dragonite.gif" }
+  ]},
+  "atrocious": { baseName: "Magikarp", color: "#FF5533", stages: [
+    { minLevel: 3, name: "Magikarp", size: 60, speed: 0.5, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/magikarp.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/magikarp.gif" },
+    { minLevel: 12, name: "Mega Gyarados", size: 260, speed: 3.2, type: "Agua/Siniestro", imgF: "https://projectpokemon.org/images/normal-sprite/gyarados-mega.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/gyarados-mega.gif" }
+  ]},
+  "fire_fox": { baseName: "Vulpix", color: "#FF8844", stages: [
+    { minLevel: 3, name: "Vulpix", size: 60, speed: 1.2, type: "Fuego", imgF: "https://projectpokemon.org/images/normal-sprite/vulpix.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/vulpix.gif" },
+    { minLevel: 12, name: "Ninetales", size: 140, speed: 2.0, type: "Fuego místico", imgF: "https://projectpokemon.org/images/normal-sprite/ninetales.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/ninetales.gif" }
+  ]},
+  "odd_plant": { baseName: "Oddish", color: "#4466AA", stages: [
+    { minLevel: 3, name: "Oddish", size: 50, speed: 0.8, type: "Planta", imgF: "https://projectpokemon.org/images/normal-sprite/oddish.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/oddish.gif" },
+    { minLevel: 12, name: "Vileplume", size: 180, speed: 1.0, type: "Planta", imgF: "https://projectpokemon.org/images/normal-sprite/vileplume.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/vileplume.gif" }
+  ]},
+  "canine": { baseName: "Growlithe", color: "#FF6600", stages: [
+    { minLevel: 3, name: "Growlithe", size: 65, speed: 1.5, type: "Fuego", imgF: "https://projectpokemon.org/images/normal-sprite/growlithe.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/growlithe.gif" },
+    { minLevel: 12, name: "Arcanine", size: 180, speed: 3.0, type: "Fuego Legendario", imgF: "https://projectpokemon.org/images/normal-sprite/arcanine.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/arcanine.gif" }
+  ]},
+  "horse": { baseName: "Ponyta", color: "#FFCC99", stages: [
+    { minLevel: 3, name: "Ponyta", size: 90, speed: 2.0, type: "Fuego", imgF: "https://projectpokemon.org/images/normal-sprite/ponyta.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/ponyta.gif" },
+    { minLevel: 12, name: "Rapidash", size: 160, speed: 3.8, type: "Fuego Veloz", imgF: "https://projectpokemon.org/images/normal-sprite/rapidash.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/rapidash.gif" }
+  ]},
+  "slow_psyc": { baseName: "Slowpoke", color: "#FF99AA", stages: [
+    { minLevel: 3, name: "Slowpoke", size: 70, speed: 0.4, type: "Agua/Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/slowpoke.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/slowpoke.gif" },
+    { minLevel: 12, name: "Mega Slowbro", size: 210, speed: 0.8, type: "Acorazado Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/slowbro-mega.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/slowbro-mega.gif" }
+  ]},
+  "pearl": { baseName: "Shellder", color: "#9977AA", stages: [
+    { minLevel: 3, name: "Shellder", size: 50, speed: 0.7, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/shellder.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/shellder.gif" },
+    { minLevel: 12, name: "Cloyster", size: 150, speed: 1.2, type: "Agua/Hielo", imgF: "https://projectpokemon.org/images/normal-sprite/cloyster.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/cloyster.gif" }
+  ]},
+  "rhino_armor": { baseName: "Rhyhorn", color: "#999988", stages: [
+    { minLevel: 3, name: "Rhyhorn", size: 90, speed: 0.9, type: "Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/rhyhorn.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/rhyhorn.gif" },
+    { minLevel: 12, name: "Rhydon", size: 170, speed: 1.1, type: "Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/rhydon.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/rhydon.gif" }
+  ]},
+  "seahorse": { baseName: "Horsea", color: "#55AACC", stages: [
+    { minLevel: 3, name: "Horsea", size: 45, speed: 1, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/horsea.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/horsea.gif" },
+    { minLevel: 12, name: "Seadra", size: 110, speed: 1.8, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/seadra.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/seadra.gif" }
+  ]},
+  "star_core": { baseName: "Staryu", color: "#CCAA66", stages: [
+    { minLevel: 3, name: "Staryu", size: 60, speed: 1.5, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/staryu.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/staryu.gif" },
+    { minLevel: 12, name: "Starmie", size: 130, speed: 2.5, type: "Agua/Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/starmie.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/starmie.gif" }
+  ]},
+  "ancient_fly": { baseName: "Aerodactyl", color: "#BBBBCC", stages: [
+    { minLevel: 3, name: "Aerodactyl", size: 160, speed: 3.0, type: "Roca/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/aerodactyl.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/aerodactyl.gif" },
+    { minLevel: 12, name: "Mega Aerodactyl", size: 240, speed: 4.5, type: "Roca/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/aerodactyl-mega.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/aerodactyl-mega.gif" }
+  ]},
+  "ice": { baseName: "Lapras", color: "#44AAFF", stages: [
+    { minLevel: 3, name: "Lapras", size: 240, speed: 1.5, type: "Agua/Hielo", imgF: "https://projectpokemon.org/images/normal-sprite/lapras.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/lapras.gif" }
+  ]},
+  "legendary": { baseName: "Mewtwo", color: "#CC44FF", stages: [
+    { minLevel: 3, name: "Mewtwo", size: 180, speed: 2.5, type: "Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/mewtwo.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/mewtwo.gif" },
+    { minLevel: 12, name: "Mega Mewtwo Y", size: 260, speed: 4.5, type: "Psíquico/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/mewtwo-megay.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/mewtwo-megay.gif" }
+  ]}
 };
 
-/* --- VARIABLES DE ESTADO --- */
-let gStats = { active: null, sat: 100, team: [], progress: {} };
+/* --- VARIABLES GLOBALES --- */
+let gStats = { active: null, sat: 100, team: [], progress: {}, lastTick: Date.now() };
 let localVault = 0, gPosX = window.innerWidth/2, gPosY = 20, gDirX = 1, gDirY = 1, facingAway = false, isEvolving = false;
 
-function saveAll() { localStorage.setItem('qv_v5_stats', JSON.stringify(gStats)); localStorage.setItem('qv_v5_vault', localVault); }
+/* --- INICIALIZACIÓN --- */
+function saveAll() { localStorage.setItem('qv_hof_final', JSON.stringify(gStats)); localStorage.setItem('qv_hof_vault', localVault); }
 
-function initVault() { localVault = parseInt(localStorage.getItem('qv_v5_vault')) || 0; updateVaultUI(); }
+function initVault() { localVault = parseInt(localStorage.getItem('qv_hof_vault')) || 0; updateVaultUI(); }
 
 function initGuardian() {
-    const saved = localStorage.getItem('qv_v5_stats');
+    const saved = localStorage.getItem('qv_hof_final');
     if(saved) gStats = JSON.parse(saved);
     renderTeamDock();
     if(!gStats.active) { openStarterSelection(); return; }
@@ -381,6 +267,7 @@ function initGuardian() {
     updateGuardianUI(); updateGuardianVisuals();
 }
 
+/* --- UI Y MENÚS --- */
 function openStarterSelection() {
     document.getElementById('guardian-hud').style.display='none';
     const container = document.getElementById('starter-grid-container');
@@ -390,7 +277,7 @@ function openStarterSelection() {
             const prog = gStats.progress[key] || {level:1};
             const card = document.createElement('div'); card.className = 'starter-card';
             card.onclick = () => { gStats.active = key; if(!gStats.progress[key]) gStats.progress[key]={level:1, exp:0}; saveAll(); closeStarterSelection(); };
-            card.innerHTML = `<div style="font-size:9px; opacity:0.6;">${prog.level>1?'Lv.'+prog.level:'NUEVO'}</div>
+            card.innerHTML = `<div style="font-size:9px; opacity:0.6; color:#FFF;">${prog.level>1?'Nivel '+prog.level:'NUEVO'}</div>
                               <div class="s-img" style="background-image:url('${prog.level<3?EGG_IMG:POKEDEX_DB[key].stages[0].imgF}')"></div>
                               <div class="s-name" style="color:${POKEDEX_DB[key].color}">${POKEDEX_DB[key].baseName}</div>`;
             container.appendChild(card);
@@ -399,28 +286,33 @@ function openStarterSelection() {
     document.getElementById('starter-selection').style.display='flex';
 }
 
-function closeStarterSelection() { document.getElementById('starter-selection').style.display='none'; updateGuardianUI(); updateGuardianVisuals(); }
+function closeStarterSelection() { document.getElementById('starter-selection').style.display='none'; if(gStats.active) { updateGuardianUI(); updateGuardianVisuals(); } }
 
-function switchGuardian(idx) { if(idx < gStats.team.length) { gStats.active = gStats.team[idx]; saveAll(); updateGuardianUI(); updateGuardianVisuals(); } }
+function switchGuardian(idx) { if(gStats.team[idx]) { gStats.active = gStats.team[idx]; saveAll(); updateGuardianUI(); updateGuardianVisuals(); } }
 
+/* --- LÓGICA DE MOVIMIENTO Y SIMULACIÓN --- */
 function logicTick() {
     if(!gStats.active || isEvolving) return;
     gStats.sat = Math.max(0, gStats.sat - 0.05);
     const sprite = document.getElementById('guardian-sprite');
-    if(gStats.sat <= 0) sprite.className = 'anim-sleep'; else sprite.className = '';
+    sprite.style.filter = gStats.sat <= 0 ? 'grayscale(1) brightness(0.5)' : 'none';
     saveAll(); updateGuardianUI();
 }
 
 function moveLoop() {
     if(gStats.active && !isEvolving) {
         const prog = gStats.progress[gStats.active];
-        const stage = POKEDEX_DB[gStats.active].stages.slice().reverse().find(s => prog.level >= s.minLevel) || {size:50, speed:0.5, type:"Incubando"};
+        const stages = POKEDEX_DB[gStats.active].stages;
+        const stage = [...stages].reverse().find(s => prog.level >= s.minLevel) || {size:50, speed:0.5, type:"Incubando"};
+        
         gPosX += stage.speed * gDirX;
         if(gPosX > window.innerWidth-250 || gPosX < 220) gDirX *= -1;
-        if(prog.level >= 12 || stage.type.includes("Volador") || stage.type.includes("Fantasma")) {
+        
+        if(prog.level >= 12 || stage.type.includes("Volador") || stage.type.includes("Psíquico Supremo")) {
             gPosY += stage.speed * gDirY;
             if(gPosY > window.innerHeight-300 || gPosY < 20) gDirY *= -1;
         } else gPosY = 20;
+
         const wrap = document.getElementById('guardian-wrapper');
         wrap.style.left = gPosX+'px'; wrap.style.bottom = gPosY+'px';
         wrap.style.transform = `scaleX(${gDirX === 1 ? -1 : 1})`;
@@ -431,24 +323,31 @@ function moveLoop() {
 function updateGuardianVisuals() {
     if(!gStats.active) return;
     const prog = gStats.progress[gStats.active];
-    const stage = POKEDEX_DB[gStats.active].stages.slice().reverse().find(s => prog.level >= s.minLevel) || {size:50, imgF:EGG_IMG, imgB:EGG_IMG, color:"#FFF"};
+    const stages = POKEDEX_DB[gStats.active].stages;
+    const stage = [...stages].reverse().find(s => prog.level >= s.minLevel) || {size:50, imgF:EGG_IMG, imgB:EGG_IMG};
     const sprite = document.getElementById('guardian-sprite');
     const wrap = document.getElementById('guardian-wrapper');
     wrap.style.width = stage.size+'px'; wrap.style.height = stage.size+'px';
     sprite.style.backgroundImage = `url('${facingAway?stage.imgB:stage.imgF}')`;
+    renderTeamDock();
 }
 
 function updateGuardianUI() {
     if(!gStats.active) return;
     const prog = gStats.progress[gStats.active];
-    const stage = POKEDEX_DB[gStats.active].stages.slice().reverse().find(s => prog.level >= s.minLevel) || {name:"Huevo", type:"Incubando", color:"#FFF"};
+    const stages = POKEDEX_DB[gStats.active].stages;
+    const stage = [...stages].reverse().find(s => prog.level >= s.minLevel) || {name:"Huevo", type:"Incubando"};
+    
     document.getElementById('g-name-display').innerText = stage.name;
     document.getElementById('g-lvl-display').innerText = 'Lv. ' + prog.level;
     document.getElementById('g-sat-fill').style.width = gStats.sat+'%';
+    
     const expReq = prog.level * 100;
     document.getElementById('g-exp-fill').style.width = (prog.level >= 12 ? 100 : (prog.exp/expReq)*100)+'%';
+    
     document.getElementById('btn-train').disabled = prog.level >= 12 || localVault < 1500;
-    document.getElementById('btn-feed').disabled = localVault < 500;
+    document.getElementById('txt-train').innerText = prog.level >= 12 ? "NIVEL MÁXIMO" : "⚔️ Entrenar";
+    document.getElementById('cost-train').innerText = prog.level >= 12 ? "---" : "1500 pts";
 }
 
 function trainGuardian() {
@@ -457,8 +356,10 @@ function trainGuardian() {
         p.exp += 50;
         if(p.exp >= p.level * 100) {
             p.level++; p.exp = 0;
-            if(p.level === 12) { if(!gStats.team.includes(gStats.active)) gStats.team.push(gStats.active); saveAll(); showVictoryScreen(); }
-            else { saveAll(); triggerEvo(); }
+            if(p.level === 12) {
+                if(!gStats.team.includes(gStats.active)) gStats.team.push(gStats.active);
+                saveAll(); showVictoryScreen();
+            } else { saveAll(); triggerEvo(); }
         }
         updateGuardianUI(); updateGuardianVisuals();
     }
@@ -474,15 +375,15 @@ function showVictoryScreen() {
     renderTeamDock();
 }
 function closeVictoryScreen() { document.getElementById('victory-screen').style.display='none'; }
-function openStarterSelectionFromVic() { closeVictoryScreen(); openStarterSelection(); }
-function triggerEvo() { isEvolving=true; document.getElementById('evo-flash').style.opacity=1; setTimeout(()=>{ updateGuardianVisuals(); document.getElementById('evo-flash').style.opacity=0; isEvolving=false; }, 1000); }
+function triggerEvo() { isEvolving=true; document.getElementById('evo-flash').style.opacity=1; setTimeout(()=>{ updateGuardianVisuals(); document.getElementById('evo-flash').style.opacity=0; isEvolving=false; }, 800); }
 
 function renderTeamDock() {
     for(let i=0; i<6; i++) {
         const slot = document.getElementById('ts-'+i);
         if(gStats.team[i]) {
             const key = gStats.team[i];
-            slot.innerHTML = `<img src="${POKEDEX_DB[key].stages[POKEDEX_DB[key].stages.length-1].imgF}">`;
+            const stages = POKEDEX_DB[key].stages;
+            slot.innerHTML = `<img src="${stages[stages.length-1].imgF}">`;
             slot.className = 'team-slot filled' + (gStats.active === key ? ' active-slot' : '');
         } else { slot.innerHTML = ''; slot.className = 'team-slot'; }
     }
@@ -495,17 +396,17 @@ function toggleGuardianMenu() { const h = document.getElementById('guardian-hud'
 window.addEventListener('keydown', (e) => { if(e.key === "Escape") { closeVictoryScreen(); closeStarterSelection(); } });
 
 /* --- MINERÍA Y DASHBOARD (ESTÁNDAR) --- */
-const API_KEY = "AIzaSyCCBAapFj9Fd-8cOIfpDJxrOP__76zxAxM", WEEKLY_ID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo", DAILY_ID = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
+const API_KEY = "AIzaSyCCBAapFj9Fd-8cOIfpDJxrOP__76zxAxM", WEEKLY_ID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
 async function updateData() {
-    const wTab = "W9"; // Simplificado para pruebas
     try {
-        const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_ID}/values/${wTab}!A3:O96?key=${API_KEY}`);
+        const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${WEEKLY_ID}/values/W9!A3:O96?key=${API_KEY}`);
         const data = await r.json();
         if(data.values) {
             const tbody = document.querySelector("#tbl tbody"); tbody.innerHTML = '';
             data.values.slice(0,10).forEach((row, i) => {
-                tbody.innerHTML += `<tr><td>${i+1}</td><td style="text-align:left">${row[1]}</td><td>${row[14]||0}</td><td>${row[14]||0}</td></tr>`;
+                tbody.innerHTML += `<tr><td>${i+1}</td><td style="text-align:left; font-weight:800">${row[1]}</td><td>${row[14]||0}</td><td>${row[14]||0}</td></tr>`;
             });
+            document.getElementById('totalTodayValue').innerText = data.values.reduce((s, r) => s + (parseInt(r[14])||0), 0);
         }
     } catch(e) {}
 }
@@ -519,13 +420,12 @@ function createNode(parent, type) {
     const n = document.createElement('div'); n.className = 'crystal-node';
     n.style.backgroundImage = `url('${GEM_TYPES[type].img}')`;
     n.style.top = Math.random()*80+10+'%'; n.style.left = Math.random()*60+20+'px';
-    n.style.setProperty('--node-color', GEM_TYPES[type].c);
-    parent.appendChild(n);
+    n.style.setProperty('--node-color', GEM_TYPES[type].c); parent.appendChild(n);
     setTimeout(() => n.classList.add('ready'), GEM_TYPES[type].t);
     n.onclick = () => { if(n.classList.contains('ready')) { localVault += GEM_TYPES[type].p; updateVaultUI(); n.classList.remove('ready'); setTimeout(()=>n.classList.add('ready'), GEM_TYPES[type].t); saveAll(); } };
 }
 
-(async function init() { initVault(); initGuardian(); initMiner(); updateData(); })();
+(async function init() { initVault(); initGuardian(); initMiner(); updateData(); setInterval(updateData, 60000); })();
 </script>
 </body>
 </html>
