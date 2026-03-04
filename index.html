@@ -19,8 +19,6 @@
     --glow-blue: rgba(44, 204, 255, .6);
     --glow-purple: rgba(255, 68, 204, .5);
   }
-
-
   
   html,body{ margin:0; min-height:100%; width:100%; background:var(--dark-bg); color:var(--ink); font-family:system-ui,-apple-system,sans-serif; overflow: hidden; }
 
@@ -403,6 +401,92 @@ const POKEDEX_DB = {
     "ancient_fly": { id: "ancient_fly", baseName: "Aerodactyl", color: "#BBBBCC", stages: [
         { minLevel: 3, name: "Aerodactyl", size: 160, speed: 3, type: "Roca/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/aerodactyl.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/aerodactyl.gif" },
         { minLevel: 12, name: "Mega Aerodactyl", size: 240, speed: 4.5, type: "Roca/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/aerodactyl-mega.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/aerodactyl-mega.gif" }
+    ]},
+    "grass_johto": { id: "grass_johto", baseName: "Chikorita", color: "#66CC44", stages: [
+        { minLevel: 3, name: "Chikorita", size: 60, speed: 1.2, type: "Planta", imgF: "https://projectpokemon.org/images/normal-sprite/chikorita.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/chikorita.gif" },
+        { minLevel: 7, name: "Bayleef", size: 120, speed: 1.8, type: "Planta", imgF: "https://projectpokemon.org/images/normal-sprite/bayleef.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/bayleef.gif" },
+        { minLevel: 12, name: "Meganium", size: 240, speed: 3.2, type: "Planta", imgF: "https://projectpokemon.org/images/normal-sprite/meganium.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/meganium.gif" }
+    ]},
+    "fire_johto": { id: "fire_johto", baseName: "Cyndaquil", color: "#FF6622", stages: [
+        { minLevel: 3, name: "Cyndaquil", size: 60, speed: 1.5, type: "Fuego", imgF: "https://projectpokemon.org/images/normal-sprite/cyndaquil.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/cyndaquil.gif" },
+        { minLevel: 7, name: "Quilava", size: 130, speed: 2.5, type: "Fuego", imgF: "https://projectpokemon.org/images/normal-sprite/quilava.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/quilava.gif" },
+        { minLevel: 12, name: "Typhlosion", size: 250, speed: 3.8, type: "Fuego", imgF: "https://projectpokemon.org/images/normal-sprite/typhlosion.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/typhlosion.gif" }
+    ]},
+    "water_johto": { id: "water_johto", baseName: "Totodile", color: "#3399FF", stages: [
+        { minLevel: 3, name: "Totodile", size: 60, speed: 1.3, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/totodile.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/totodile.gif" },
+        { minLevel: 7, name: "Croconaw", size: 130, speed: 2.0, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/croconaw.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/croconaw.gif" },
+        { minLevel: 12, name: "Feraligatr", size: 260, speed: 3.0, type: "Agua Feroz", imgF: "https://projectpokemon.org/images/normal-sprite/feraligatr.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/feraligatr.gif" }
+    ]},
+    "scout": { id: "scout", baseName: "Sentret", color: "#AA9977", stages: [
+        { minLevel: 3, name: "Sentret", size: 50, speed: 1.2, type: "Normal", imgF: "https://projectpokemon.org/images/normal-sprite/sentret.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/sentret.gif" },
+        { minLevel: 7, name: "Furret", size: 140, speed: 2.2, type: "Normal", imgF: "https://projectpokemon.org/images/normal-sprite/furret.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/furret.gif" }
+    ]},
+    "owl": { id: "owl", baseName: "Hoothoot", color: "#887766", stages: [
+        { minLevel: 3, name: "Hoothoot", size: 50, speed: 1.0, type: "Normal/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/hoothoot.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/hoothoot.gif" },
+        { minLevel: 7, name: "Noctowl", size: 160, speed: 2.5, type: "Normal/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/noctowl.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/noctowl.gif" }
+    ]},
+    "ladybug": { id: "ladybug", baseName: "Ledyba", color: "#EE5544", stages: [
+        { minLevel: 3, name: "Ledyba", size: 50, speed: 1.5, type: "Bicho/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/ledyba.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/ledyba.gif" },
+        { minLevel: 7, name: "Ledian", size: 140, speed: 2.8, type: "Bicho/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/ledian.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/ledian.gif" }
+    ]},
+    "spider": { id: "spider", baseName: "Spinarak", color: "#AADD44", stages: [
+        { minLevel: 3, name: "Spinarak", size: 50, speed: 0.9, type: "Bicho/Veneno", imgF: "https://projectpokemon.org/images/normal-sprite/spinarak.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/spinarak.gif" },
+        { minLevel: 7, name: "Ariados", size: 150, speed: 1.8, type: "Bicho/Veneno", imgF: "https://projectpokemon.org/images/normal-sprite/ariados.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/ariados.gif" }
+    ]},
+    "wool": { id: "wool", baseName: "Mareep", color: "#FFDD55", stages: [
+        { minLevel: 3, name: "Mareep", size: 60, speed: 0.8, type: "Eléctrico", imgF: "https://projectpokemon.org/images/normal-sprite/mareep.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/mareep.gif" },
+        { minLevel: 7, name: "Flaaffy", size: 110, speed: 1.2, type: "Eléctrico", imgF: "https://projectpokemon.org/images/normal-sprite/flaaffy.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/flaaffy.gif" },
+        { minLevel: 12, name: "Ampharos", size: 210, speed: 2.0, type: "Eléctrico", imgF: "https://projectpokemon.org/images/normal-sprite/ampharos.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/ampharos.gif" }
+    ]},
+    "aqua_mouse": { id: "aqua_mouse", baseName: "Marill", color: "#44AAFF", stages: [
+        { minLevel: 3, name: "Marill", size: 60, speed: 1.1, type: "Agua/Hada", imgF: "https://projectpokemon.org/images/normal-sprite/marill.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/marill.gif" },
+        { minLevel: 7, name: "Azumarill", size: 140, speed: 1.7, type: "Agua/Hada", imgF: "https://projectpokemon.org/images/normal-sprite/azumarill.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/azumarill.gif" }
+    ]},
+    "cotton": { id: "cotton", baseName: "Hoppip", color: "#FF88AA", stages: [
+        { minLevel: 3, name: "Hoppip", size: 40, speed: 1.8, type: "Planta/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/hoppip.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/hoppip.gif" },
+        { minLevel: 7, name: "Skiploom", size: 80, speed: 2.5, type: "Planta/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/skiploom.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/skiploom.gif" },
+        { minLevel: 12, name: "Jumpluff", size: 130, speed: 4.0, type: "Planta/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/jumpluff.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/jumpluff.gif" }
+    ]},
+    "sun": { id: "sun", baseName: "Sunkern", color: "#FFEE44", stages: [
+        { minLevel: 3, name: "Sunkern", size: 40, speed: 0.6, type: "Planta", imgF: "https://projectpokemon.org/images/normal-sprite/sunkern.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/sunkern.gif" },
+        { minLevel: 7, name: "Sunflora", size: 120, speed: 1.2, type: "Planta", imgF: "https://projectpokemon.org/images/normal-sprite/sunflora.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/sunflora.gif" }
+    ]},
+    "mud": { id: "mud", baseName: "Wooper", color: "#66AADD", stages: [
+        { minLevel: 3, name: "Wooper", size: 50, speed: 0.8, type: "Agua/Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/wooper.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/wooper.gif" },
+        { minLevel: 7, name: "Quagsire", size: 160, speed: 1.1, type: "Agua/Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/quagsire.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/quagsire.gif" }
+    ]},
+    "bagworm": { id: "bagworm", baseName: "Pineco", color: "#558877", stages: [
+        { minLevel: 3, name: "Pineco", size: 60, speed: 0.5, type: "Bicho", imgF: "https://projectpokemon.org/images/normal-sprite/pineco.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/pineco.gif" },
+        { minLevel: 7, name: "Forretress", size: 150, speed: 0.8, type: "Bicho/Acero", imgF: "https://projectpokemon.org/images/normal-sprite/forretress.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/forretress.gif" }
+    ]},
+    "bulldog": { id: "bulldog", baseName: "Snubbull", color: "#FF99BB", stages: [
+        { minLevel: 3, name: "Snubbull", size: 60, speed: 1.0, type: "Hada", imgF: "https://projectpokemon.org/images/normal-sprite/snubbull.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/snubbull.gif" },
+        { minLevel: 7, name: "Granbull", size: 170, speed: 1.8, type: "Hada", imgF: "https://projectpokemon.org/images/normal-sprite/granbull.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/granbull.gif" }
+    ]},
+    "bear": { id: "bear", baseName: "Teddiursa", color: "#DD9944", stages: [
+        { minLevel: 3, name: "Teddiursa", size: 60, speed: 1.2, type: "Normal", imgF: "https://projectpokemon.org/images/normal-sprite/teddiursa.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/teddiursa.gif" },
+        { minLevel: 7, name: "Ursaring", size: 210, speed: 2.2, type: "Normal", imgF: "https://projectpokemon.org/images/normal-sprite/ursaring.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/ursaring.gif" }
+    ]},
+    "magma": { id: "magma", baseName: "Slugma", color: "#FF4422", stages: [
+        { minLevel: 3, name: "Slugma", size: 50, speed: 0.4, type: "Fuego", imgF: "https://projectpokemon.org/images/normal-sprite/slugma.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/slugma.gif" },
+        { minLevel: 7, name: "Magcargo", size: 130, speed: 0.6, type: "Fuego/Roca", imgF: "https://projectpokemon.org/images/normal-sprite/magcargo.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/magcargo.gif" }
+    ]},
+    "pig": { id: "pig", baseName: "Swinub", color: "#AA7755", stages: [
+        { minLevel: 3, name: "Swinub", size: 40, speed: 0.9, type: "Hielo/Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/swinub.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/swinub.gif" },
+        { minLevel: 7, name: "Piloswine", size: 150, speed: 1.5, type: "Hielo/Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/piloswine.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/piloswine.gif" }
+    ]},
+    "hellhound": { id: "hellhound", baseName: "Houndour", color: "#333333", stages: [
+        { minLevel: 3, name: "Houndour", size: 70, speed: 1.6, type: "Siniestro/Fuego", imgF: "https://projectpokemon.org/images/normal-sprite/houndour.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/houndour.gif" },
+        { minLevel: 7, name: "Houndoom", size: 180, speed: 3.0, type: "Siniestro/Fuego", imgF: "https://projectpokemon.org/images/normal-sprite/houndoom.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/houndoom.gif" }
+    ]},
+    "elephant": { id: "elephant", baseName: "Phanpy", color: "#44BBCC", stages: [
+        { minLevel: 3, name: "Phanpy", size: 60, speed: 1.1, type: "Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/phanpy.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/phanpy.gif" },
+        { minLevel: 7, name: "Donphan", size: 160, speed: 2.0, type: "Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/donphan.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/donphan.gif" }
+    ]},
+    "armor_beast": { id: "armor_beast", baseName: "Larvitar", color: "#88AA66", stages: [
+        { minLevel: 3, name: "Larvitar", size: 70, speed: 1.0, type: "Roca/Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/larvitar.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/larvitar.gif" },
+        { minLevel: 7, name: "Pupitar", size: 130, speed: 1.5, type: "Roca/Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/pupitar.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/pupitar.gif" },
+        { minLevel: 12, name: "Tyranitar", size: 280, speed: 2.5, type: "Roca/Siniestro", imgF: "https://projectpokemon.org/images/normal-sprite/tyranitar.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/tyranitar.gif" }
     ]}
 };
 
@@ -962,4 +1046,5 @@ function drawMatrix() { mCtx.fillStyle = 'rgba(10, 10, 10, 0.1)'; mCtx.fillRect(
 </script>
 </body>
 </html>
+
 
