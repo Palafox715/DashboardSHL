@@ -13,8 +13,10 @@
     --glass-strong: rgba(0,0,0, .85);
     --neon-blue: #44CCFF;
     --neon-purple: #FF44CC;
+    --neon-gold: #FFD700;
     --glow-blue: rgba(44, 204, 255, .6);
     --glow-purple: rgba(255, 68, 204, .5);
+    --glow-gold: rgba(255, 215, 0, .6);
   }
   
   html,body{ margin:0; min-height:100%; width:100%; background:var(--dark-bg); color:var(--ink); font-family:system-ui,-apple-system,sans-serif; overflow: hidden; }
@@ -24,7 +26,7 @@
   body::before, body::after{ content:""; position:fixed; inset:-20%; background: radial-gradient(40% 40% at 20% 20%, var(--glow-blue), transparent), radial-gradient(30% 30% at 50% 90%, var(--glow-purple), transparent); z-index:-1; pointer-events:none; mix-blend-mode:lighten; animation:float 22s linear infinite; }
   @keyframes float{ 0%, 100%{transform:translate3d(0,0,0)} 50%{transform:translate3d(2%, -2%, 0)} }
 
-  /* CAPA 1: ESTRUCTURA DEL DASHBOARD CENTRAL (AHORA EN EL FONDO) */
+  /* CAPA 1: ESTRUCTURA DEL DASHBOARD CENTRAL */
   #board{ position:relative; z-index:1; width:100vw; height: 100vh; padding:calc(1.2*var(--vh)) calc(1.6*var(--vh)); box-sizing:border-box; display:flex;flex-direction:column;gap:calc(0.8*var(--vh)); max-width: 1200px; margin: 0 auto; overflow-y: auto; padding-bottom: 120px; pointer-events: auto; }
   .top-header-flex{ display: flex; justify-content: space-between; align-items: center; gap: 10px; }
   .header-controls { display: flex; align-items: center; gap: 15px; }
@@ -43,14 +45,14 @@
   .bar.total > .fill{ background: var(--neon-purple); box-shadow: 0 0 10px var(--glow-purple); }
   .bar .value{ position:relative; z-index:1; font-size:11px; font-weight:900; color:white; text-shadow: 1px 1px 2px black; }
   
-  #diag { position: fixed; top: 10px; left: 10px; font-size: 10px; padding: 5px 10px; border-radius: 5px; background: rgba(0,0,0,0.8); border-left: 3px solid var(--neon-blue); z-index: 100; pointer-events: none;}
+  #diag { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); font-size: 10px; padding: 5px 10px; border-radius: 5px; background: rgba(0,0,0,0.8); border-bottom: 2px solid var(--neon-blue); z-index: 100; pointer-events: none;}
 
   /* CAPA 10: ZONA DE JUEGO (FÍSICAS Y DUENDES) */
   #game-zone {
     position: fixed;
     inset: 0;
-    z-index: 10; /* Delante del dashboard */
-    pointer-events: none; /* Evita bloquear clics al dashboard */
+    z-index: 10;
+    pointer-events: none;
   }
 
   .duende-sprite {
@@ -60,7 +62,7 @@
     background-size: contain;
     background-repeat: no-repeat;
     background-position: bottom center;
-    pointer-events: auto; /* Permite clic en los duendes */
+    pointer-events: auto;
     cursor: pointer;
     filter: drop-shadow(0 5px 10px rgba(0,0,0,0.8));
     transition: transform 0.2s ease-out; 
@@ -78,18 +80,56 @@
   #foreground-zone {
     position: fixed;
     inset: 0;
-    z-index: 20; /* Hasta adelante */
-    pointer-events: none; /* Permite que los clics pasen por los huecos vacíos */
+    z-index: 20; 
+    pointer-events: none; 
     overflow: hidden;
   }
   
   .fg-item {
     position: absolute;
-    bottom: -10px;
-    font-size: 80px; /* Tamaño de los emojis */
-    pointer-events: auto; /* ESTO BLOQUEA LOS CLICS A LOS DUENDES */
+    bottom: -30px;
+    font-size: 240px; /* Tamaño 3x más grande */
+    pointer-events: auto; /* Bloquea los clics a los duendes */
     user-select: none;
-    filter: drop-shadow(0 15px 15px rgba(0,0,0,1));
+    filter: drop-shadow(0 20px 20px rgba(0,0,0,1));
+  }
+
+  /* CAPA 25: SISTEMA ECONÓMICO Y HUD */
+  #coin-hud {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 100;
+    background: var(--glass-strong);
+    padding: 8px 20px;
+    border-radius: 12px;
+    border: 2px solid var(--neon-gold);
+    box-shadow: 0 0 20px var(--glow-gold), inset 0 0 10px rgba(255,215,0,0.2);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    pointer-events: auto;
+  }
+  
+  #coin-hud .coin-icon { font-size: 24px; filter: drop-shadow(0 0 5px var(--neon-gold)); }
+  #coin-hud .coin-value { font-size: 28px; font-weight: 900; color: var(--neon-gold); text-shadow: 0 0 10px var(--neon-gold); line-height: 1; }
+
+  .coin-drop {
+    position: absolute;
+    font-size: 45px;
+    z-index: 25; /* Delante del bosque para que pueda ser atrapada */
+    cursor: pointer;
+    pointer-events: auto;
+    user-select: none;
+    filter: drop-shadow(0 0 15px var(--neon-gold));
+    animation: coin-fall 3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  }
+
+  @keyframes coin-fall {
+    0% { top: -60px; opacity: 0; transform: scale(0.5) rotate(0deg); }
+    10% { opacity: 1; transform: scale(1) rotate(36deg); }
+    80% { top: calc(100vh - 120px); opacity: 1; transform: scale(1) rotate(288deg); }
+    100% { top: calc(100vh - 80px); opacity: 0; transform: scale(0) rotate(360deg); }
   }
 </style>
 </head>
@@ -117,6 +157,11 @@
 <div id="game-zone"></div>
 
 <div id="foreground-zone"></div>
+
+<div id="coin-hud">
+  <div class="coin-icon">🪙</div>
+  <div class="coin-value" id="coin-count">0</div>
+</div>
 
 <div id="diag">Iniciando sistemas...</div>
 
@@ -226,7 +271,7 @@ window.addEventListener('resize', initMatrix);
 
 
 /* ==========================================================================
-   MOTOR DE FÍSICAS: DUENDES
+   MOTOR DE FÍSICAS: DUENDES Y ECONOMÍA
    ========================================================================== */
 const DUENDE_ASSETS = [
     'https://raw.githubusercontent.com/Palafox715/DashboardSHL/main/Duendes/D1.png',
@@ -239,8 +284,18 @@ const duendes = [];
 const GRAVITY = 0.6;
 const FLOOR_OFFSET = 30; 
 
+// Variables Económicas
+let vaultCoins = 0;
+
 function initDuendes() {
     const gameZone = document.getElementById('game-zone');
+    
+    // Cargar monedas guardadas si existen (Pragmatismo)
+    const savedCoins = localStorage.getItem('shl_vault_coins');
+    if (savedCoins) {
+        vaultCoins = parseInt(savedCoins);
+        document.getElementById('coin-count').innerText = vaultCoins;
+    }
     
     DUENDE_ASSETS.forEach((url, index) => {
         const el = document.createElement('div');
@@ -308,31 +363,72 @@ function pokeDuende(index) {
     if(!d.isJumping) {
         d.vy = -15; 
         d.vx *= -1; 
-        console.log(`¡Duende ${index + 1} picado!`);
+        spawnCoin(d.x); // Llama al sistema de drop
     }
 }
 
+function spawnCoin(originX) {
+    const coin = document.createElement('div');
+    coin.className = 'coin-drop';
+    coin.innerText = '🪙';
+    
+    // Aseguramos que la moneda no caiga fuera de los márgenes laterales
+    const safeX = Math.max(30, Math.min(window.innerWidth - 60, originX));
+    coin.style.left = `${safeX}px`;
+    
+    // Lógica de captura
+    coin.onclick = (e) => {
+        e.stopPropagation(); // Evita clics fantasma en elementos de atrás
+        vaultCoins++;
+        document.getElementById('coin-count').innerText = vaultCoins;
+        localStorage.setItem('shl_vault_coins', vaultCoins); // Persistencia de datos
+        
+        // Efecto visual de captura
+        coin.style.animation = 'none';
+        coin.style.transform = 'scale(1.5)';
+        coin.style.opacity = '0';
+        coin.style.transition = 'all 0.2s ease-out';
+        
+        setTimeout(() => coin.remove(), 200);
+    };
+
+    // La moneda se inyecta en el game-zone
+    document.getElementById('game-zone').appendChild(coin);
+
+    // Sistema de limpieza proactivo: si el jugador no hace clic en 3 segundos, la moneda desaparece sola
+    setTimeout(() => {
+        if (document.body.contains(coin)) {
+            coin.remove();
+        }
+    }, 3000);
+}
+
 /* ==========================================================================
-   SISTEMA DE FOREGROUND (BOSQUE / OBSTÁCULOS)
+   SISTEMA DE FOREGROUND (BOSQUE / OBSTÁCULOS MASIVOS)
    ========================================================================== */
 function initForeground() {
     const fgZone = document.getElementById('foreground-zone');
     const emojis = ['🌲', '🌳', '🌿', '🍄', '🌸', '🪨'];
-    // Calculamos la densidad basándonos en el ancho de la pantalla
-    const numItems = Math.floor(window.innerWidth / 40); 
+    
+    // Restricción exacta solicitada: 7 objetos masivos
+    const numItems = 7; 
+    
+    // Dividimos la pantalla en 7 segmentos para garantizar que no se amontonen todos en un lado
+    const segmentWidth = window.innerWidth / numItems;
 
     for(let i=0; i < numItems; i++) {
         const el = document.createElement('div');
         el.className = 'fg-item';
         el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
         
-        // Distribución horizontal aleatoria
-        el.style.left = `${Math.random() * 100}vw`;
+        // Posición base dentro de su segmento + una variación aleatoria controlada
+        const baseLeft = i * segmentWidth;
+        const randomOffset = Math.random() * (segmentWidth * 0.5);
+        el.style.left = `${baseLeft + randomOffset}px`;
         
-        // Variamos el tamaño y la altura para dar profundidad
-        const scale = 0.6 + Math.random() * 0.8;
+        // Variación de escala para romper la uniformidad
+        const scale = 0.8 + Math.random() * 0.4;
         el.style.transform = `scale(${scale})`;
-        el.style.bottom = `${-10 + Math.random() * 25}px`;
         
         fgZone.appendChild(el);
     }
@@ -345,7 +441,7 @@ function initForeground() {
     initMatrix(); 
     setInterval(drawMatrix, 50); 
     initDuendes(); 
-    initForeground(); /* <--- Despliegue de la capa frontal */
+    initForeground(); 
     await updateData(); 
     setInterval(updateData, 60000); 
 })();
