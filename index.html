@@ -76,7 +76,7 @@
     animation: breathe 1s infinite;
   }
   
-  /* CAPA 20: FOREGROUND (BOSQUE / OBSTÁCULOS) */
+  /* CAPA 20: FOREGROUND (BOSQUE / OBSTÁCULOS LATERALES Y SUELO) */
   #foreground-zone {
     position: fixed;
     inset: 0;
@@ -84,14 +84,33 @@
     pointer-events: none; 
     overflow: hidden;
   }
+
+  #grass-floor {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 45px;
+    /* Textura matemática provisional de pasto */
+    background: repeating-linear-gradient(
+      -45deg,
+      #133810,
+      #133810 10px,
+      #1c5218 10px,
+      #1c5218 20px
+    );
+    border-top: 4px solid #287322;
+    box-shadow: 0 -10px 20px rgba(0,0,0,0.6);
+    pointer-events: none; /* Estrictamente decorativo */
+  }
   
   .fg-item {
     position: absolute;
-    bottom: -30px;
-    font-size: 240px; /* Tamaño 3x más grande */
+    bottom: 20px; /* Sentados justo encima del pasto */
+    font-size: 120px; /* Mitad del tamaño anterior */
     pointer-events: auto; /* Bloquea los clics a los duendes */
     user-select: none;
-    filter: drop-shadow(0 20px 20px rgba(0,0,0,1));
+    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.9));
   }
 
   /* CAPA 25: SISTEMA ECONÓMICO Y HUD */
@@ -117,7 +136,7 @@
   .coin-drop {
     position: absolute;
     font-size: 45px;
-    z-index: 25; /* Delante del bosque para que pueda ser atrapada */
+    z-index: 25; 
     cursor: pointer;
     pointer-events: auto;
     user-select: none;
@@ -156,7 +175,9 @@
 
 <div id="game-zone"></div>
 
-<div id="foreground-zone"></div>
+<div id="foreground-zone">
+  <div id="grass-floor"></div>
+</div>
 
 <div id="coin-hud">
   <div class="coin-icon">🪙</div>
@@ -290,7 +311,6 @@ let vaultCoins = 0;
 function initDuendes() {
     const gameZone = document.getElementById('game-zone');
     
-    // Cargar monedas guardadas si existen (Pragmatismo)
     const savedCoins = localStorage.getItem('shl_vault_coins');
     if (savedCoins) {
         vaultCoins = parseInt(savedCoins);
@@ -363,7 +383,7 @@ function pokeDuende(index) {
     if(!d.isJumping) {
         d.vy = -15; 
         d.vx *= -1; 
-        spawnCoin(d.x); // Llama al sistema de drop
+        spawnCoin(d.x);
     }
 }
 
@@ -372,18 +392,15 @@ function spawnCoin(originX) {
     coin.className = 'coin-drop';
     coin.innerText = '🪙';
     
-    // Aseguramos que la moneda no caiga fuera de los márgenes laterales
     const safeX = Math.max(30, Math.min(window.innerWidth - 60, originX));
     coin.style.left = `${safeX}px`;
     
-    // Lógica de captura
     coin.onclick = (e) => {
-        e.stopPropagation(); // Evita clics fantasma en elementos de atrás
+        e.stopPropagation(); 
         vaultCoins++;
         document.getElementById('coin-count').innerText = vaultCoins;
-        localStorage.setItem('shl_vault_coins', vaultCoins); // Persistencia de datos
+        localStorage.setItem('shl_vault_coins', vaultCoins); 
         
-        // Efecto visual de captura
         coin.style.animation = 'none';
         coin.style.transform = 'scale(1.5)';
         coin.style.opacity = '0';
@@ -392,10 +409,8 @@ function spawnCoin(originX) {
         setTimeout(() => coin.remove(), 200);
     };
 
-    // La moneda se inyecta en el game-zone
     document.getElementById('game-zone').appendChild(coin);
 
-    // Sistema de limpieza proactivo: si el jugador no hace clic en 3 segundos, la moneda desaparece sola
     setTimeout(() => {
         if (document.body.contains(coin)) {
             coin.remove();
@@ -404,34 +419,37 @@ function spawnCoin(originX) {
 }
 
 /* ==========================================================================
-   SISTEMA DE FOREGROUND (BOSQUE / OBSTÁCULOS MASIVOS)
+   SISTEMA DE FOREGROUND (4 OBJETOS LATERALES Y PASTO)
    ========================================================================== */
 function initForeground() {
     const fgZone = document.getElementById('foreground-zone');
-    const emojis = ['🌲', '🌳', '🌿', '🍄', '🌸', '🪨'];
+    const emojis = ['🌲', '🌳', '🍄', '🪨'];
     
-    // Restricción exacta solicitada: 7 objetos masivos
-    const numItems = 7; 
-    
-    // Dividimos la pantalla en 7 segmentos para garantizar que no se amontonen todos en un lado
-    const segmentWidth = window.innerWidth / numItems;
+    // Posiciones predefinidas: 2 izquierda, 2 derecha
+    const positions = [
+        { side: 'left',  val: '5%' },
+        { side: 'left',  val: '18%' },
+        { side: 'right', val: '5%' },
+        { side: 'right', val: '18%' }
+    ];
 
-    for(let i=0; i < numItems; i++) {
+    positions.forEach(pos => {
         const el = document.createElement('div');
         el.className = 'fg-item';
         el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
         
-        // Posición base dentro de su segmento + una variación aleatoria controlada
-        const baseLeft = i * segmentWidth;
-        const randomOffset = Math.random() * (segmentWidth * 0.5);
-        el.style.left = `${baseLeft + randomOffset}px`;
+        if (pos.side === 'left') {
+            el.style.left = pos.val;
+        } else {
+            el.style.right = pos.val;
+        }
         
-        // Variación de escala para romper la uniformidad
-        const scale = 0.8 + Math.random() * 0.4;
+        // Leve variación de escala para que no se vean idénticos
+        const scale = 0.9 + Math.random() * 0.2;
         el.style.transform = `scale(${scale})`;
         
         fgZone.appendChild(el);
-    }
+    });
 }
 
 /* ==========================================================================
