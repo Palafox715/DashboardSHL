@@ -85,29 +85,25 @@
     overflow: hidden;
   }
 
+  /* NUEVA TEXTURA DE PASTO */
   #grass-floor {
     position: absolute;
-    bottom: 0;
+    bottom: -10px;
     left: 0;
     width: 100%;
-    height: 45px;
-    /* Textura matemática provisional de pasto */
-    background: repeating-linear-gradient(
-      -45deg,
-      #133810,
-      #133810 10px,
-      #1c5218 10px,
-      #1c5218 20px
-    );
-    border-top: 4px solid #287322;
-    box-shadow: 0 -10px 20px rgba(0,0,0,0.6);
+    height: 100px;
+    background-image: url('https://www.pngfind.com/pngs/b/100-1003906_tall-grass-png.png');
+    background-repeat: repeat-x;
+    background-size: auto 100%;
+    background-position: bottom center;
+    filter: drop-shadow(0 -5px 15px rgba(0,0,0,0.9));
     pointer-events: none; /* Estrictamente decorativo */
   }
   
   .fg-item {
     position: absolute;
-    bottom: 20px; /* Sentados justo encima del pasto */
-    font-size: 120px; /* Mitad del tamaño anterior */
+    bottom: 40px; /* Ajustado para que los emojis se sienten bien sobre la nueva hierba */
+    font-size: 120px; 
     pointer-events: auto; /* Bloquea los clics a los duendes */
     user-select: none;
     filter: drop-shadow(0 10px 15px rgba(0,0,0,0.9));
@@ -425,7 +421,6 @@ function initForeground() {
     const fgZone = document.getElementById('foreground-zone');
     const emojis = ['🌲', '🌳', '🍄', '🪨'];
     
-    // Posiciones predefinidas: 2 izquierda, 2 derecha
     const positions = [
         { side: 'left',  val: '5%' },
         { side: 'left',  val: '18%' },
@@ -444,7 +439,6 @@ function initForeground() {
             el.style.right = pos.val;
         }
         
-        // Leve variación de escala para que no se vean idénticos
         const scale = 0.9 + Math.random() * 0.2;
         el.style.transform = `scale(${scale})`;
         
