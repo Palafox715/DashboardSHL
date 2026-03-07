@@ -3,7 +3,7 @@
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>Leaderboard — Guardian Protocol: Hall of Fame</title>
+<title>Leaderboard — Core Dashboard</title>
 <style>
   :root{
     --vh: 1vh;
@@ -13,9 +13,6 @@
     --glass-strong: rgba(0,0,0, .85);
     --neon-blue: #44CCFF;
     --neon-purple: #FF44CC;
-    --neon-red: #FF4444;
-    --neon-yellow: #FFDD44;
-    --neon-green: #44FF88;
     --glow-blue: rgba(44, 204, 255, .6);
     --glow-purple: rgba(255, 68, 204, .5);
   }
@@ -27,8 +24,18 @@
   body::before, body::after{ content:""; position:fixed; inset:-20%; background: radial-gradient(40% 40% at 20% 20%, var(--glow-blue), transparent), radial-gradient(30% 30% at 50% 90%, var(--glow-purple), transparent); z-index:-1; pointer-events:none; mix-blend-mode:lighten; animation:float 22s linear infinite; }
   @keyframes float{ 0%, 100%{transform:translate3d(0,0,0)} 50%{transform:translate3d(2%, -2%, 0)} }
 
+  /* =========================================
+     ZONA DE JUEGO (FRAME PARA FUTUROS PROYECTOS)
+     ========================================= */
+  #game-zone {
+    position: fixed;
+    inset: 0; /* Ocupa toda la pantalla */
+    z-index: 0; /* Detrás del dashboard */
+    pointer-events: auto; /* Permite interacciones en los márgenes libres */
+  }
+
   /* ESTRUCTURA DEL DASHBOARD CENTRAL */
-  #board{ position:relative; z-index:1; width:100vw; height: 100vh; padding:calc(1.2*var(--vh)) calc(1.6*var(--vh)); box-sizing:border-box; display:flex;flex-direction:column;gap:calc(0.8*var(--vh)); max-width: 1200px; margin: 0 auto; overflow-y: auto; padding-bottom: 120px; }
+  #board{ position:relative; z-index:1; width:100vw; height: 100vh; padding:calc(1.2*var(--vh)) calc(1.6*var(--vh)); box-sizing:border-box; display:flex;flex-direction:column;gap:calc(0.8*var(--vh)); max-width: 1200px; margin: 0 auto; overflow-y: auto; padding-bottom: 120px; pointer-events: auto; }
   .top-header-flex{ display: flex; justify-content: space-between; align-items: center; gap: 10px; }
   .header-controls { display: flex; align-items: center; gap: 15px; }
   #dailyTotalDisplay{ background: var(--glass-strong); padding: 8px 16px; border-radius: 10px; border: 1px solid var(--neon-blue); box-shadow: 0 0 15px var(--glow-blue); text-align: right; }
@@ -45,215 +52,15 @@
   .bar.today > .fill{ background: var(--neon-blue); box-shadow: 0 0 10px var(--glow-blue); }
   .bar.total > .fill{ background: var(--neon-purple); box-shadow: 0 0 10px var(--glow-purple); }
   .bar .value{ position:relative; z-index:1; font-size:11px; font-weight:900; color:white; text-shadow: 1px 1px 2px black; }
-  #diag { position: fixed; top: 10px; left: 10px; font-size: 10px; padding: 5px 10px; border-radius: 5px; background: rgba(0,0,0,0.8); border-left: 3px solid var(--neon-blue); z-index: 100; }
-  .btn-danger { 
-    background: rgba(255, 68, 68, 0.1) !important; 
-    color: var(--neon-red) !important; 
-    border-color: var(--neon-red) !important; 
-    margin-top: 15px;
-}
-.btn-danger:hover { 
-    background: rgba(255, 68, 68, 0.3) !important; 
-    box-shadow: 0 0 15px rgba(255, 68, 68, 0.5); 
-}
-  /* =========================================
-     CAPA DE MINERÍA (24 NODOS)
-     ========================================= */
-  .rift-overlay { position: fixed; top: 0; bottom: 0; width: 200px; z-index: 50; pointer-events: none; }
-  #rift-left { left: 0; background: linear-gradient(to right, rgba(0,0,0,0.95), rgba(0,0,0,0.4) 80%, transparent); border-right: 1px solid rgba(255,255,255,0.02); }
-  #rift-right { right: 0; background: linear-gradient(to left, rgba(0,0,0,0.95), rgba(0,0,0,0.4) 80%, transparent); border-left: 1px solid rgba(255,255,255,0.02); }
-  .crystal-node { position: absolute; width: 60px; height: 70px; pointer-events: auto; background-size: contain; background-position: center; background-repeat: no-repeat; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease, filter 0.4s ease, top 0.6s ease-in-out, left 0.6s ease-in-out, right 0.6s ease-in-out; cursor: not-allowed; opacity: 0.1; transform: scale(0.1); filter: brightness(0.5) grayscale(1); }
-  .crystal-node.ready { cursor: pointer; opacity: 1; filter: brightness(1.2) grayscale(0); animation: levitate-neon-pulse 2s infinite alternate ease-in-out; }
-  @keyframes levitate-neon-pulse { 0% { transform: scale(1) translateY(0px); filter: drop-shadow(0 0 10px var(--node-color)) brightness(1.1); } 100% { transform: scale(1.1) translateY(-10px); filter: drop-shadow(0 0 15px var(--node-color)) drop-shadow(0 0 30px var(--node-color)) brightness(1.5); } }
-
-  /* BÓVEDA LOCAL */
-  #vault-hud { position: fixed; top: 30px; right: 30px; z-index: 100; background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 15px 25px; text-align: right; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-right: 3px solid #FFF; transition: border-color 0.5s; }
-  .vault-title { font-size: 10px; color: var(--ink); letter-spacing: 2px; opacity: 0.6; margin-bottom: 5px; }
-  .vault-score { font-size: 32px; font-weight: 900; color: #FFF; line-height: 1; text-shadow: 0 0 10px rgba(255,255,255,0.5); transition: color 0.3s; }
-  .floating-text { position: fixed; font-weight: 900; font-size: 24px; z-index: 200; pointer-events: none; animation: floatUp 1s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; }
-  @keyframes floatUp { 0% { transform: translateY(0) scale(0.5); opacity: 1; } 100% { transform: translateY(-70px) scale(1.5); opacity: 0; } }
-
-  /* =========================================
-     EQUIPO / SALÓN DE LA FAMA (Dock Izquierdo)
-     ========================================= */
-  #team-dock { position: fixed; bottom: 30px; left: 30px; z-index: 95; display: flex; gap: 10px; background: var(--glass-strong); padding: 10px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
-  .team-slot { width: 50px; height: 50px; border-radius: 50%; background: rgba(0,0,0,0.5); border: 2px dashed rgba(255,255,255,0.2); display: flex; justify-content: center; align-items: center; overflow: hidden; transition: 0.3s; position: relative; }
-  .team-slot:hover { border-color: var(--neon-blue); background: rgba(255,255,255,0.1); }
-  .team-slot.filled { border-style: solid; border-color: var(--neon-yellow); box-shadow: 0 0 15px rgba(255,221,68,0.3); background: rgba(255,255,255,0.1); }
-  .team-slot img { width: 80%; height: 80%; object-fit: contain; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.8)); }
-  .dock-title { position: absolute; top: -20px; left: 10px; font-size: 10px; color: var(--ink); font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
-
-  /* =========================================
-     PANTALLAS DE MENÚS Y SELECCIÓN
-     ========================================= */
-  #starter-selection, #swap-screen { position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(15px); z-index: 9999; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
-  .starter-title { font-size: 40px; font-weight: 900; color: #FFF; margin-bottom: 10px; letter-spacing: 5px; text-shadow: 0 0 20px var(--neon-blue); }
-  .starter-subtitle { font-size: 14px; color: var(--ink); opacity: 0.7; margin-bottom: 40px; max-width: 600px; }
-  .starter-grid, .swap-grid { display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; max-width: 800px; max-height: 60vh; overflow-y: auto; padding: 20px; }
-  .starter-card, .swap-card { background: var(--glass-strong); border: 2px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 30px; width: 130px; cursor: pointer; transition: 0.3s; position: relative; overflow: hidden; }
-  .starter-card:hover, .swap-card:hover { transform: translateY(-10px); border-color: var(--neon-blue); box-shadow: 0 0 20px var(--glow-blue); }
-  .s-img { width: 70px; height: 70px; background-size: contain; background-position: center; background-repeat: no-repeat; margin: 0 auto 15px auto; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.8)); }
-  .s-name { font-weight: 900; font-size: 14px; color: #FFF; text-transform: uppercase; }
-  .team-full-msg { font-size: 30px; color: var(--neon-yellow); font-weight: 900; text-shadow: 0 0 20px var(--neon-yellow); display: none; margin-top: 20px;}
-
-  /* =========================================
-     PANTALLA DE VICTORIA Y CAPTURA PERFECTA
-     ========================================= */
-  #victory-screen { position: fixed; inset: 0; background: rgba(10,10,15,1); z-index: 10000; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; overflow: hidden;}
-  .rays-bg { position: absolute; top: 50%; left: 50%; width: 200vw; height: 200vw; background: repeating-conic-gradient(from 0deg, rgba(255,221,68,0.1) 0deg 10deg, transparent 10deg 20deg); transform: translate(-50%, -50%); animation: spin-rays 30s linear infinite; z-index: -1; }
-  @keyframes spin-rays { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
-  .victory-title { font-size: 60px; font-weight: 900; color: var(--neon-yellow); text-shadow: 0 0 40px rgba(255, 221, 68, 1); margin-bottom: 5px; letter-spacing: 5px; text-transform: uppercase; animation: float 3s ease-in-out infinite alternate; }
-  .victory-subtitle { color: #FFF; font-size: 16px; margin-bottom: 50px; max-width: 600px; opacity: 0.9; text-shadow: 0 2px 5px black;}
-  .victory-team { display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; margin-bottom: 50px; position: relative; z-index: 10;}
-  .v-member { width: 140px; height: 140px; background: rgba(0,0,0,0.6); border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.8); opacity: 0; animation: victory-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; cursor: pointer; transition: 0.3s; position: relative;}
-  .v-member:hover { transform: scale(1.1); border-color: var(--neon-blue); }
-  .v-member.selected { border-color: #FFF; box-shadow: 0 0 40px #FFF, inset 0 0 20px #FFF; transform: scale(1.2); z-index: 100; }
-  .v-member img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 10px 15px rgba(0,0,0,1)); }
-  @keyframes victory-pop { 0% { transform: scale(0); opacity: 0; } 80% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
-
-  /* =========================================
-     SUBSISTEMA GUARDIÁN
-     ========================================= */
-  #guardian-area { position: fixed; bottom: 0; left: 0; width: 100vw; height: 100vh; z-index: 90; pointer-events: none; }
-  #guardian-wrapper { position: absolute; bottom: 20px; left: 50%; pointer-events: none; transition: width 1s, height 1s, transform 0.3s; }
-  #guardian-sprite { width: 100%; height: 100%; pointer-events: auto; cursor: pointer; background-size: contain; background-position: center; background-repeat: no-repeat; filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2)); transition: filter 0.3s; }
   
-  .aura-prestige { filter: drop-shadow(0 0 15px var(--neon-yellow)) drop-shadow(0 0 30px var(--neon-yellow)) brightness(1.3) !important; animation: levitate-neon-pulse 1.5s infinite alternate ease-in-out; }
-
-  .guardian-emote { position: absolute; top: -30px; right: -10px; font-size: 24px; pointer-events: none; animation: emote-pop 2s forwards ease-out; filter: drop-shadow(0 0 5px rgba(255,255,255,0.8)); }
-  @keyframes emote-pop { 0% { transform: translateY(0) scale(0); opacity: 0; } 20% { transform: translateY(-15px) scale(1.2); opacity: 1; } 80% { transform: translateY(-25px) scale(1); opacity: 1; } 100% { transform: translateY(-35px) scale(0.5); opacity: 0; } }
-
-  #evo-flash { position: fixed; inset: 0; background: white; z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
-  .anim-evolving { animation: evo-pulse 0.2s infinite alternate !important; filter: brightness(5) drop-shadow(0 0 50px white) !important; }
-  @keyframes evo-pulse { 0% { transform: scale(1); filter: brightness(2); } 100% { transform: scale(1.2); filter: brightness(5); } }
-
-  .anim-eat { animation: jump-eat 0.4s ease; filter: drop-shadow(0 0 15px var(--neon-green)) brightness(1.2) !important; }
-  .anim-train { animation: shake-train 0.2s infinite; filter: drop-shadow(0 0 15px var(--neon-red)) brightness(1.5) !important; }
-  .anim-sleep { filter: grayscale(1) brightness(0.4) !important; }
-  @keyframes jump-eat { 0% { transform: scale(1) translateY(0); } 50% { transform: scale(1.2) translateY(-30px); } 100% { transform: scale(1) translateY(0); } }
-  @keyframes shake-train { 0% { transform: translateX(0); } 25% { transform: translateX(-5px) rotate(-5deg); } 75% { transform: translateX(5px) rotate(5deg); } 100% { transform: translateX(0); } }
-
-  #guardian-hud { position: fixed; bottom: 20px; right: 30px; z-index: 95; background: var(--glass-strong); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.3); display: none; backdrop-filter: blur(5px); box-shadow: 0 5px 20px rgba(0,0,0,0.8); pointer-events: auto; width: 240px; }
-  .g-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-  .g-title { font-size: 14px; font-weight: 900; color: #FFF; text-transform: uppercase; }
-  .g-level { font-size: 11px; font-weight: 900; color: #FFF; background: linear-gradient(45deg, #444, #888); padding: 3px 8px; border-radius: 4px; }
-  .g-stats-box { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 5px 10px; margin-bottom: 10px; display: flex; justify-content: space-between; font-size: 10px; color: #aaa; }
-  .g-stats-box span { font-weight: bold; color: var(--neon-blue); }
-  .bar-label { font-size:9px; margin-bottom:2px; color:#aaa; display:flex; justify-content:space-between; }
-  .bar-bg { width: 100%; height: 6px; background: #222; border-radius: 3px; overflow: hidden; margin-bottom: 10px; }
-  .sat-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #FF4444, #FFDD44, #44FF88); transition: width 0.5s ease; }
-  .exp-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #44CCFF, #FF44CC); transition: width 0.5s ease; }
-  .g-btn { width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: var(--ink); padding: 8px; border-radius: 6px; margin-bottom: 5px; cursor: pointer; font-size: 11px; font-weight: bold; text-align: left; display: flex; justify-content: space-between; transition: 0.2s; }
-  .g-btn:hover { background: rgba(255,255,255,0.1); border-color: var(--neon-yellow); }
-  .g-btn span.cost { color: var(--neon-purple); }
-  .g-btn:disabled { opacity: 0.4; cursor: not-allowed; border-color: rgba(255,255,255,0.1); }
-  
-  .btn-prestige { background: linear-gradient(90deg, #FFDD44, #FF8800) !important; color: #000 !important; border: none !important; font-weight: 900 !important; text-align: center !important; justify-content: center !important; animation: evo-pulse 2s infinite alternate; cursor: pointer; padding: 15px; font-size: 14px; box-shadow: 0 0 20px rgba(255, 221, 68, 0.5);}
-  .btn-prestige:hover { transform: scale(1.05); }
-  .btn-archive { background: rgba(255,255,255,0.1) !important; text-align: center !important; justify-content: center !important; }
-  .auto-mine-msg { font-size: 12px; font-weight: 900; color: var(--neon-yellow); text-align: center; margin-bottom: 10px; text-transform: uppercase; animation: float 2s infinite alternate; }
+  #diag { position: fixed; top: 10px; left: 10px; font-size: 10px; padding: 5px 10px; border-radius: 5px; background: rgba(0,0,0,0.8); border-left: 3px solid var(--neon-blue); z-index: 100; pointer-events: none;}
 </style>
 </head>
 <body>
 
-<div id="evo-flash"></div>
 <canvas id="matrix-canvas"></canvas>
 
-<div id="victory-screen">
-    <div class="rays-bg"></div>
-    <div class="victory-title">HALL OF FAME</div>
-    <div class="victory-subtitle">Extracción elemental al 100%. Protocolo Guardián ensamblado.<br><strong>Seleccione a su Campeón para activar el minado automático permanente.</strong></div>
-    <div class="victory-team" id="victory-team-container"></div>
-    <button class="g-btn btn-prestige" style="width: auto; padding: 15px 40px;" onclick="activatePrestige()">ACTIVAR PRESTIGIO: AUTO-MINADO</button>
-</div>
-
-<div id="swap-screen">
-    <div class="starter-title">RELEVO TÁCTICO</div>
-    <div class="starter-subtitle">Seleccione un miembro de la banca para que reemplace a su Pokémon activo. Su Pokémon actual descansará en el Dock sin perder estadísticas.</div>
-    <div class="swap-grid" id="swap-grid-container"></div>
-    <button class="g-btn btn-archive" style="width: auto; padding: 10px 30px; margin-top: 20px;" onclick="closeSwapMenu()">CANCELAR / VOLVER</button>
-</div>
-
-<div id="starter-selection">
-    <div class="starter-title">INCUBADORA DE DATOS</div>
-    <div class="starter-subtitle" id="starter-sub">Seleccione una semilla elemental para comenzar la extracción. Llévela a la cima o guárdela en el Dock.</div>
-    <div class="starter-grid" id="starter-grid-container"></div>
-    <div id="team-full-msg" class="team-full-msg">
-        ¡EQUIPO DE 6 COMPLETADO!<br>
-        <button class="g-btn btn-prestige" style="margin-top:20px; margin-left:auto; margin-right:auto; width:auto;" onclick="showVictoryScreen()">VER SALÓN DE LA FAMA</button>
-    </div>
-</div>
-
-<div id="team-dock">
-    <div class="dock-title">Banca</div>
-    <div class="team-slot" id="ts-0"></div><div class="team-slot" id="ts-1"></div>
-    <div class="team-slot" id="ts-2"></div><div class="team-slot" id="ts-3"></div>
-    <div class="team-slot" id="ts-4"></div><div class="team-slot" id="ts-5"></div>
-</div>
-
-<div id="rift-left" class="rift-overlay"></div>
-<div id="rift-right" class="rift-overlay"></div>
-
-<div id="vault-hud">
-    <div class="vault-title">BÓVEDA LOCAL</div>
-    <div id="vault-score" class="vault-score">0</div>
-</div>
-
-<div id="guardian-area">
-    <div id="guardian-wrapper">
-        <div id="guardian-sprite" onclick="toggleGuardianMenu()"></div>
-    </div>
-</div>
-
-<div id="guardian-hud">
-    <button class="g-btn" style="background: rgba(255,255,255,0.1); border-color: var(--neon-blue); text-align: center; justify-content: center; margin-bottom: 10px;" onclick="openSwapMenu()">
-        🔄 CAMBIAR POKÉMON
-    </button>
-    
-    <div id="hud-normal">
-        <div class="g-header">
-            <div class="g-title" id="g-name-display">Huevo</div>
-            <div class="g-level" id="g-lvl-display">Lv. 1</div>
-        </div>
-        
-        <div class="g-stats-box">
-            <div>PODER: <span id="s-pwr">10</span></div>
-            <div>VEL: <span id="s-spd">1x</span></div>
-            <div>TIPO: <span id="s-type">Incubando</span></div>
-        </div>
-
-        <div class="bar-label"><span>Satisfacción (Acelera Minería)</span> <span id="g-buff-status">+20%</span></div>
-        <div class="bar-bg"><div class="sat-fill" id="g-sat-fill"></div></div>
-
-        <div class="bar-label"><span>Experiencia (EXP)</span> <span id="g-exp-txt">0 / 100</span></div>
-        <div class="bar-bg"><div class="exp-fill" id="g-exp-fill"></div></div>
-        
-        <button class="g-btn" id="btn-feed" onclick="feedGuardian()">
-            <span>🥩 Alimentar (+30 SAT)</span> <span class="cost">500 pts</span>
-        </button>
-        <button class="g-btn" id="btn-train" onclick="trainGuardian()">
-            <span id="txt-train-btn">⚔️ Entrenar (+50 EXP)</span> <span class="cost" id="cost-train-btn">1500 pts</span>
-        </button>
-        
-        <button class="g-btn btn-archive" id="btn-archive" onclick="archiveToTeam()">
-            📥 MOVER AL DOCK
-        </button>
-    </div>
-    
-    <div id="hud-auto" style="display:none;">
-        <div class="auto-mine-msg">⚡ PRESTIGIO ACTIVO ⚡</div>
-        <div class="g-stats-box" style="text-align:center; display:block;">
-            <span id="auto-name" style="color:#FFF; font-size:16px; font-weight:bold;">Pokémon</span><br>
-            Auto-minado operando al 100% de eficiencia.
-
-          <button class="g-btn btn-danger" onclick="resetPokemonData()">⚠️ LIBERAR EQUIPO (REINICIO)</button>
-          
-        </div>
-    </div>
-
-    <div style="font-size: 9px; color: #FF4444; text-align: center; margin-top: 5px; font-weight:bold;" id="txt-warning">*Entrenar NO restaura el hambre</div>
-    <button class="g-btn" onclick="toggleGuardianMenu()" style="text-align:center; display:block; margin-top:10px; border:none; color:#888;">Cerrar Panel</button>
-</div>
+<div id="game-zone"></div>
 
 <div id='board'>
   <div class='top-header-flex'> 
@@ -276,776 +83,118 @@
 
 <script>
 /* ==========================================================================
-   MOTOR POKÉDEX: ESTRUCTURA ESCALABLE
+   MOTOR DEL DASHBOARD Y RED API
    ========================================================================== */
-const EGG_DATA = { name: "Huevo Misterioso", size: 50, speed: 0.5, type: "Incubando", color: '#FFF', imgF: "https://projectpokemon.org/images/sprites-models/pokestar/egg.gif", imgB: "https://projectpokemon.org/images/sprites-models/pokestar/egg.gif" };
+const API_KEY = "AIzaSyCCBAapFj9Fd-8cOIfpDJxrOP__76zxAxM"; 
+const WEEKLY_ID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo"; 
+const DAILY_ID = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
 
-const POKEDEX_DB = {
-    "fire": { baseName: "Charmander", color: "#FF4444", stages: [
-        { minLevel: 3, name: "Charmander", size: 60, speed: 1, type: "Fuego", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/charmander.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/charmander.gif" },
-        { minLevel: 7, name: "Charmeleon", size: 120, speed: 2, type: "Fuego Feroz", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/charmeleon.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/charmeleon.gif" },
-        { minLevel: 12, name: "Charizard", size: 240, speed: 3.5, type: "Fuego/Volador", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/charizard.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/charizard.gif" }
-    ]},
-    "water": { baseName: "Squirtle", color: "#44CCFF", stages: [
-        { minLevel: 3, name: "Squirtle", size: 60, speed: 1, type: "Agua", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/squirtle.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/squirtle.gif" },
-        { minLevel: 7, name: "Wartortle", size: 120, speed: 2, type: "Agua", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/wartortle.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/wartortle.gif" },
-        { minLevel: 12, name: "Blastoise", size: 240, speed: 3.5, type: "Agua Pesada", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/blastoise.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/blastoise.gif" }
-    ]},
-    "grass": { baseName: "Bulbasaur", color: "#44FF88", stages: [
-        { minLevel: 3, name: "Bulbasaur", size: 60, speed: 1, type: "Planta", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/bulbasaur.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/bulbasaur.gif" },
-        { minLevel: 7, name: "Ivysaur", size: 120, speed: 2, type: "Planta/Veneno", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/ivysaur.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/ivysaur.gif" },
-        { minLevel: 12, name: "Venusaur", size: 240, speed: 3.5, type: "Planta Colosal", imgF: "https://img.pokemondb.net/sprites/black-white/anim/normal/venusaur.gif", imgB: "https://img.pokemondb.net/sprites/black-white/anim/back-normal/venusaur.gif" }
-    ]},
-    "bug": { baseName: "Caterpie", color: "#AABB22", stages: [
-        { minLevel: 3, name: "Caterpie", size: 60, speed: 1, type: "Bicho", imgF: "https://projectpokemon.org/images/normal-sprite/caterpie.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/caterpie.gif" },
-        { minLevel: 7, name: "Metapod", size: 100, speed: 0.5, type: "Bicho", imgF: "https://projectpokemon.org/images/normal-sprite/metapod.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/metapod.gif" },
-        { minLevel: 12, name: "Butterfree", size: 200, speed: 3.5, type: "Bicho/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/butterfree.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/butterfree.gif" }
-    ]},
-    "electric": { baseName: "Pikachu", color: "#FFDD44", stages: [
-        { minLevel: 3, name: "Pikachu", size: 80, speed: 2, type: "Eléctrico", imgF: "https://projectpokemon.org/images/normal-sprite/pikachu.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/pikachu.gif" },
-        { minLevel: 7, name: "Raichu", size: 140, speed: 3, type: "Eléctrico", imgF: "https://projectpokemon.org/images/normal-sprite/raichu.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/raichu.gif" }
-    ]},
-    "water_fight": { baseName: "Poliwag", color: "#44CCFF", stages: [
-        { minLevel: 3, name: "Poliwag", size: 60, speed: 1, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/poliwag.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/poliwag.gif" },
-        { minLevel: 7, name: "Poliwhirl", size: 120, speed: 2, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/poliwhirl.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/poliwhirl.gif" },
-        { minLevel: 12, name: "Poliwrath", size: 220, speed: 2.5, type: "Agua/Lucha", imgF: "https://projectpokemon.org/images/normal-sprite/poliwrath.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/poliwrath.gif" }
-    ]},
-    "fighting": { baseName: "Machop", color: "#AAAAAA", stages: [
-        { minLevel: 3, name: "Machop", size: 70, speed: 1, type: "Lucha", imgF: "https://projectpokemon.org/images/normal-sprite/machop.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/machop.gif" },
-        { minLevel: 7, name: "Machoke", size: 140, speed: 2, type: "Lucha", imgF: "https://projectpokemon.org/images/normal-sprite/machoke.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/machoke.gif" },
-        { minLevel: 12, name: "Machamp", size: 240, speed: 2.5, type: "Lucha", imgF: "https://projectpokemon.org/images/normal-sprite/machamp.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/machamp.gif" }
-    ]},
-    "ghost": { baseName: "Gastly", color: "#8844AA", stages: [
-        { minLevel: 3, name: "Gastly", size: 70, speed: 1.5, type: "Fantasma", imgF: "https://projectpokemon.org/images/normal-sprite/gastly.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/gastly.gif" },
-        { minLevel: 7, name: "Haunter", size: 150, speed: 2.5, type: "Fantasma", imgF: "https://projectpokemon.org/images/normal-sprite/haunter.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/haunter.gif" },
-        { minLevel: 12, name: "Gengar", size: 230, speed: 3.5, type: "Fantasma", imgF: "https://projectpokemon.org/images/normal-sprite/gengar.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/gengar.gif" }
-    ]},
-    "ice": { baseName: "Lapras", color: "#44AAFF", stages: [
-        { minLevel: 3, name: "Lapras", size: 240, speed: 1.5, type: "Agua/Hielo", imgF: "https://projectpokemon.org/images/normal-sprite/lapras.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/lapras.gif" }
-    ]},
-    "normal": { baseName: "Snorlax", color: "#336688", stages: [
-        { minLevel: 3, name: "Snorlax", size: 260, speed: 0.3, type: "Normal", imgF: "https://projectpokemon.org/images/normal-sprite/snorlax.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/snorlax.gif" }
-    ]},
-    "psychic": { id: "psychic", baseName: "Abra", color: "#FFCC44", stages: [
-        { minLevel: 3, name: "Abra", size: 60, speed: 1.5, type: "Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/abra.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/abra.gif" },
-        { minLevel: 7, name: "Kadabra", size: 120, speed: 2, type: "Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/kadabra.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/kadabra.gif" },
-        { minLevel: 12, name: "Mega Alakazam", size: 240, speed: 3.5, type: "Psíquico Supremo", imgF: "https://projectpokemon.org/images/normal-sprite/alakazam-mega.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/alakazam-mega.gif" }
-    ]},
-    "rock": { id: "rock", baseName: "Geodude", color: "#AA9966", stages: [
-        { minLevel: 3, name: "Geodude", size: 50, speed: 0.8, type: "Roca/Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/geodude.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/geodude.gif" },
-        { minLevel: 7, name: "Graveler", size: 140, speed: 1, type: "Roca/Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/graveler.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/graveler.gif" },
-        { minLevel: 12, name: "Golem", size: 250, speed: 1.2, type: "Roca/Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/golem.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/golem.gif" }
-    ]},
-    "poison": { id: "poison", baseName: "Nidoran", color: "#AA44FF", stages: [
-        { minLevel: 3, name: "Nidoran", size: 60, speed: 1.5, type: "Veneno", imgF: "https://projectpokemon.org/images/normal-sprite/nidoran_m.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/nidoran_m.gif" },
-        { minLevel: 7, name: "Nidorino", size: 130, speed: 2.2, type: "Veneno", imgF: "https://projectpokemon.org/images/normal-sprite/nidorino.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/nidorino.gif" },
-        { minLevel: 12, name: "Nidoking", size: 260, speed: 3, type: "Veneno/Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/nidoking.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/nidoking.gif" }
-    ]},
-    "flying": { id: "flying", baseName: "Pidgey", color: "#DDCCAA", stages: [
-        { minLevel: 3, name: "Pidgey", size: 50, speed: 1.8, type: "Normal/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/pidgey.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/pidgey.gif" },
-        { minLevel: 7, name: "Pidgeotto", size: 120, speed: 2.5, type: "Normal/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/pidgeotto.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/pidgeotto.gif" },
-        { minLevel: 12, name: "Pidgeot", size: 220, speed: 4, type: "Normal/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/pidgeot.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/pidgeot.gif" }
-    ]},
-    "dragon": { id: "dragon", baseName: "Dratini", color: "#4488FF", stages: [
-        { minLevel: 3, name: "Dratini", size: 70, speed: 1.5, type: "Dragón", imgF: "https://projectpokemon.org/images/normal-sprite/dratini.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/dratini.gif" },
-        { minLevel: 7, name: "Dragonair", size: 150, speed: 2, type: "Dragón", imgF: "https://projectpokemon.org/images/normal-sprite/dragonair.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/dragonair.gif" },
-        { minLevel: 12, name: "Dragonite", size: 250, speed: 3.5, type: "Dragón/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/dragonite.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/dragonite.gif" }
-    ]},
-    "atrocious": { id: "atrocious", baseName: "Magikarp", color: "#FF5533", stages: [
-        { minLevel: 3, name: "Magikarp", size: 60, speed: 0.5, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/magikarp.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/magikarp.gif" },
-        { minLevel: 7, name: "Gyarados", size: 220, speed: 2.5, type: "Agua/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/gyarados.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/gyarados.gif" },
-        { minLevel: 12, name: "Mega Gyarados", size: 260, speed: 3.2, type: "Agua/Siniestro", imgF: "https://projectpokemon.org/images/normal-sprite/gyarados-mega.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/gyarados-mega.gif" }
-    ]},
-    "legendary": { id: "legendary", baseName: "Mewtwo", color: "#CC44FF", stages: [
-        { minLevel: 3, name: "Mewtwo", size: 180, speed: 2.5, type: "Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/mewtwo.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/mewtwo.gif" },
-        { minLevel: 12, name: "Mega Mewtwo Y", size: 260, speed: 4.5, type: "Psíquico/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/mewtwo-megay.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/mewtwo-megay.gif" }
-    ]},
-    "fire_fox": { id: "fire_fox", baseName: "Vulpix", color: "#FF8844", stages: [
-        { minLevel: 3, name: "Vulpix", size: 60, speed: 1.2, type: "Fuego", imgF: "https://projectpokemon.org/images/normal-sprite/vulpix.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/vulpix.gif" },
-        { minLevel: 7, name: "Ninetales", size: 140, speed: 2, type: "Fuego místico", imgF: "https://projectpokemon.org/images/normal-sprite/ninetales.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/ninetales.gif" }
-    ]},
-    "odd_plant": { id: "odd_plant", baseName: "Oddish", color: "#4466AA", stages: [
-        { minLevel: 3, name: "Oddish", size: 50, speed: 0.8, type: "Planta/Veneno", imgF: "https://projectpokemon.org/images/normal-sprite/oddish.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/oddish.gif" },
-        { minLevel: 7, name: "Gloom", size: 100, speed: 0.6, type: "Planta/Veneno", imgF: "https://projectpokemon.org/images/normal-sprite/gloom.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/gloom.gif" },
-        { minLevel: 12, name: "Vileplume", size: 180, speed: 1, type: "Planta/Veneno", imgF: "https://projectpokemon.org/images/normal-sprite/vileplume.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/vileplume.gif" }
-    ]},
-    "canine": { id: "canine", baseName: "Growlithe", color: "#FF6600", stages: [
-        { minLevel: 3, name: "Growlithe", size: 65, speed: 1.5, type: "Fuego", imgF: "https://projectpokemon.org/images/normal-sprite/growlithe.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/growlithe.gif" },
-        { minLevel: 7, name: "Arcanine", size: 180, speed: 3, type: "Fuego Legendario", imgF: "https://projectpokemon.org/images/normal-sprite/arcanine.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/arcanine.gif" }
-    ]},
-    "horse": { id: "horse", baseName: "Ponyta", color: "#FFCC99", stages: [
-        { minLevel: 3, name: "Ponyta", size: 90, speed: 2, type: "Fuego", imgF: "https://projectpokemon.org/images/normal-sprite/ponyta.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/ponyta.gif" },
-        { minLevel: 7, name: "Rapidash", size: 160, speed: 3.8, type: "Fuego Veloz", imgF: "https://projectpokemon.org/images/normal-sprite/rapidash.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/rapidash.gif" }
-    ]},
-    "slow_psyc": { id: "slow_psyc", baseName: "Slowpoke", color: "#FF99AA", stages: [
-        { minLevel: 3, name: "Slowpoke", size: 70, speed: 0.4, type: "Agua/Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/slowpoke.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/slowpoke.gif" },
-        { minLevel: 7, name: "Slowbro", size: 130, speed: 0.6, type: "Agua/Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/slowbro.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/slowbro.gif" },
-        { minLevel: 12, name: "Mega Slowbro", size: 210, speed: 0.8, type: "Acorazado Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/slowbro-mega.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/slowbro-mega.gif" }
-    ]},
-    "pearl": { id: "pearl", baseName: "Shellder", color: "#9977AA", stages: [
-        { minLevel: 3, name: "Shellder", size: 50, speed: 0.7, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/shellder.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/shellder.gif" },
-        { minLevel: 7, name: "Cloyster", size: 150, speed: 1.2, type: "Agua/Hielo", imgF: "https://projectpokemon.org/images/normal-sprite/cloyster.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/cloyster.gif" }
-    ]},
-    "rhino_armor": { id: "rhino_armor", baseName: "Rhyhorn", color: "#999988", stages: [
-        { minLevel: 3, name: "Rhyhorn", size: 90, speed: 0.9, type: "Tierra/Roca", imgF: "https://projectpokemon.org/images/normal-sprite/rhyhorn.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/rhyhorn.gif" },
-        { minLevel: 7, name: "Rhydon", size: 170, speed: 1.1, type: "Tierra/Roca", imgF: "https://projectpokemon.org/images/normal-sprite/rhydon.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/rhydon.gif" }
-    ]},
-    "seahorse": { id: "seahorse", baseName: "Horsea", color: "#55AACC", stages: [
-        { minLevel: 3, name: "Horsea", size: 45, speed: 1, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/horsea.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/horsea.gif" },
-        { minLevel: 7, name: "Seadra", size: 110, speed: 1.8, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/seadra.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/seadra.gif" }
-    ]},
-    "star_core": { id: "star_core", baseName: "Staryu", color: "#CCAA66", stages: [
-        { minLevel: 3, name: "Staryu", size: 60, speed: 1.5, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/staryu.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/staryu.gif" },
-        { minLevel: 7, name: "Starmie", size: 130, speed: 2.5, type: "Agua/Psíquico", imgF: "https://projectpokemon.org/images/normal-sprite/starmie.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/starmie.gif" }
-    ]},
-    "ancient_fly": { id: "ancient_fly", baseName: "Aerodactyl", color: "#BBBBCC", stages: [
-        { minLevel: 3, name: "Aerodactyl", size: 160, speed: 3, type: "Roca/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/aerodactyl.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/aerodactyl.gif" },
-        { minLevel: 12, name: "Mega Aerodactyl", size: 240, speed: 4.5, type: "Roca/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/aerodactyl-mega.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/aerodactyl-mega.gif" }
-    ]},
-    "grass_johto": { id: "grass_johto", baseName: "Chikorita", color: "#66CC44", stages: [
-        { minLevel: 3, name: "Chikorita", size: 60, speed: 1.2, type: "Planta", imgF: "https://projectpokemon.org/images/normal-sprite/chikorita.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/chikorita.gif" },
-        { minLevel: 7, name: "Bayleef", size: 120, speed: 1.8, type: "Planta", imgF: "https://projectpokemon.org/images/normal-sprite/bayleef.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/bayleef.gif" },
-        { minLevel: 12, name: "Meganium", size: 240, speed: 3.2, type: "Planta", imgF: "https://projectpokemon.org/images/normal-sprite/meganium.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/meganium.gif" }
-    ]},
-    "fire_johto": { id: "fire_johto", baseName: "Cyndaquil", color: "#FF6622", stages: [
-        { minLevel: 3, name: "Cyndaquil", size: 60, speed: 1.5, type: "Fuego", imgF: "https://projectpokemon.org/images/normal-sprite/cyndaquil.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/cyndaquil.gif" },
-        { minLevel: 7, name: "Quilava", size: 130, speed: 2.5, type: "Fuego", imgF: "https://projectpokemon.org/images/normal-sprite/quilava.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/quilava.gif" },
-        { minLevel: 12, name: "Typhlosion", size: 250, speed: 3.8, type: "Fuego", imgF: "https://projectpokemon.org/images/normal-sprite/typhlosion.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/typhlosion.gif" }
-    ]},
-    "water_johto": { id: "water_johto", baseName: "Totodile", color: "#3399FF", stages: [
-        { minLevel: 3, name: "Totodile", size: 60, speed: 1.3, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/totodile.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/totodile.gif" },
-        { minLevel: 7, name: "Croconaw", size: 130, speed: 2.0, type: "Agua", imgF: "https://projectpokemon.org/images/normal-sprite/croconaw.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/croconaw.gif" },
-        { minLevel: 12, name: "Feraligatr", size: 260, speed: 3.0, type: "Agua Feroz", imgF: "https://projectpokemon.org/images/normal-sprite/feraligatr.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/feraligatr.gif" }
-    ]},
-    "scout": { id: "scout", baseName: "Sentret", color: "#AA9977", stages: [
-        { minLevel: 3, name: "Sentret", size: 50, speed: 1.2, type: "Normal", imgF: "https://projectpokemon.org/images/normal-sprite/sentret.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/sentret.gif" },
-        { minLevel: 7, name: "Furret", size: 140, speed: 2.2, type: "Normal", imgF: "https://projectpokemon.org/images/normal-sprite/furret.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/furret.gif" }
-    ]},
-    "owl": { id: "owl", baseName: "Hoothoot", color: "#887766", stages: [
-        { minLevel: 3, name: "Hoothoot", size: 50, speed: 1.0, type: "Normal/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/hoothoot.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/hoothoot.gif" },
-        { minLevel: 7, name: "Noctowl", size: 160, speed: 2.5, type: "Normal/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/noctowl.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/noctowl.gif" }
-    ]},
-    "ladybug": { id: "ladybug", baseName: "Ledyba", color: "#EE5544", stages: [
-        { minLevel: 3, name: "Ledyba", size: 50, speed: 1.5, type: "Bicho/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/ledyba.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/ledyba.gif" },
-        { minLevel: 7, name: "Ledian", size: 140, speed: 2.8, type: "Bicho/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/ledian.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/ledian.gif" }
-    ]},
-    "spider": { id: "spider", baseName: "Spinarak", color: "#AADD44", stages: [
-        { minLevel: 3, name: "Spinarak", size: 50, speed: 0.9, type: "Bicho/Veneno", imgF: "https://projectpokemon.org/images/normal-sprite/spinarak.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/spinarak.gif" },
-        { minLevel: 7, name: "Ariados", size: 150, speed: 1.8, type: "Bicho/Veneno", imgF: "https://projectpokemon.org/images/normal-sprite/ariados.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/ariados.gif" }
-    ]},
-    "wool": { id: "wool", baseName: "Mareep", color: "#FFDD55", stages: [
-        { minLevel: 3, name: "Mareep", size: 60, speed: 0.8, type: "Eléctrico", imgF: "https://projectpokemon.org/images/normal-sprite/mareep.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/mareep.gif" },
-        { minLevel: 7, name: "Flaaffy", size: 110, speed: 1.2, type: "Eléctrico", imgF: "https://projectpokemon.org/images/normal-sprite/flaaffy.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/flaaffy.gif" },
-        { minLevel: 12, name: "Ampharos", size: 210, speed: 2.0, type: "Eléctrico", imgF: "https://projectpokemon.org/images/normal-sprite/ampharos.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/ampharos.gif" }
-    ]},
-    "aqua_mouse": { id: "aqua_mouse", baseName: "Marill", color: "#44AAFF", stages: [
-        { minLevel: 3, name: "Marill", size: 60, speed: 1.1, type: "Agua/Hada", imgF: "https://projectpokemon.org/images/normal-sprite/marill.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/marill.gif" },
-        { minLevel: 7, name: "Azumarill", size: 140, speed: 1.7, type: "Agua/Hada", imgF: "https://projectpokemon.org/images/normal-sprite/azumarill.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/azumarill.gif" }
-    ]},
-    "cotton": { id: "cotton", baseName: "Hoppip", color: "#FF88AA", stages: [
-        { minLevel: 3, name: "Hoppip", size: 40, speed: 1.8, type: "Planta/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/hoppip.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/hoppip.gif" },
-        { minLevel: 7, name: "Skiploom", size: 80, speed: 2.5, type: "Planta/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/skiploom.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/skiploom.gif" },
-        { minLevel: 12, name: "Jumpluff", size: 130, speed: 4.0, type: "Planta/Volador", imgF: "https://projectpokemon.org/images/normal-sprite/jumpluff.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/jumpluff.gif" }
-    ]},
-    "sun": { id: "sun", baseName: "Sunkern", color: "#FFEE44", stages: [
-        { minLevel: 3, name: "Sunkern", size: 40, speed: 0.6, type: "Planta", imgF: "https://projectpokemon.org/images/normal-sprite/sunkern.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/sunkern.gif" },
-        { minLevel: 7, name: "Sunflora", size: 120, speed: 1.2, type: "Planta", imgF: "https://projectpokemon.org/images/normal-sprite/sunflora.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/sunflora.gif" }
-    ]},
-    "mud": { id: "mud", baseName: "Wooper", color: "#66AADD", stages: [
-        { minLevel: 3, name: "Wooper", size: 50, speed: 0.8, type: "Agua/Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/wooper.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/wooper.gif" },
-        { minLevel: 7, name: "Quagsire", size: 160, speed: 1.1, type: "Agua/Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/quagsire.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/quagsire.gif" }
-    ]},
-    "bagworm": { id: "bagworm", baseName: "Pineco", color: "#558877", stages: [
-        { minLevel: 3, name: "Pineco", size: 60, speed: 0.5, type: "Bicho", imgF: "https://projectpokemon.org/images/normal-sprite/pineco.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/pineco.gif" },
-        { minLevel: 7, name: "Forretress", size: 150, speed: 0.8, type: "Bicho/Acero", imgF: "https://projectpokemon.org/images/normal-sprite/forretress.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/forretress.gif" }
-    ]},
-    "bulldog": { id: "bulldog", baseName: "Snubbull", color: "#FF99BB", stages: [
-        { minLevel: 3, name: "Snubbull", size: 60, speed: 1.0, type: "Hada", imgF: "https://projectpokemon.org/images/normal-sprite/snubbull.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/snubbull.gif" },
-        { minLevel: 7, name: "Granbull", size: 170, speed: 1.8, type: "Hada", imgF: "https://projectpokemon.org/images/normal-sprite/granbull.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/granbull.gif" }
-    ]},
-    "bear": { id: "bear", baseName: "Teddiursa", color: "#DD9944", stages: [
-        { minLevel: 3, name: "Teddiursa", size: 60, speed: 1.2, type: "Normal", imgF: "https://projectpokemon.org/images/normal-sprite/teddiursa.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/teddiursa.gif" },
-        { minLevel: 7, name: "Ursaring", size: 210, speed: 2.2, type: "Normal", imgF: "https://projectpokemon.org/images/normal-sprite/ursaring.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/ursaring.gif" }
-    ]},
-    "magma": { id: "magma", baseName: "Slugma", color: "#FF4422", stages: [
-        { minLevel: 3, name: "Slugma", size: 50, speed: 0.4, type: "Fuego", imgF: "https://projectpokemon.org/images/normal-sprite/slugma.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/slugma.gif" },
-        { minLevel: 7, name: "Magcargo", size: 130, speed: 0.6, type: "Fuego/Roca", imgF: "https://projectpokemon.org/images/normal-sprite/magcargo.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/magcargo.gif" }
-    ]},
-    "pig": { id: "pig", baseName: "Swinub", color: "#AA7755", stages: [
-        { minLevel: 3, name: "Swinub", size: 40, speed: 0.9, type: "Hielo/Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/swinub.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/swinub.gif" },
-        { minLevel: 7, name: "Piloswine", size: 150, speed: 1.5, type: "Hielo/Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/piloswine.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/piloswine.gif" }
-    ]},
-    "hellhound": { id: "hellhound", baseName: "Houndour", color: "#333333", stages: [
-        { minLevel: 3, name: "Houndour", size: 70, speed: 1.6, type: "Siniestro/Fuego", imgF: "https://projectpokemon.org/images/normal-sprite/houndour.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/houndour.gif" },
-        { minLevel: 7, name: "Houndoom", size: 180, speed: 3.0, type: "Siniestro/Fuego", imgF: "https://projectpokemon.org/images/normal-sprite/houndoom.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/houndoom.gif" }
-    ]},
-    "elephant": { id: "elephant", baseName: "Phanpy", color: "#44BBCC", stages: [
-        { minLevel: 3, name: "Phanpy", size: 60, speed: 1.1, type: "Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/phanpy.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/phanpy.gif" },
-        { minLevel: 7, name: "Donphan", size: 160, speed: 2.0, type: "Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/donphan.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/donphan.gif" }
-    ]},
-    "armor_beast": { id: "armor_beast", baseName: "Larvitar", color: "#88AA66", stages: [
-        { minLevel: 3, name: "Larvitar", size: 70, speed: 1.0, type: "Roca/Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/larvitar.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/larvitar.gif" },
-        { minLevel: 7, name: "Pupitar", size: 130, speed: 1.5, type: "Roca/Tierra", imgF: "https://projectpokemon.org/images/normal-sprite/pupitar.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/pupitar.gif" },
-        { minLevel: 12, name: "Tyranitar", size: 280, speed: 2.5, type: "Roca/Siniestro", imgF: "https://projectpokemon.org/images/normal-sprite/tyranitar.gif", imgB: "https://projectpokemon.org/images/sprites-models/normal-back/tyranitar.gif" }
-    ]}
-};
-
-function getCurrentStageData(lineKey, level) {
-    if (level < 3) return EGG_DATA;
-    const dex = POKEDEX_DB[lineKey];
-    return dex.stages.slice().reverse().find(s => level >= s.minLevel);
+function setDiag(msg, color = "#44CCFF") { 
+    const d = document.getElementById('diag'); 
+    if(d) { d.innerText = msg; d.style.borderLeftColor = color; } 
 }
 
-function isEvolutionThreshold(lineKey, oldLevel, newLevel) {
-    if (newLevel === 3) return true; 
-    const dex = POKEDEX_DB[lineKey];
-    const oldStage = dex.stages.slice().reverse().find(s => oldLevel >= s.minLevel);
-    const newStage = dex.stages.slice().reverse().find(s => newLevel >= s.minLevel);
-    return oldStage !== newStage; 
+function getLocalDate(){ 
+    return new Date(new Date().toLocaleString('en-US',{timeZone:"America/Tijuana"})); 
 }
 
-/* ==========================================================================
-   MÓDULO 1: ECONOMÍA Y BÓVEDA LOCAL
-   ========================================================================== */
-let localVault = 0;
-function initVault() { localVault = parseInt(localStorage.getItem('qv_vault_hof')) || 0; updateVaultUI(); }
-function updateVaultUI(glowColor = '#FFF') {
-    const scoreEl = document.getElementById('vault-score');
-    scoreEl.innerText = localVault.toLocaleString();
-    scoreEl.style.color = glowColor; scoreEl.style.textShadow = `0 0 20px ${glowColor}`;
-    checkGuardianButtons();
-    setTimeout(() => { scoreEl.style.color = '#FFF'; scoreEl.style.textShadow = `0 0 10px rgba(255,255,255,0.5)`; }, 600);
-}
-function deductPoints(amount) {
-    if (localVault >= amount) { localVault -= amount; localStorage.setItem('qv_vault_hof', localVault); updateVaultUI('#FF4444'); return true; }
-    return false;
+function computeWeeklyTab(){ 
+    const d = getLocalDate(); 
+    const start = new Date(d.getFullYear(), 0, 1); 
+    const days = Math.floor((d - start) / 86400000); 
+    let week = Math.ceil((days + start.getDay() + 1) / 7); 
+    if (d.getDay() < 3 || (d.getDay() === 3 && d.getHours() < 12)) week--; 
+    return `W${week}`; 
 }
 
-/* ==========================================================================
-   MÓDULO 2: SISTEMA DEL GUARDIÁN Y RELEVO
-   ========================================================================== */
-let gStats = { line: null, sat: 100, exp: 0, level: 1, lastTick: Date.now(), team: [], isAutoMining: false };
-let gState = 'walk'; 
-let gPosX = window.innerWidth / 2;
-let gPosY = 20; 
-let gDirX = 1; let gDirY = 1; 
-let facingAway = false; let isEvolving = false;
-
-function initGuardian() {
-    const saved = localStorage.getItem('qv_guardian_hof');
-    if(saved) {
-        gStats = JSON.parse(saved);
-        if(!gStats.team) gStats.team = [];
-        if(gStats.team.length > 0 && typeof gStats.team[0] === 'string') {
-            gStats.team = gStats.team.map(id => ({ line: id, level: 12, exp: 0, sat: 100, isAutoMining: false }));
-        }
-        if(gStats.isAutoMining === undefined) gStats.isAutoMining = false;
-        const minsOffline = Math.floor((Date.now() - gStats.lastTick) / 60000);
-        gStats.sat = Math.max(0, gStats.sat - (minsOffline * 0.5)); 
-    }
-    
-    renderTeamDock();
-
-    if(!gStats.line) { openStarterSelection(); return; }
-
-    gStats.lastTick = Date.now();
-    setInterval(() => { if(!isEvolving && Math.random() > 0.6 && gStats.level >= 3) facingAway = !facingAway; updateGuardianVisuals(); }, 4000);
-    setInterval(guardianLogicTick, 1000);
-    setInterval(autoMineTick, 1500);
-    setInterval(spawnRandomEmote, 6000); 
-    requestAnimationFrame(guardianMoveLoop);
-    updateGuardianUI(); updateGuardianVisuals();
+async function fetchSheet(id, range) { 
+    try { 
+        const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${encodeURIComponent(range)}?key=${API_KEY}`); 
+        return r.ok ? await r.json() : null; 
+    } catch (e) { return null; } 
 }
 
-function resetPokemonData() {
-    // 1. Confirmación de seguridad
-    const confirmacion = confirm("ALERTA TÁCTICA: ¿Está seguro de que desea liberar a todo su equipo Pokémon? Conservará todos los puntos de su Bóveda, pero perderá a sus guardianes actuales y volverá a la fase de incubación.");
-    
-    if (confirmacion) {
-        // 2. Purgar las estadísticas del Guardián (reiniciar el objeto)
-        gStats = { line: null, sat: 100, exp: 0, level: 1, lastTick: Date.now(), team: [], isAutoMining: false };
-        
-        // 3. Sobrescribir el guardado local
-        saveGuardian();
-        
-        // 4. Limpiar la interfaz visual (Dock y Sprite actual)
-        renderTeamDock();
-        const sprite = document.getElementById('guardian-sprite');
-        sprite.style.backgroundImage = '';
-        sprite.className = '';
-        
-        // 5. Forzar la apertura del menú de selección inicial
-        openStarterSelection();
-    }
-}
-  
-function saveGuardian() { gStats.lastTick = Date.now(); localStorage.setItem('qv_guardian_hof', JSON.stringify(gStats)); }
-
-/* N U E V O : MENÚ DE RELEVO EXPLÍCITO */
-function openSwapMenu() {
-    if (gStats.team.length === 0) {
-        alert("Aún no tienes miembros en la banca para hacer un relevo.");
-        return;
-    }
-    const container = document.getElementById('swap-grid-container');
-    container.innerHTML = '';
-    
-    gStats.team.forEach((member, index) => {
-        const stageData = getCurrentStageData(member.line, member.level);
-        const card = document.createElement('div');
-        card.className = 'swap-card';
-        card.innerHTML = `<img src="${stageData.imgF}" /><br><span style="font-size:12px; font-weight:bold; color:#FFF;">Lv. ${member.level}</span>`;
-        card.onclick = () => { swapWithTeam(index); closeSwapMenu(); };
-        container.appendChild(card);
-    });
-    
-    document.getElementById('swap-screen').style.display = 'flex';
-    document.getElementById('guardian-hud').style.display = 'none';
-}
-
-function closeSwapMenu() {
-    document.getElementById('swap-screen').style.display = 'none';
-    document.getElementById('guardian-hud').style.display = 'block';
-}
-
-function swapWithTeam(index) {
-    if (isEvolving) return;
-    if (index < 0 || index > gStats.team.length) return;
-    
-    if (index === gStats.team.length) { archiveToTeam(); return; }
-
-    const memberToSwapIn = gStats.team[index];
-    const currentActive = gStats.line ? { line: gStats.line, level: gStats.level, exp: gStats.exp, sat: gStats.sat, isAutoMining: gStats.isAutoMining } : null;
-
-    document.getElementById('guardian-sprite').className = ''; 
-    
-    gStats.line = memberToSwapIn.line;
-    gStats.level = memberToSwapIn.level;
-    gStats.exp = memberToSwapIn.exp;
-    gStats.sat = memberToSwapIn.sat;
-    gStats.isAutoMining = memberToSwapIn.isAutoMining;
-
-    if (currentActive) { gStats.team[index] = currentActive; } 
-    else { gStats.team.splice(index, 1); }
-
-    saveGuardian();
-    renderTeamDock();
-    updateGuardianVisuals();
-    updateGuardianUI();
-    
-    spawnSpecificEmote('🔄');
-    const wrapper = document.getElementById('guardian-wrapper');
-    wrapper.style.transform = 'scale(0)';
-    setTimeout(() => { wrapper.style.transform = 'scaleX(1)'; }, 100);
-}
-
-function openStarterSelection() {
-    document.getElementById('guardian-hud').style.display = 'none';
-    const container = document.getElementById('starter-grid-container');
-    container.innerHTML = '';
-    
-    if (gStats.team.length >= 6) {
-        document.getElementById('starter-sub').style.display = 'none';
-        container.style.display = 'none';
-        document.getElementById('team-full-msg').style.display = 'block';
-        document.getElementById('starter-selection').style.display = 'flex';
-        return;
-    }
-
-    const teamIDs = gStats.team.map(m => m.line);
-    Object.keys(POKEDEX_DB).forEach(key => {
-        if (!teamIDs.includes(key) && key !== gStats.line) {
-            const pk = POKEDEX_DB[key];
-            const stage1 = pk.stages[0];
-            const card = document.createElement('div');
-            card.className = 'starter-card';
-            card.onclick = () => chooseStarter(key);
-            card.innerHTML = `<div class="s-img" style="background-image: url('${stage1.imgF}');"></div><div class="s-name" style="color:${pk.color}">${pk.baseName}</div>`;
-            container.appendChild(card);
-        }
-    });
-    document.getElementById('starter-selection').style.display = 'flex';
-}
-
-function chooseStarter(type) {
-    gStats.line = type; gStats.level = 1; gStats.exp = 0; gStats.sat = 100; gStats.isAutoMining = false;
-    document.getElementById('starter-selection').style.display = 'none';
-    saveGuardian();
-    if (!document.getElementById('guardian-sprite').style.backgroundImage) { initGuardian(); } else { updateGuardianUI(); updateGuardianVisuals(); }
-}
-
-let selectedForPrestige = null;
-function showVictoryScreen() {
-    document.getElementById('starter-selection').style.display = 'none';
-    const container = document.getElementById('victory-team-container');
-    container.innerHTML = '';
-    selectedForPrestige = gStats.team[0]; 
-    
-    gStats.team.forEach((member, index) => {
-        const stageData = getCurrentStageData(member.line, member.level);
-        const memEl = document.createElement('div');
-        memEl.className = 'v-member' + (index === 0 ? ' selected' : '');
-        memEl.style.animationDelay = `${index * 0.2}s`;
-        memEl.innerHTML = `<img src="${stageData.imgF}" />`;
-        
-        memEl.onclick = () => {
-            document.querySelectorAll('.v-member').forEach(el => el.classList.remove('selected'));
-            memEl.classList.add('selected');
-            selectedForPrestige = member;
-        };
-        container.appendChild(memEl);
-    });
-    document.getElementById('victory-screen').style.display = 'flex';
-}
-
-function activatePrestige() {
-    const index = gStats.team.indexOf(selectedForPrestige);
-    if(index > -1) { gStats.team.splice(index, 1); }
-    
-    if(gStats.line) { gStats.team.push({line: gStats.line, level: gStats.level, exp: gStats.exp, sat: gStats.sat, isAutoMining: gStats.isAutoMining}); }
-    
-    gStats.line = selectedForPrestige.line;
-    gStats.level = selectedForPrestige.level; 
-    gStats.exp = selectedForPrestige.exp;
-    gStats.sat = selectedForPrestige.sat;
-    gStats.isAutoMining = true;
-    
-    saveGuardian();
-    document.getElementById('victory-screen').style.display = 'none';
-    renderTeamDock();
-    
-    if (!document.getElementById('guardian-sprite').style.backgroundImage) { initGuardian(); } 
-    else { updateGuardianVisuals(); updateGuardianUI(); }
-}
-
-function autoMineTick() {
-    if (gStats.isAutoMining && gStats.line && !isEvolving) {
-        const readyCrystals = document.querySelectorAll('.crystal-node.ready');
-        if (readyCrystals.length > 0) {
-            const target = readyCrystals[0];
-            target.click(); 
-            spawnSpecificEmote('⚡');
-            playActionAnimation('anim-train');
-        }
-    }
-}
-
-function archiveToTeam() {
-    if (gStats.team.length < 6 && gStats.line) {
-        gStats.team.push({ line: gStats.line, level: gStats.level, exp: gStats.exp, sat: gStats.sat, isAutoMining: gStats.isAutoMining });
-        gStats.line = null; gStats.isAutoMining = false;
-        saveGuardian(); renderTeamDock();
-        if (gStats.team.length === 6) { showVictoryScreen(); } else { openStarterSelection(); }
-    }
-}
-
-function renderTeamDock() {
-    for(let i=0; i<6; i++) {
-        const slot = document.getElementById(`ts-${i}`);
-        if (i < gStats.team.length) {
-            const member = gStats.team[i];
-            const stageData = getCurrentStageData(member.line, member.level);
-            slot.classList.add('filled');
-            slot.innerHTML = `<img src="${stageData.imgF}" title="${stageData.name} - Lv.${member.level}" />`;
-            slot.onclick = () => swapWithTeam(i);
-            slot.style.cursor = 'pointer';
-        } else {
-            slot.classList.remove('filled');
-            slot.innerHTML = '';
-            slot.onclick = null;
-            slot.style.cursor = 'default';
-        }
-    }
-}
-
-function guardianLogicTick() {
-    if(isEvolving || !gStats.line) return;
-    if(!gStats.isAutoMining) gStats.sat = Math.max(0, gStats.sat - 0.05); 
-    
-    const sprite = document.getElementById('guardian-sprite');
-    
-    if (gStats.sat <= 0 && gState !== 'act' && !gStats.isAutoMining) {
-        if (gState !== 'sleep') { gState = 'sleep'; sprite.className = 'anim-sleep'; spawnSpecificEmote('💤'); }
-    } else if ((gStats.sat > 0 || gStats.isAutoMining) && gState === 'sleep') {
-        gState = 'walk'; sprite.className = gStats.isAutoMining ? 'aura-prestige' : ''; spawnSpecificEmote('✨');
-    }
-    saveGuardian(); updateGuardianUI(); 
-}
-
-function spawnSpecificEmote(emoji) {
-    if (isEvolving) return;
-    const el = document.createElement('div'); el.className = 'guardian-emote'; el.innerText = emoji;
-    document.getElementById('guardian-wrapper').appendChild(el); setTimeout(() => el.remove(), 2000);
-}
-
-function spawnRandomEmote() {
-    if (isEvolving || gState === 'sleep' || !gStats.line) return;
-    let emotes = gStats.isAutoMining ? ['⚡', '💎', '🔥'] : ['✨', '❓', '🎵', '💬'];
-    if (gStats.sat < 40 && !gStats.isAutoMining) emotes = ['🍖', '😫', '💢', '💧']; 
-    if (gStats.sat > 80 && Math.random() > 0.5) emotes.push('❤️', '🔥');
-    if (Math.random() > 0.4) spawnSpecificEmote(emotes[Math.floor(Math.random() * emotes.length)]);
-}
-
-function guardianMoveLoop() {
-    if (gState === 'walk' && !isEvolving && gStats.line) {
-        const stageData = getCurrentStageData(gStats.line, gStats.level);
-        const paddingX = 220; 
-        
-        let speedMult = gStats.isAutoMining ? 1.5 : 1;
-        
-        gPosX += stageData.speed * speedMult * gDirX;
-        if (gPosX > window.innerWidth - paddingX - stageData.size) gDirX = -1;
-        if (gPosX < paddingX) gDirX = 1;
-        
-        if (stageData.type.includes("Volador") || gStats.isAutoMining) {
-            gPosY += stageData.speed * 0.8 * speedMult * gDirY;
-            if (gPosY > window.innerHeight - stageData.size - 50) gDirY = -1;
-            if (gPosY < 20) gDirY = 1;
-        } else { gPosY = 20; }
-        
-        const wrapper = document.getElementById('guardian-wrapper');
-        wrapper.style.left = `${gPosX}px`; wrapper.style.bottom = `${gPosY}px`;
-        let flip = (gDirX === 1 && gStats.level >= 3) ? -1 : 1; 
-        wrapper.style.transform = `scaleX(${flip})`; 
-    }
-    requestAnimationFrame(guardianMoveLoop);
-}
-
-function updateGuardianVisuals() {
-    if(isEvolving || !gStats.line) return;
-    const stageData = getCurrentStageData(gStats.line, gStats.level);
-    const sprite = document.getElementById('guardian-sprite');
-    const wrapper = document.getElementById('guardian-wrapper');
-    const hud = document.getElementById('guardian-hud');
-    
-    wrapper.style.width = `${stageData.size}px`; wrapper.style.height = `${stageData.size}px`;
-    hud.style.borderColor = stageData.color;
-    
-    const imgUrl = (facingAway && gStats.level >= 3) ? stageData.imgB : stageData.imgF;
-    sprite.style.backgroundImage = `url('${imgUrl}')`;
-    
-    if(gStats.isAutoMining) { sprite.classList.add('aura-prestige'); } else { sprite.classList.remove('aura-prestige'); }
-}
-
-function getGuardianBuff() {
-    if(!gStats.line) return 1.0;
-    if(gStats.isAutoMining) return 2.0; 
-    if (gStats.sat > 70) return 1.2; 
-    if (gStats.sat <= 0) return 0.8; 
-    return 1.0;
-}
-
-function toggleGuardianMenu() { if(gStats.line) { const menu = document.getElementById('guardian-hud'); menu.style.display = menu.style.display === 'block' ? 'none' : 'block'; checkGuardianButtons(); } }
-
-function checkGuardianButtons() {
-    document.getElementById('btn-archive').style.display = (gStats.team.length < 6) ? 'block' : 'none';
-    if(gStats.isAutoMining) return; 
-    
-    const isMax = gStats.level >= 12;
-    document.getElementById('btn-feed').disabled = localVault < 500 || isEvolving;
-    document.getElementById('btn-train').disabled = localVault < 1500 || isEvolving || isMax;
-    
-    if(isMax) {
-        document.getElementById('txt-train-btn').innerText = "⚔️ NIVEL MÁXIMO";
-        document.getElementById('cost-train-btn').innerText = "---";
-    } else {
-        document.getElementById('txt-train-btn').innerText = "⚔️ Entrenar (+50 EXP)";
-        document.getElementById('cost-train-btn').innerText = "1500 pts";
-    }
-}
-
-function updateGuardianUI() {
-    if(isEvolving || !gStats.line) return;
-    const stageData = getCurrentStageData(gStats.line, gStats.level);
-    
-    if(gStats.isAutoMining) {
-        document.getElementById('hud-normal').style.display = 'none';
-        document.getElementById('txt-warning').style.display = 'none';
-        document.getElementById('hud-auto').style.display = 'block';
-        document.getElementById('auto-name').innerText = stageData.name;
-        document.getElementById('auto-name').style.color = stageData.color;
-    } else {
-        document.getElementById('hud-auto').style.display = 'none';
-        document.getElementById('txt-warning').style.display = 'block';
-        document.getElementById('hud-normal').style.display = 'block';
-        
-        document.getElementById('g-sat-fill').style.width = `${Math.min(100, Math.max(0, gStats.sat))}%`;
-        document.getElementById('g-lvl-display').innerText = `Lv. ${gStats.level}`;
-        document.getElementById('g-lvl-display').style.background = `linear-gradient(45deg, #222, ${stageData.color})`;
-        
-        if (gStats.level >= 12) {
-            document.getElementById('g-exp-fill').style.width = `100%`;
-            document.getElementById('g-exp-txt').innerText = `MAX`;
-        } else {
-            const expReq = gStats.level * 100;
-            document.getElementById('g-exp-fill').style.width = `${Math.min(100, (gStats.exp / expReq) * 100)}%`;
-            document.getElementById('g-exp-txt').innerText = `${gStats.exp} / ${expReq}`;
-        }
-
-        document.getElementById('g-name-display').innerText = stageData.name;
-        document.getElementById('s-pwr').innerText = gStats.level * 15;
-        document.getElementById('s-spd').innerText = `${stageData.speed}x`;
-        document.getElementById('s-type').innerText = stageData.type;
-        
-        const buffTxt = document.getElementById('g-buff-status');
-        if(gStats.sat > 70) { buffTxt.innerText = "+20% Vel. Mina"; buffTxt.style.color = "var(--neon-green)"; }
-        else if(gStats.sat <= 0) { buffTxt.innerText = "-20% Vel. Mina"; buffTxt.style.color = "var(--neon-red)"; }
-        else { buffTxt.innerText = "Estado Nominal"; buffTxt.style.color = "var(--ink)"; }
-        
-        checkGuardianButtons();
-    }
-}
-
-function playActionAnimation(animClass) {
-    if(isEvolving) return;
-    const sprite = document.getElementById('guardian-sprite');
-    gState = 'act'; 
-    sprite.className = gStats.isAutoMining ? `aura-prestige ${animClass}` : animClass; 
-    setTimeout(() => { 
-        gState = (gStats.sat > 0 || gStats.isAutoMining) ? 'walk' : 'sleep'; 
-        if(gStats.isAutoMining) { sprite.className = 'aura-prestige'; }
-        else { sprite.className = gState === 'sleep' ? 'anim-sleep' : ''; }
-    }, 1000);
-}
-
-function feedGuardian() {
-    if (deductPoints(500)) { gStats.sat = Math.min(100, gStats.sat + 30); saveGuardian(); updateGuardianUI(); playActionAnimation('anim-eat'); spawnSpecificEmote('❤️'); }
-}
-
-function triggerEvolutionSpectacle() {
-    isEvolving = true;
-    const sprite = document.getElementById('guardian-sprite'); const flash = document.getElementById('evo-flash');
-    sprite.className = 'anim-evolving'; document.getElementById('guardian-hud').style.display = 'none';
-    setTimeout(() => { flash.style.opacity = '1'; }, 2000);
-    setTimeout(() => { facingAway = false; updateGuardianVisuals(); updateGuardianUI(); }, 2500);
-    setTimeout(() => { flash.style.opacity = '0'; sprite.className = ''; isEvolving = false; gState = 'walk'; spawnSpecificEmote('✨'); document.getElementById('guardian-hud').style.display = 'block'; }, 3500);
-}
-
-function trainGuardian() {
-    if (gStats.level >= 12) return;
-    if (deductPoints(1500)) {
-        const expReq = gStats.level * 100;
-        gStats.exp += 50;
-        const oldLvl = gStats.level;
-
-        if(gStats.exp >= expReq) {
-            gStats.level++; gStats.exp = 0; 
-            if(isEvolutionThreshold(gStats.line, oldLvl, gStats.level)) { saveGuardian(); triggerEvolutionSpectacle(); return; }
-        }
-        saveGuardian(); updateGuardianUI(); playActionAnimation('anim-train'); spawnSpecificEmote('💢');
-    }
-}
-
-/* ==========================================================================
-   MÓDULO 3: MINERÍA
-   ========================================================================== */
-const GEM_TYPES = {
-    blue:   { points: 500,  time: 1 * 60 * 1000, color: 'var(--neon-blue)',   img: 'https://i.ibb.co/7sBBH4c/pngwing-com-1.png' },
-    red:    { points: 1000,  time: 5 * 60 * 1000, color: 'var(--neon-red)',    img: 'https://i.ibb.co/XZrXPwGc/pngwing-com.png' },
-    purple: { points: 3500, time: 10 * 60 * 1000,color: 'var(--neon-purple)', img: 'https://i.ibb.co/4gwYj5LG/pngegg.png' }
-};
-
-const ACTIVE_SLOTS = [];
-for(let i=1; i<=12; i++) {
-    let type = i <= 6 ? 'blue' : (i <= 10 ? 'red' : 'purple');
-    ACTIVE_SLOTS.push({ id: `L${i}`, side: 'left', type: type }); ACTIVE_SLOTS.push({ id: `R${i}`, side: 'right', type: type });
-}
-
-const POSITIONS_POOL = { left: [], right: [] };
-const cols = ['15px', '75px', '135px', '45px', '105px'];
-for(let i=0; i<30; i++) {
-    let topPct = 2 + (i * 3.1); POSITIONS_POOL.left.push({ t: `${topPct}%`, l: cols[i % cols.length] }); POSITIONS_POOL.right.push({ t: `${topPct}%`, r: cols[i % cols.length] });
-}
-
-let occupiedPositions = { left: new Set(), right: new Set() };
-
-function initMiner() {
-    ACTIVE_SLOTS.forEach(slot => {
-        const gem = GEM_TYPES[slot.type]; const riftEl = document.getElementById(`rift-${slot.side}`);
-        const node = document.createElement('div'); node.id = `gem-${slot.id}`; node.className = 'crystal-node';
-        node.style.backgroundImage = `url('${gem.img}')`; node.style.setProperty('--node-color', gem.color); node.onclick = () => mineCrystal(slot.id);
-        riftEl.appendChild(node);
-        if (!localStorage.getItem(`qv_time_hof_${slot.id}`)) { localStorage.setItem(`qv_time_hof_${slot.id}`, Date.now()); assignNewRandomPosition(slot.id); }
-        else { loadStoredPosition(slot.id); }
-    });
-    setInterval(checkGrowth, 1000); checkGrowth();
-}
-
-function assignNewRandomPosition(slotId) {
-    const slot = ACTIVE_SLOTS.find(s => s.id === slotId); const pool = POSITIONS_POOL[slot.side]; const el = document.getElementById(`gem-${slotId}`);
-    const oldPosIdx = localStorage.getItem(`qv_pos_hof_${slotId}`); if (oldPosIdx !== null) occupiedPositions[slot.side].delete(parseInt(oldPosIdx));
-    let newIdx; let attempts = 0; do { newIdx = Math.floor(Math.random() * pool.length); attempts++; } while (occupiedPositions[slot.side].has(newIdx) && attempts < 25);
-    occupiedPositions[slot.side].add(newIdx); localStorage.setItem(`qv_pos_hof_${slotId}`, newIdx);
-    const pos = pool[newIdx]; el.style.top = pos.t; el.style.left = ''; el.style.right = ''; if(slot.side === 'left') el.style.left = pos.l; else el.style.right = pos.r;
-}
-function loadStoredPosition(slotId) {
-    const slot = ACTIVE_SLOTS.find(s => s.id === slotId); const posIdx = parseInt(localStorage.getItem(`qv_pos_hof_${slotId}`)); const el = document.getElementById(`gem-${slotId}`);
-    if (isNaN(posIdx)) { assignNewRandomPosition(slotId); return; }
-    occupiedPositions[slot.side].add(posIdx); const pos = POSITIONS_POOL[slot.side][posIdx];
-    el.style.top = pos.t; if(slot.side === 'left') el.style.left = pos.l; else el.style.right = pos.r;
-}
-
-function checkGrowth() {
-    const now = Date.now(); const currentBuff = getGuardianBuff();
-    ACTIVE_SLOTS.forEach(slot => {
-        const gem = GEM_TYPES[slot.type]; const el = document.getElementById(`gem-${slot.id}`); const lastMined = parseInt(localStorage.getItem(`qv_time_hof_${slot.id}`));
-        const elapsed = (now - lastMined) * currentBuff; const progress = Math.min(elapsed / gem.time, 1.0);
-        if (progress >= 1.0) { if (!el.classList.contains('ready')) { el.classList.add('ready'); el.style.transform = `scale(1)`; } }
-        else { el.classList.remove('ready'); el.style.transform = `scale(${0.1 + (progress * 0.8)})`; el.style.opacity = 0.1 + (progress * 0.5); }
-    });
-}
-
-function mineCrystal(slotId) {
-    const el = document.getElementById(`gem-${slotId}`); if (!el.classList.contains('ready')) return;
-    const gem = GEM_TYPES[ACTIVE_SLOTS.find(s => s.id === slotId).type];
-    localVault += gem.points; localStorage.setItem('qv_vault_hof', localVault); localStorage.setItem(`qv_time_hof_${slotId}`, Date.now());
-    el.classList.remove('ready'); updateVaultUI(gem.color); spawnFloatingText(gem.points, gem.color, el);
-    assignNewRandomPosition(slotId); checkGrowth();
-}
-
-function spawnFloatingText(points, color, sourceEl) {
-    const rect = sourceEl.getBoundingClientRect(); const floating = document.createElement('div');
-    floating.className = 'floating-text'; floating.innerText = `+${points}`;
-    floating.style.color = color; floating.style.left = `${rect.left + (rect.width/2) - 20}px`; floating.style.top = `${rect.top}px`;
-    floating.style.textShadow = `0 0 15px ${color}`; document.body.appendChild(floating); setTimeout(() => floating.remove(), 1000);
-}
-
-/* ==========================================================================
-   MÓDULO 4: DASHBOARD Y RED
-   ========================================================================== */
-const API_KEY = "AIzaSyCCBAapFj9Fd-8cOIfpDJxrOP__76zxAxM"; const WEEKLY_ID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo"; const DAILY_ID = "1MeGKl3Qok84NymsXnuHuA4reL_l9Y1SqqLuejIMeaUA";
-function setDiag(msg, color = "#44CCFF") { const d = document.getElementById('diag'); if(d) { d.innerText = msg; d.style.borderLeftColor = color; } }
-function getLocalDate(){ return new Date(new Date().toLocaleString('en-US',{timeZone:"America/Tijuana"})); }
-function computeWeeklyTab(){ const d = getLocalDate(); const start = new Date(d.getFullYear(), 0, 1); const days = Math.floor((d - start) / 86400000); let week = Math.ceil((days + start.getDay() + 1) / 7); if (d.getDay() < 3 || (d.getDay() === 3 && d.getHours() < 12)) week--; return `W${week}`; }
-async function fetchSheet(id, range) { try { const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${encodeURIComponent(range)}?key=${API_KEY}`); return r.ok ? await r.json() : null; } catch (e) { return null; } }
 async function updateData() {
-    setDiag("📡 Sincronizando Uplink..."); const weeklyTab = computeWeeklyTab(); const master = await fetchSheet(WEEKLY_ID, `${weeklyTab}!A3:O96`);
+    setDiag("📡 Sincronizando Uplink..."); 
+    const weeklyTab = computeWeeklyTab(); 
+    const master = await fetchSheet(WEEKLY_ID, `${weeklyTab}!A3:O96`);
+    
     if (!master) { setDiag("❌ Error Weekly Sheets", "#FF44CC"); return; }
-    const today = getLocalDate(); const fmt = today.toLocaleString('en-US', {month:'short', day:'2-digit'});
-    let daily = await fetchSheet(DAILY_ID, `${fmt}!A2:D100`); if (!daily) daily = await fetchSheet(DAILY_ID, `Tabla_25!A2:D100`);
+    
+    const today = getLocalDate(); 
+    const fmt = today.toLocaleString('en-US', {month:'short', day:'2-digit'});
+    let daily = await fetchSheet(DAILY_ID, `${fmt}!A2:D100`); 
+    if (!daily) daily = await fetchSheet(DAILY_ID, `Tabla_25!A2:D100`);
+    
     const dailyRows = daily?.values || [];
     const agents = master.values.map(row => {
-        const id = (row[0] || "").toString().trim(); const name = (row[1] || "").toString().trim(); if (!id || !name) return null;
-        const match = dailyRows.find(d => (d[1] || "").toString().trim() === id); return { name, today: match ? parseInt(match[2]) || 0 : 0, total: parseInt(row[14]) || 0 };
+        const id = (row[0] || "").toString().trim(); 
+        const name = (row[1] || "").toString().trim(); 
+        if (!id || !name) return null;
+        const match = dailyRows.find(d => (d[1] || "").toString().trim() === id); 
+        return { name, today: match ? parseInt(match[2]) || 0 : 0, total: parseInt(row[14]) || 0 };
     }).filter(x => x).sort((a,b) => b.today - a.today);
-    renderList(agents); document.getElementById('totalTodayValue').innerText = agents.reduce((s, a) => s + a.today, 0);
-    document.getElementById('chipWeekly').innerText = `Week: ${weeklyTab}`; document.getElementById('chipDaily').innerText = `Daily: ${daily ? (daily.range.split('!')[0]) : '---'}`;
+    
+    renderList(agents); 
+    document.getElementById('totalTodayValue').innerText = agents.reduce((s, a) => s + a.today, 0);
+    document.getElementById('chipWeekly').innerText = `Week: ${weeklyTab}`; 
+    document.getElementById('chipDaily').innerText = `Daily: ${daily ? (daily.range.split('!')[0]) : '---'}`;
     setDiag("✅ Uplink Estable");
 }
-function renderList(data) {
-    const tbody = document.querySelector("#tbl tbody"); if(!tbody) return; tbody.innerHTML = "";
-    const maxT = Math.max(1, ...data.map(d => d.today)); const maxW = Math.max(1, ...data.map(d => d.total));
-    data.forEach((a, i) => { tbody.innerHTML += `<tr><td>${i+1}</td><td style="text-align:left; font-weight:800">${a.name}</td><td><div class="bar today"><div class="fill" style="width:${(a.today/maxT)*100}%"></div><div class="value">${a.today}</div></div></td><td><div class="bar total"><div class="fill" style="width:${(a.total/maxW)*100}%"></div><div class="value">${a.total}</div></div></td></tr>`; });
-}
-const mCanvas = document.getElementById('matrix-canvas'); const mCtx = mCanvas.getContext('2d'); let mw, mh, mCols, mYpos;
-function initMatrix() { mw = mCanvas.width = window.innerWidth; mh = mCanvas.height = window.innerHeight; mCols = Math.floor(mw / 25); mYpos = Array(mCols).fill(0); }
-function drawMatrix() { mCtx.fillStyle = 'rgba(10, 10, 10, 0.1)'; mCtx.fillRect(0, 0, mw, mh); mCtx.fillStyle = '#44CCFF'; mCtx.font = '15px monospace'; mYpos.forEach((y, i) => { mCtx.fillText(String.fromCharCode(0x30A0 + Math.random() * 96), i * 25, y); mYpos[i] = y > 100 + Math.random() * 10000 ? 0 : y + 20; }); }
 
-/* INICIALIZACIÓN MAESTRA */
-(async function init() { initMatrix(); setInterval(drawMatrix, 50); initVault(); initGuardian(); initMiner(); await updateData(); setInterval(updateData, 60000); })();
+function renderList(data) {
+    const tbody = document.querySelector("#tbl tbody"); 
+    if(!tbody) return; 
+    tbody.innerHTML = "";
+    const maxT = Math.max(1, ...data.map(d => d.today)); 
+    const maxW = Math.max(1, ...data.map(d => d.total));
+    
+    data.forEach((a, i) => { 
+        tbody.innerHTML += `<tr>
+            <td>${i+1}</td>
+            <td style="text-align:left; font-weight:800">${a.name}</td>
+            <td><div class="bar today"><div class="fill" style="width:${(a.today/maxT)*100}%"></div><div class="value">${a.today}</div></div></td>
+            <td><div class="bar total"><div class="fill" style="width:${(a.total/maxW)*100}%"></div><div class="value">${a.total}</div></div></td>
+        </tr>`; 
+    });
+}
+
+/* ==========================================================================
+   FONDO ANIMADO (MATRIX)
+   ========================================================================== */
+const mCanvas = document.getElementById('matrix-canvas'); 
+const mCtx = mCanvas.getContext('2d'); 
+let mw, mh, mCols, mYpos;
+
+function initMatrix() { 
+    mw = mCanvas.width = window.innerWidth; 
+    mh = mCanvas.height = window.innerHeight; 
+    mCols = Math.floor(mw / 25); 
+    mYpos = Array(mCols).fill(0); 
+}
+
+function drawMatrix() { 
+    mCtx.fillStyle = 'rgba(10, 10, 10, 0.1)'; 
+    mCtx.fillRect(0, 0, mw, mh); 
+    mCtx.fillStyle = '#44CCFF'; 
+    mCtx.font = '15px monospace'; 
+    mYpos.forEach((y, i) => { 
+        mCtx.fillText(String.fromCharCode(0x30A0 + Math.random() * 96), i * 25, y); 
+        mYpos[i] = y > 100 + Math.random() * 10000 ? 0 : y + 20; 
+    }); 
+}
+
+window.addEventListener('resize', initMatrix);
+
+/* ==========================================================================
+   INICIALIZACIÓN MAESTRA
+   ========================================================================== */
+(async function init() { 
+    initMatrix(); 
+    setInterval(drawMatrix, 50); 
+    await updateData(); 
+    setInterval(updateData, 60000); 
+})();
 </script>
 </body>
 </html>
-
-
-
