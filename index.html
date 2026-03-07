@@ -24,15 +24,41 @@
   body::before, body::after{ content:""; position:fixed; inset:-20%; background: radial-gradient(40% 40% at 20% 20%, var(--glow-blue), transparent), radial-gradient(30% 30% at 50% 90%, var(--glow-purple), transparent); z-index:-1; pointer-events:none; mix-blend-mode:lighten; animation:float 22s linear infinite; }
   @keyframes float{ 0%, 100%{transform:translate3d(0,0,0)} 50%{transform:translate3d(2%, -2%, 0)} }
 
-  /* =========================================
-     ZONA DE JUEGO (FRAME PARA FUTUROS PROYECTOS)
+
+
+/* =========================================
+     ZONA DE JUEGO: FÍSICAS Y DUENDES
      ========================================= */
   #game-zone {
     position: fixed;
-    inset: 0; /* Ocupa toda la pantalla */
-    z-index: 0; /* Detrás del dashboard */
-    pointer-events: auto; /* Permite interacciones en los márgenes libres */
+    inset: 0;
+    z-index: 0; 
+    pointer-events: none; /* Evita bloquear clics al fondo */
   }
+
+  .duende-sprite {
+    position: absolute;
+    width: 60px; /* Tamaño base, ajústelo según sus PNGs */
+    height: 60px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: bottom center;
+    pointer-events: auto; /* Permite que los duendes sean clickeables en el futuro */
+    cursor: pointer;
+    filter: drop-shadow(0 5px 10px rgba(0,0,0,0.8));
+    /* La transición suaviza el cambio de dirección al rebotar en las paredes */
+    transition: transform 0.2s ease-out; 
+  }
+  
+  /* Animación de "respiración" para darles un toque orgánico */
+  @keyframes breathe {
+    0%, 100% { filter: drop-shadow(0 5px 10px rgba(0,0,0,0.8)) brightness(1); }
+    50% { filter: drop-shadow(0 8px 15px var(--glow-blue)) brightness(1.1); }
+  }
+  .duende-sprite:hover {
+    animation: breathe 1s infinite;
+  }
+  
 
   /* ESTRUCTURA DEL DASHBOARD CENTRAL */
   #board{ position:relative; z-index:1; width:100vw; height: 100vh; padding:calc(1.2*var(--vh)) calc(1.6*var(--vh)); box-sizing:border-box; display:flex;flex-direction:column;gap:calc(0.8*var(--vh)); max-width: 1200px; margin: 0 auto; overflow-y: auto; padding-bottom: 120px; pointer-events: auto; }
@@ -186,15 +212,115 @@ function drawMatrix() {
 
 window.addEventListener('resize', initMatrix);
 
-/* ==========================================================================
-   INICIALIZACIÓN MAESTRA
+
+  /* ==========================================================================
+   MOTOR DE FÍSICAS: DUENDES
    ========================================================================== */
+const DUENDE_ASSETS = [
+    'https://raw.githubusercontent.com/Palafox715/DashboardSHL/main/Duendes/D1.png',
+    'https://raw.githubusercontent.com/Palafox715/DashboardSHL/main/Duendes/D2.png',
+    'https://raw.githubusercontent.com/Palafox715/DashboardSHL/main/Duendes/D3.png',
+    'https://raw.githubusercontent.com/Palafox715/DashboardSHL/main/Duendes/D4.png'
+];
+
+const duendes = [];
+const GRAVITY = 0.6;
+const FLOOR_OFFSET = 30; // Distancia desde el borde inferior de la pantalla
+
+function initDuendes() {
+    const gameZone = document.getElementById('game-zone');
+    
+    DUENDE_ASSETS.forEach((url, index) => {
+        // 1. Crear elemento DOM
+        const el = document.createElement('div');
+        el.className = 'duende-sprite';
+        el.style.backgroundImage = `url('${url}')`;
+        el.id = `duende-${index}`;
+        gameZone.appendChild(el);
+
+        // 2. Estado físico inicial
+        duendes.push({
+            el: el,
+            x: Math.random() * (window.innerWidth - 100) + 50, // Posición X aleatoria
+            y: window.innerHeight - FLOOR_OFFSET - 60,         // Nivel del suelo
+            vx: (Math.random() > 0.5 ? 1 : -1) * (2 + Math.random() * 2), // Velocidad X (izq/der)
+            vy: 0,                                             // Velocidad Y
+            isJumping: false,
+            size: 60
+        });
+        
+        // Interacción futura (Proactivo)
+        el.onclick = () => { pokeDuende(index); };
+    });
+
+    // Iniciar bucle de renderizado
+    requestAnimationFrame(updateDuendes);
+}
+
+function updateDuendes() {
+    const floorY = window.innerHeight - FLOOR_OFFSET;
+    const maxX = window.innerWidth;
+
+    duendes.forEach(d => {
+        // Aplicar Gravedad
+        d.vy += GRAVITY;
+        d.y += d.vy;
+        d.x += d.vx;
+
+        // Colisión con el suelo
+        if (d.y + d.size >= floorY) {
+            d.y = floorY - d.size;
+            d.vy = 0;
+            d.isJumping = false;
+
+            // Lógica de "Salto Alegre Aleatorio"
+            if (Math.random() < 0.02) { // 2% de probabilidad por frame de saltar
+                d.vy = -(10 + Math.random() * 5); // Fuerza del salto variable
+                d.isJumping = true;
+            }
+        }
+
+        // Colisiones Laterales (Rebotes)
+        if (d.x <= 0) {
+            d.x = 0;
+            d.vx *= -1; // Invertir dirección
+        } else if (d.x + d.size >= maxX) {
+            d.x = maxX - d.size;
+            d.vx *= -1; // Invertir dirección
+        }
+
+        // Actualizar DOM
+        d.el.style.left = `${d.x}px`;
+        d.el.style.top = `${d.y}px`;
+        
+        // Voltear la imagen dependiendo de la dirección (flip horizontal)
+        const scaleX = d.vx > 0 ? 1 : -1;
+        d.el.style.transform = `scaleX(${scaleX})`;
+    });
+
+    requestAnimationFrame(updateDuendes);
+}
+
+function pokeDuende(index) {
+    // Aquí puede agregar la lógica cuando se hace clic en un duende
+    const d = duendes[index];
+    if(!d.isJumping) {
+        d.vy = -15; // Salto de susto/reacción al clic
+        d.vx *= -1; // Cambia de dirección
+        console.log(`¡Duende ${index + 1} picado!`);
+    }
+}
+  
+
+/* INICIALIZACIÓN MAESTRA */
 (async function init() { 
     initMatrix(); 
     setInterval(drawMatrix, 50); 
+    initDuendes(); /* <--- Nueva llamada al motor de físicas */
     await updateData(); 
     setInterval(updateData, 60000); 
 })();
 </script>
 </body>
 </html>
+
