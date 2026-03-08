@@ -595,9 +595,9 @@ function spinSlot() {
 
     // LA CASA GANA: 80% de probabilidad de perder la moneda
     if (rng < 0.2) { targetSymbol = '💎'; reward = 100; isWin = true; }      // 0.1% (Prácticamente un mito)
-    else if (rng < 2) { targetSymbol = '🔔'; reward = 10; isWin = true; }    // 1.9% (Muy raro)
-    else if (rng < 7) { targetSymbol = '🍋'; reward = 5; isWin = true; }     // 5.0% (Poco común)
-    else if (rng < 20) { targetSymbol = '🍒'; reward = 2; isWin = true; }    // 13.0% (Premio de consolación)
+    else if (rng < 2) { targetSymbol = '🔔'; reward = 20; isWin = true; }    // 1.9% (Muy raro)
+    else if (rng < 7) { targetSymbol = '🍋'; reward = 10; isWin = true; }     // 5.0% (Poco común)
+    else if (rng < 20) { targetSymbol = '🍒'; reward = 5; isWin = true; }    // 13.0% (Premio de consolación)
     else { isWin = false; targetSymbol = '💀'; }                             // 80.0% (Pierde)
 
     // 3. Preparar la combinación visual (Si pierde, forzamos que no coincidan los 3)
@@ -675,4 +675,5 @@ function spawnFloatingReward(amount, sourceEl) {
 </script>
 </body>
 </html>
+
 
