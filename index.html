@@ -14,6 +14,7 @@
     --neon-blue: #44CCFF;
     --neon-purple: #FF44CC;
     --neon-gold: #FFD700;
+    --neon-red: #FF4444;
     --glow-blue: rgba(44, 204, 255, .6);
     --glow-purple: rgba(255, 68, 204, .5);
     --glow-gold: rgba(255, 215, 0, .6);
@@ -45,7 +46,7 @@
   .bar.total > .fill{ background: var(--neon-purple); box-shadow: 0 0 10px var(--glow-purple); }
   .bar .value{ position:relative; z-index:1; font-size:11px; font-weight:900; color:white; text-shadow: 1px 1px 2px black; }
   
-  #diag { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); font-size: 10px; padding: 5px 10px; border-radius: 5px; background: rgba(0,0,0,0.8); border-bottom: 2px solid var(--neon-blue); z-index: 100; pointer-events: none;}
+  #diag { position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 10px; padding: 5px 10px; border-radius: 5px; background: rgba(0,0,0,0.8); border-bottom: 2px solid var(--neon-blue); z-index: 100; pointer-events: none;}
 
   /* CAPA 10: ZONA DE JUEGO (FÍSICAS Y DUENDES) */
   #game-zone {
@@ -76,7 +77,7 @@
     animation: breathe 1s infinite;
   }
   
-  /* CAPA 20: FOREGROUND (BOSQUE / OBSTÁCULOS LATERALES Y SUELO) */
+  /* CAPA 20: FOREGROUND (BOSQUE Y SUELO) */
   #foreground-zone {
     position: fixed;
     inset: 0;
@@ -85,26 +86,25 @@
     overflow: hidden;
   }
 
-  /* NUEVA TEXTURA DE PASTO */
   #grass-floor {
     position: absolute;
     bottom: -10px;
     left: 0;
     width: 100%;
     height: 100px;
-    background-image: url('https://i.ibb.co/G4R4Q5x2/vector-borde.png');
+    background-image: url('https://www.pngfind.com/pngs/b/100-1003906_tall-grass-png.png');
     background-repeat: repeat-x;
     background-size: auto 100%;
     background-position: bottom center;
     filter: drop-shadow(0 -5px 15px rgba(0,0,0,0.9));
-    pointer-events: none; /* Estrictamente decorativo */
+    pointer-events: none; 
   }
   
   .fg-item {
     position: absolute;
-    bottom: 40px; /* Ajustado para que los emojis se sienten bien sobre la nueva hierba */
+    bottom: 40px; 
     font-size: 120px; 
-    pointer-events: auto; /* Bloquea los clics a los duendes */
+    pointer-events: auto; 
     user-select: none;
     filter: drop-shadow(0 10px 15px rgba(0,0,0,0.9));
   }
@@ -127,7 +127,7 @@
   }
   
   #coin-hud .coin-icon { font-size: 24px; filter: drop-shadow(0 0 5px var(--neon-gold)); }
-  #coin-hud .coin-value { font-size: 28px; font-weight: 900; color: var(--neon-gold); text-shadow: 0 0 10px var(--neon-gold); line-height: 1; }
+  #coin-hud .coin-value { font-size: 28px; font-weight: 900; color: var(--neon-gold); text-shadow: 0 0 10px var(--neon-gold); line-height: 1; transition: color 0.3s; }
 
   .coin-drop {
     position: absolute;
@@ -145,6 +145,102 @@
     10% { opacity: 1; transform: scale(1) rotate(36deg); }
     80% { top: calc(100vh - 120px); opacity: 1; transform: scale(1) rotate(288deg); }
     100% { top: calc(100vh - 80px); opacity: 0; transform: scale(0) rotate(360deg); }
+  }
+
+  /* NUEVO: MÁQUINA TRAGAPERRAS (SLOT MACHINE) */
+  #slot-machine {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+    background: var(--glass-strong);
+    padding: 15px;
+    border-radius: 12px;
+    border: 2px solid #555;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    pointer-events: auto;
+    transition: all 0.3s ease;
+  }
+  
+  .slot-display {
+    display: flex;
+    gap: 5px;
+    background: #000;
+    padding: 10px;
+    border-radius: 8px;
+    border: inset 3px #333;
+    overflow: hidden;
+  }
+
+  .reel {
+    width: 40px;
+    height: 40px;
+    background: #222;
+    border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 28px;
+    user-select: none;
+    box-shadow: inset 0 0 10px rgba(0,0,0,1);
+  }
+
+  .reel.spinning {
+    animation: spin-blur 0.1s linear infinite;
+    color: transparent;
+    text-shadow: 0 0 15px rgba(255,255,255,0.8);
+  }
+
+  @keyframes spin-blur {
+    0% { transform: translateY(-10px); }
+    100% { transform: translateY(10px); }
+  }
+
+  #spin-btn {
+    background: linear-gradient(180deg, var(--neon-blue), #005588);
+    color: #FFF;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-weight: 900;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #003355, 0 0 10px var(--glow-blue);
+    text-transform: uppercase;
+    transition: all 0.1s;
+  }
+
+  #spin-btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 #003355, 0 0 5px var(--glow-blue);
+  }
+
+  #spin-btn:disabled {
+    background: #444;
+    box-shadow: 0 4px 0 #222;
+    cursor: not-allowed;
+    color: #888;
+  }
+
+  .slot-message {
+    font-size: 10px;
+    color: var(--ink);
+    font-weight: bold;
+    text-transform: uppercase;
+    height: 12px;
+  }
+
+  .win-anim {
+    animation: win-pulse 1s infinite alternate;
+  }
+
+  @keyframes win-pulse {
+    0% { border-color: var(--neon-gold); box-shadow: 0 0 20px var(--glow-gold); }
+    100% { border-color: #FFF; box-shadow: 0 0 40px #FFF; }
   }
 </style>
 </head>
@@ -178,6 +274,16 @@
 <div id="coin-hud">
   <div class="coin-icon">🪙</div>
   <div class="coin-value" id="coin-count">0</div>
+</div>
+
+<div id="slot-machine">
+  <div class="slot-display">
+    <div class="reel" id="reel-1">🍒</div>
+    <div class="reel" id="reel-2">🍒</div>
+    <div class="reel" id="reel-3">🍒</div>
+  </div>
+  <button id="spin-btn" onclick="spinSlot()">GIRAR (1🪙)</button>
+  <div class="slot-message" id="slot-msg">Premio Máx: 100🪙</div>
 </div>
 
 <div id="diag">Iniciando sistemas...</div>
@@ -301,8 +407,20 @@ const duendes = [];
 const GRAVITY = 0.6;
 const FLOOR_OFFSET = 30; 
 
-// Variables Económicas
 let vaultCoins = 0;
+
+function updateCoinHUD() {
+    document.getElementById('coin-count').innerText = vaultCoins;
+    localStorage.setItem('shl_vault_coins', vaultCoins);
+    
+    // Habilitar/Deshabilitar botón de la tragaperras
+    const spinBtn = document.getElementById('spin-btn');
+    if(vaultCoins >= 1 && !isSpinning) {
+        spinBtn.disabled = false;
+    } else {
+        spinBtn.disabled = true;
+    }
+}
 
 function initDuendes() {
     const gameZone = document.getElementById('game-zone');
@@ -310,7 +428,7 @@ function initDuendes() {
     const savedCoins = localStorage.getItem('shl_vault_coins');
     if (savedCoins) {
         vaultCoins = parseInt(savedCoins);
-        document.getElementById('coin-count').innerText = vaultCoins;
+        updateCoinHUD();
     }
     
     DUENDE_ASSETS.forEach((url, index) => {
@@ -394,8 +512,7 @@ function spawnCoin(originX) {
     coin.onclick = (e) => {
         e.stopPropagation(); 
         vaultCoins++;
-        document.getElementById('coin-count').innerText = vaultCoins;
-        localStorage.setItem('shl_vault_coins', vaultCoins); 
+        updateCoinHUD();
         
         coin.style.animation = 'none';
         coin.style.transform = 'scale(1.5)';
@@ -415,7 +532,7 @@ function spawnCoin(originX) {
 }
 
 /* ==========================================================================
-   SISTEMA DE FOREGROUND (4 OBJETOS LATERALES Y PASTO)
+   SISTEMA DE FOREGROUND
    ========================================================================== */
 function initForeground() {
     const fgZone = document.getElementById('foreground-zone');
@@ -433,17 +550,113 @@ function initForeground() {
         el.className = 'fg-item';
         el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
         
-        if (pos.side === 'left') {
-            el.style.left = pos.val;
-        } else {
-            el.style.right = pos.val;
-        }
+        if (pos.side === 'left') { el.style.left = pos.val; } 
+        else { el.style.right = pos.val; }
         
         const scale = 0.9 + Math.random() * 0.2;
         el.style.transform = `scale(${scale})`;
         
         fgZone.appendChild(el);
     });
+}
+
+/* ==========================================================================
+   SISTEMA DE CASINO (SLOT MACHINE)
+   ========================================================================== */
+let isSpinning = false;
+const slotSymbols = ['🍒', '🍋', '🔔', '💎', '💀'];
+
+function getRandomSymbolExcept(exclude) {
+    let sym;
+    do { sym = slotSymbols[Math.floor(Math.random() * slotSymbols.length)]; } while (sym === exclude);
+    return sym;
+}
+
+function spinSlot() {
+    if (vaultCoins < 1 || isSpinning) return;
+    
+    // 1. Cobrar la apuesta
+    vaultCoins--;
+    isSpinning = true;
+    updateCoinHUD();
+    
+    const machine = document.getElementById('slot-machine');
+    const msg = document.getElementById('slot-msg');
+    machine.classList.remove('win-anim');
+    machine.style.borderColor = '#555';
+    msg.innerText = "GIRANDO...";
+    msg.style.color = "var(--neon-blue)";
+    
+    // 2. Determinar matemáticamente el resultado antes de animar
+    let rng = Math.random() * 100;
+    let targetSymbol = '';
+    let reward = 0;
+    let isWin = false;
+
+    if (rng < 1) { targetSymbol = '💎'; reward = 100; isWin = true; }       // 1% probabilidad (Muy Rara)
+    else if (rng < 6) { targetSymbol = '🔔'; reward = 10; isWin = true; }  // 5% probabilidad (Rara)
+    else if (rng < 21) { targetSymbol = '🍋'; reward = 5; isWin = true; }  // 15% probabilidad (Poco Común)
+    else if (rng < 51) { targetSymbol = '🍒'; reward = 2; isWin = true; }  // 30% probabilidad (Común)
+    else { isWin = false; targetSymbol = '💀'; }                           // 49% probabilidad (Pierde)
+
+    // 3. Preparar la combinación visual (Si pierde, forzamos que no coincidan los 3)
+    const finalReels = [targetSymbol, targetSymbol, targetSymbol];
+    if (!isWin) {
+        finalReels[0] = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
+        finalReels[1] = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
+        finalReels[2] = getRandomSymbolExcept(finalReels[1]); // Asegura que el tercero rompa la línea
+    }
+
+    // 4. Iniciar Animación de Giro (Efecto Blur)
+    const reelElements = [document.getElementById('reel-1'), document.getElementById('reel-2'), document.getElementById('reel-3')];
+    reelElements.forEach(r => r.classList.add('spinning'));
+
+    // 5. Detener los rodillos secuencialmente (Izquierda a Derecha)
+    setTimeout(() => { reelElements[0].classList.remove('spinning'); reelElements[0].innerText = finalReels[0]; }, 800);
+    setTimeout(() => { reelElements[1].classList.remove('spinning'); reelElements[1].innerText = finalReels[1]; }, 1400);
+    setTimeout(() => { 
+        reelElements[2].classList.remove('spinning'); 
+        reelElements[2].innerText = finalReels[2]; 
+        
+        // Finalizar y evaluar victoria
+        isSpinning = false;
+        if (isWin) {
+            vaultCoins += reward;
+            updateCoinHUD();
+            machine.classList.add('win-anim');
+            msg.innerText = `¡GANASTE +${reward}🪙!`;
+            msg.style.color = "var(--neon-gold)";
+            spawnFloatingReward(reward, machine);
+        } else {
+            msg.innerText = "Sigue intentando...";
+            msg.style.color = "var(--ink)";
+            updateCoinHUD(); // Reactiva el botón si hay monedas
+        }
+    }, 2000);
+}
+
+// Efecto visual al ganar en la tragaperras
+function spawnFloatingReward(amount, sourceEl) {
+    const rect = sourceEl.getBoundingClientRect(); 
+    const floating = document.createElement('div');
+    floating.className = 'coin-drop'; // Reutilizamos la clase pero cambiamos su animación en línea
+    floating.innerText = `+${amount}🪙`;
+    floating.style.left = `${rect.left + (rect.width/2) - 30}px`;
+    floating.style.top = `${rect.top + 20}px`;
+    floating.style.fontSize = "30px";
+    floating.style.zIndex = "1000";
+    floating.style.animation = "none";
+    floating.style.transition = "all 1s ease-out";
+    
+    document.body.appendChild(floating);
+    
+    setTimeout(() => {
+        floating.style.top = `${rect.top - 80}px`;
+        floating.style.opacity = "0";
+        floating.style.transform = "scale(1.5)";
+    }, 50);
+
+    setTimeout(() => floating.remove(), 1000);
 }
 
 /* ==========================================================================
@@ -454,10 +667,10 @@ function initForeground() {
     setInterval(drawMatrix, 50); 
     initDuendes(); 
     initForeground(); 
+    updateCoinHUD(); // Fuerza la revisión del estado inicial de los botones
     await updateData(); 
     setInterval(updateData, 60000); 
 })();
 </script>
 </body>
 </html>
-
