@@ -14,6 +14,7 @@
     --neon-blue: #44CCFF;
     --neon-purple: #FF44CC;
     --neon-gold: #FFD700;
+    --neon-red: #FF4444;
     --glow-blue: rgba(44, 204, 255, .6);
     --glow-purple: rgba(255, 68, 204, .5);
     --glow-gold: rgba(255, 215, 0, .6);
@@ -76,10 +77,10 @@
   .win-anim { animation: win-pulse 1s infinite alternate; }
   @keyframes win-pulse { 0% { border-color: var(--neon-gold); box-shadow: 0 0 20px var(--glow-gold); } 100% { border-color: #FFF; box-shadow: 0 0 40px #FFF; } }
 
-/* =========================================
+  /* =========================================
      MINIJUEGO: LA RULETA MÍSTICA (Izquierda)
      ========================================= */
-  #roulette-game { position: fixed; top: 80px; left: 20px; z-index: 100; background: var(--glass-strong); padding: 15px; border-radius: 12px; border: 2px solid #555; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: auto; width: 140px; }
+  #roulette-game { position: fixed; top: 90px; left: 20px; z-index: 100; background: var(--glass-strong); padding: 15px; border-radius: 12px; border: 2px solid #555; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: auto; width: 140px; box-sizing: border-box; }
   .roulette-wheel { font-size: 40px; text-shadow: 0 0 15px rgba(255,255,255,0.5); transition: transform 2s cubic-bezier(0.25, 1, 0.5, 1); }
   .roulette-btns { display: flex; gap: 5px; width: 100%; }
   .btn-color { color: white; border: none; flex: 1; border-radius: 4px; cursor: pointer; font-weight: bold; padding: 5px 0; text-shadow: 1px 1px 2px black; transition: transform 0.1s; }
@@ -91,118 +92,32 @@
   /* =========================================
      MINIJUEGO: EL CRASH (Derecha)
      ========================================= */
-  #crash-game { position: fixed; top: 160px; right: 20px; z-index: 100; background: var(--glass-strong); padding: 15px; border-radius: 12px; border: 2px solid #555; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: auto; width: 140px; }
-  .crash-display { font-size: 28px; font-weight: 900; color: var(--neon-blue); text-shadow: 0 0 10px var(--glow-blue); font-family: monospace; }
+  #crash-game { position: fixed; top: 170px; right: 20px; z-index: 100; background: var(--glass-strong); padding: 15px; border-radius: 12px; border: 2px solid #555; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: auto; width: 140px; box-sizing: border-box; }
+  .crash-display { font-size: 24px; font-weight: 900; color: var(--neon-blue); text-shadow: 0 0 10px var(--glow-blue); font-family: monospace; }
   .crash-balloon { font-size: 40px; transition: transform 0.1s; filter: drop-shadow(0 0 10px rgba(255,68,68,0.5)); margin: 5px 0; }
   .crash-btn { background: linear-gradient(180deg, #FFDD44, #AA7700); color: #000; border: none; padding: 8px; width: 100%; border-radius: 6px; font-weight: 900; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 0 #664400; transition: all 0.1s; }
   .crash-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #664400; }
   .crash-btn:disabled { background: #444; color: #888; box-shadow: 0 4px 0 #222; cursor: not-allowed; transform: none; }
-  
 
-<div id="roulette-game">
-  <div style="font-size:10px; font-weight:bold; color:var(--ink); letter-spacing:1px;">RULETA (1🪙)</div>
-  <div class="roulette-wheel" id="roulette-wheel">🎡</div>
-  <div class="roulette-btns">
-    <button class="btn-color btn-red" onclick="playRoulette('red')">R</button>
-    <button class="btn-color btn-green" onclick="playRoulette('green')">V</button>
-    <button class="btn-color btn-black" onclick="playRoulette('black')">N</button>
-  </div>
-  <div class="slot-message" id="roulette-msg">X2 / X10</div>
-</div>
-
-<div id="crash-game">
-  <div style="font-size:10px; font-weight:bold; color:var(--ink); letter-spacing:1px;">CRASH (1🪙)</div>
-  <div class="crash-balloon" id="crash-balloon">🎈</div>
-  <div class="crash-display" id="crash-multiplier">1.00x</div>
-  <button class="crash-btn" id="crash-btn" onclick="startCrash()">APOSTAR</button>
-  <div class="slot-message" id="crash-msg">Retira a tiempo</div>
-</div>
-  
-  
   /* =========================================
-     NUEVO: TIENDA / MERCADO CLANDESTINO
+     MERCADO CLANDESTINO
      ========================================= */
-  #market-toggle {
-    position: fixed;
-    bottom: 30px;
-    left: 30px;
-    z-index: 105;
-    background: var(--glass-strong);
-    border: 2px solid var(--neon-purple);
-    color: #FFF;
-    font-size: 24px;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 0 15px var(--glow-purple);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    pointer-events: auto;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
+  #market-toggle { position: fixed; bottom: 30px; left: 30px; z-index: 105; background: var(--glass-strong); border: 2px solid var(--neon-purple); color: #FFF; font-size: 24px; width: 60px; height: 60px; border-radius: 50%; cursor: pointer; box-shadow: 0 0 15px var(--glow-purple); display: flex; justify-content: center; align-items: center; pointer-events: auto; transition: transform 0.2s, box-shadow 0.2s; }
   #market-toggle:hover { transform: scale(1.1); box-shadow: 0 0 25px var(--glow-purple); }
 
-  #market-drawer {
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 350px;
-    background: rgba(10, 10, 15, 0.95);
-    backdrop-filter: blur(10px);
-    border-right: 2px solid var(--neon-purple);
-    z-index: 110;
-    transform: translateX(-100%);
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    padding: 30px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    pointer-events: auto;
-    box-shadow: 20px 0 50px rgba(0,0,0,0.8);
-  }
-
+  #market-drawer { position: fixed; top: 0; left: 0; bottom: 0; width: 350px; background: rgba(10, 10, 15, 0.95); backdrop-filter: blur(10px); border-right: 2px solid var(--neon-purple); z-index: 110; transform: translateX(-100%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); padding: 30px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; pointer-events: auto; box-shadow: 20px 0 50px rgba(0,0,0,0.8); }
   #market-drawer.open { transform: translateX(0); }
 
-  .market-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    padding-bottom: 15px;
-  }
-  
+  .market-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
   .market-title { font-size: 20px; font-weight: 900; color: var(--neon-purple); text-transform: uppercase; letter-spacing: 2px; }
   .close-market { background: transparent; border: none; color: #888; font-size: 24px; cursor: pointer; transition: color 0.2s; }
   .close-market:hover { color: #FFF; }
 
-  .market-items-container {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    padding-right: 10px;
-  }
-
-  /* Scrollbar estético para la tienda */
+  .market-items-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-right: 10px; }
   .market-items-container::-webkit-scrollbar { width: 5px; }
   .market-items-container::-webkit-scrollbar-thumb { background: var(--neon-purple); border-radius: 5px; }
 
-  .store-item {
-    background: rgba(0,0,0,0.5);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 10px;
-    padding: 15px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    transition: border-color 0.3s;
-  }
-  
+  .store-item { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; display: flex; align-items: center; gap: 15px; transition: border-color 0.3s; }
   .store-item:hover { border-color: rgba(255,255,255,0.3); }
 
   .item-icon { font-size: 35px; filter: drop-shadow(0 0 8px rgba(255,255,255,0.3)); }
@@ -210,21 +125,7 @@
   .item-name { font-size: 14px; font-weight: bold; color: #FFF; margin-bottom: 3px; }
   .item-desc { font-size: 10px; color: #aaa; margin-bottom: 8px; line-height: 1.2; }
   
-  .buy-btn {
-    background: transparent;
-    border: 1px solid var(--neon-gold);
-    color: var(--neon-gold);
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 11px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-
+  .buy-btn { background: transparent; border: 1px solid var(--neon-gold); color: var(--neon-gold); padding: 5px 10px; border-radius: 5px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
   .buy-btn:hover:not(:disabled) { background: var(--glow-gold); color: #000; }
   .buy-btn:disabled { border-color: #444; color: #666; cursor: not-allowed; }
   .buy-btn.owned { border-color: var(--neon-blue); color: var(--neon-blue); cursor: default; }
@@ -264,6 +165,17 @@
   <div class="coin-value" id="coin-count">0</div>
 </div>
 
+<div id="roulette-game">
+  <div style="font-size:10px; font-weight:bold; color:var(--ink); letter-spacing:1px;">RULETA (1🪙)</div>
+  <div class="roulette-wheel" id="roulette-wheel">🎡</div>
+  <div class="roulette-btns">
+    <button class="btn-color btn-red" onclick="playRoulette('red')">R</button>
+    <button class="btn-color btn-green" onclick="playRoulette('green')">V</button>
+    <button class="btn-color btn-black" onclick="playRoulette('black')">N</button>
+  </div>
+  <div class="slot-message" id="roulette-msg">X2 / X10</div>
+</div>
+
 <div id="slot-machine">
   <div class="slot-display">
     <div class="reel" id="reel-1">🍒</div>
@@ -272,6 +184,14 @@
   </div>
   <button id="spin-btn" onclick="spinSlot()">GIRAR (1🪙)</button>
   <div class="slot-message" id="slot-msg">Premio Máx: 100🪙</div>
+</div>
+
+<div id="crash-game">
+  <div style="font-size:10px; font-weight:bold; color:var(--ink); letter-spacing:1px;">CRASH (1🪙)</div>
+  <div class="crash-balloon" id="crash-balloon">🎈</div>
+  <div class="crash-display" id="crash-multiplier">1.00x</div>
+  <button class="crash-btn" id="crash-btn" onclick="startCrash()">APOSTAR</button>
+  <div class="slot-message" id="crash-msg">Retira a tiempo</div>
 </div>
 
 <button id="market-toggle" onclick="toggleMarket()" title="Mercado Clandestino">🛒</button>
@@ -393,10 +313,20 @@ function updateCoinHUD() {
     document.getElementById('coin-count').innerText = vaultCoins;
     localStorage.setItem('shl_vault_coins', vaultCoins);
     
+    // Validar estado de los botones de los 3 juegos
     const spinBtn = document.getElementById('spin-btn');
     if(vaultCoins >= 1 && !isSpinning) { spinBtn.disabled = false; } else { spinBtn.disabled = true; }
     
-    renderMarket(); // Actualiza los botones de la tienda según el dinero disponible
+    const crashBtn = document.getElementById('crash-btn');
+    if(vaultCoins < 1 && !inCrashGame) { crashBtn.disabled = true; } else if (!inCrashGame) { crashBtn.disabled = false; }
+
+    const rouletteBtns = document.querySelectorAll('.btn-color');
+    rouletteBtns.forEach(btn => {
+        if(vaultCoins < 1 || isRouletteSpinning) { btn.disabled = true; btn.style.opacity = '0.5'; }
+        else { btn.disabled = false; btn.style.opacity = '1'; }
+    });
+    
+    renderMarket(); 
 }
 
 function initDuendes() {
@@ -483,8 +413,19 @@ function initForeground() {
     });
 }
 
+function spawnFloatingReward(amount, sourceEl) {
+    const rect = sourceEl.getBoundingClientRect(); 
+    const floating = document.createElement('div');
+    floating.className = 'coin-drop'; floating.innerText = `+${amount}🪙`;
+    floating.style.left = `${rect.left + (rect.width/2) - 30}px`; floating.style.top = `${rect.top + 20}px`;
+    floating.style.fontSize = "30px"; floating.style.zIndex = "1000"; floating.style.animation = "none"; floating.style.transition = "all 1s ease-out";
+    document.body.appendChild(floating);
+    setTimeout(() => { floating.style.top = `${rect.top - 80}px`; floating.style.opacity = "0"; floating.style.transform = "scale(1.5)"; }, 50);
+    setTimeout(() => floating.remove(), 1000);
+}
+
 /* ==========================================================================
-   SISTEMA DE CASINO (LA CASA GANA)
+   SISTEMA DE CASINO 1: TRAGAPERRAS
    ========================================================================== */
 let isSpinning = false;
 const slotSymbols = ['🍒', '🍋', '🔔', '💎', '💀'];
@@ -502,11 +443,10 @@ function spinSlot() {
     let rng = Math.random() * 100;
     let targetSymbol = ''; let reward = 0; let isWin = false;
 
-    // MATEMÁTICAS PUNITIVAS: 80% de perder
-    if (rng < 30.1) { targetSymbol = '💎'; reward = 100; isWin = true; }      
-    else if (rng < 3) { targetSymbol = '🔔'; reward = 10; isWin = true; }    
-    else if (rng < 8) { targetSymbol = '🍋'; reward = 5; isWin = true; }     
-    else if (rng < 25) { targetSymbol = '🍒'; reward = 2; isWin = true; }    
+    if (rng < 0.1) { targetSymbol = '💎'; reward = 100; isWin = true; }      
+    else if (rng < 2) { targetSymbol = '🔔'; reward = 10; isWin = true; }    
+    else if (rng < 7) { targetSymbol = '🍋'; reward = 5; isWin = true; }     
+    else if (rng < 20) { targetSymbol = '🍒'; reward = 2; isWin = true; }    
     else { isWin = false; targetSymbol = '💀'; }                             
 
     const finalReels = [targetSymbol, targetSymbol, targetSymbol];
@@ -536,20 +476,8 @@ function spinSlot() {
     }, 2000);
 }
 
-function spawnFloatingReward(amount, sourceEl) {
-    const rect = sourceEl.getBoundingClientRect(); 
-    const floating = document.createElement('div');
-    floating.className = 'coin-drop'; floating.innerText = `+${amount}🪙`;
-    floating.style.left = `${rect.left + (rect.width/2) - 30}px`; floating.style.top = `${rect.top + 20}px`;
-    floating.style.fontSize = "30px"; floating.style.zIndex = "1000"; floating.style.animation = "none"; floating.style.transition = "all 1s ease-out";
-    document.body.appendChild(floating);
-    setTimeout(() => { floating.style.top = `${rect.top - 80}px`; floating.style.opacity = "0"; floating.style.transform = "scale(1.5)"; }, 50);
-    setTimeout(() => floating.remove(), 1000);
-}
-
-
 /* ==========================================================================
-   MINIJUEGO: LA RULETA MÍSTICA
+   MINIJUEGO 2: LA RULETA MÍSTICA
    ========================================================================== */
 let isRouletteSpinning = false;
 
@@ -562,29 +490,23 @@ function playRoulette(betColor) {
     const msg = document.getElementById('roulette-msg');
     msg.innerText = "Girando..."; msg.style.color = "var(--neon-blue)";
     
-    // Animación visual de giro
     let spins = 5 + Math.random() * 5;
     wheel.style.transform = `rotate(${spins * 360}deg)`;
     
-    // MATEMÁTICAS PUNITIVAS
     let rng = Math.random();
     let resultColor = '';
     
-    if (rng < 0.02) resultColor = 'green';        // 2% Verde (paga x10)
-    else if (rng < 0.35) resultColor = 'red';     // 33% Rojo (paga x2)
-    else if (rng < 0.68) resultColor = 'black';   // 33% Negro (paga x2)
-    else { 
-        // 32% de las veces, la casa interviene y fuerza el color contrario al apostado
-        resultColor = (betColor === 'red') ? 'black' : 'red';
-    }
+    if (rng < 0.02) resultColor = 'green';        
+    else if (rng < 0.35) resultColor = 'red';     
+    else if (rng < 0.68) resultColor = 'black';   
+    else { resultColor = (betColor === 'red') ? 'black' : 'red'; }
 
     setTimeout(() => {
         isRouletteSpinning = false;
         
-        // Reset visual sutil
         wheel.style.transition = 'none';
         wheel.style.transform = 'rotate(0deg)';
-        void wheel.offsetWidth; // Fuerza reflujo del DOM
+        void wheel.offsetWidth; 
         wheel.style.transition = 'transform 2s cubic-bezier(0.25, 1, 0.5, 1)';
         
         let icon = '🔴';
@@ -601,13 +523,12 @@ function playRoulette(betColor) {
             msg.innerText = "La casa gana..."; msg.style.color = "var(--neon-red)";
         }
         
-        // Restaurar icono original tras 2 segundos
-        setTimeout(() => { wheel.innerText = '🎡'; msg.innerText = "X2 / X10"; msg.style.color = "var(--ink)"; }, 2000);
+        setTimeout(() => { wheel.innerText = '🎡'; msg.innerText = "X2 / X10"; msg.style.color = "var(--ink)"; updateCoinHUD();}, 2000);
     }, 2000);
 }
 
 /* ==========================================================================
-   MINIJUEGO: EL CRASH (GLOBO MULTIPLICADOR)
+   MINIJUEGO 3: EL CRASH
    ========================================================================== */
 let crashInterval;
 let currentMultiplier = 1.00;
@@ -628,19 +549,18 @@ function startCrash() {
     btn.onclick = cashOutCrash;
     btn.style.background = "linear-gradient(180deg, var(--neon-red), #880000)";
     btn.style.color = "#FFF";
+    btn.disabled = false;
     
     msg.innerText = "Inflando..."; msg.style.color = "var(--ink)";
     balloon.innerText = "🎈"; balloon.style.transform = "scale(1)";
 
-    // MATEMÁTICAS PUNITIVAS: El globo es muy inestable
     let rng = Math.random();
-    if (rng < 0.45) crashTarget = 1.00 + (Math.random() * 0.40);       // 45% explota antes de 1.40x (Pérdida casi segura)
-    else if (rng < 0.75) crashTarget = 1.41 + (Math.random() * 0.59);  // 30% explota antes de 2.00x (Recuperan la moneda si retiran)
-    else if (rng < 0.95) crashTarget = 2.01 + (Math.random() * 1.99);  // 20% llega entre 2x y 4x (Ganancia real)
-    else crashTarget = 4.01 + (Math.random() * 6.00);                  // 5% llega "to the moon" (Hasta 10x)
+    if (rng < 0.45) crashTarget = 1.00 + (Math.random() * 0.40);       
+    else if (rng < 0.75) crashTarget = 1.41 + (Math.random() * 0.59);  
+    else if (rng < 0.95) crashTarget = 2.01 + (Math.random() * 1.99);  
+    else crashTarget = 4.01 + (Math.random() * 6.00);                  
 
     crashInterval = setInterval(() => {
-        // Aceleración exponencial
         currentMultiplier += 0.01 + (currentMultiplier * 0.008); 
         
         if (currentMultiplier >= crashTarget) {
@@ -657,9 +577,8 @@ function cashOutCrash() {
     clearInterval(crashInterval);
     inCrashGame = false;
     
-    // Solo ganan monedas enteras. Tienen que llegar a 2.00x para tener 1 de ganancia real.
     let winAmount = Math.floor(currentMultiplier); 
-    if (winAmount < 1) winAmount = 1; // Si retiran en pánico (ej. 1.15x), al menos recuperan su moneda.
+    if (winAmount < 1) winAmount = 1; 
     
     vaultCoins += winAmount; updateCoinHUD();
     
@@ -694,8 +613,6 @@ function resetCrashBtn(btn) {
     btn.style.color = "#000";
 }
 
-  
-  
 /* ==========================================================================
    TIENDA: INVENTARIO LOCAL Y MERCADO
    ========================================================================== */
@@ -707,7 +624,6 @@ const marketCatalog = [
     { id: 'm5', name: 'Orbe de Obsidiana', icon: '🔮', desc: 'Poder absoluto. El máximo emblema de prestigio y dedicación.', price: 25000 }
 ];
 
-// Cargar inventario propio del navegador
 let userInventory = JSON.parse(localStorage.getItem('shl_user_inventory')) || [];
 
 function toggleMarket() {
@@ -748,22 +664,15 @@ function renderMarket() {
 
 function buyItem(id, price) {
     if (vaultCoins >= price && !userInventory.includes(id)) {
-        // Lógica de compra
         vaultCoins -= price;
         userInventory.push(id);
-        
-        // Persistencia de datos
         localStorage.setItem('shl_vault_coins', vaultCoins);
         localStorage.setItem('shl_user_inventory', JSON.stringify(userInventory));
-        
         updateCoinHUD();
         renderMarket();
-        
-        // Pequeño efecto en consola como diagnóstico
         console.log(`[Sistema] Objeto ${id} adquirido con éxito.`);
     }
 }
-
 
 /* ==========================================================================
    INICIALIZACIÓN MAESTRA
@@ -780,6 +689,3 @@ function buyItem(id, price) {
 </script>
 </body>
 </html>
-
-
-
