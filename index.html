@@ -587,17 +587,18 @@ function spinSlot() {
     msg.innerText = "GIRANDO...";
     msg.style.color = "var(--neon-blue)";
     
-    // 2. Determinar matemáticamente el resultado antes de animar
+    // 2. Determinar matemáticamente el resultado (Modo Casino Estricto)
     let rng = Math.random() * 100;
     let targetSymbol = '';
     let reward = 0;
     let isWin = false;
 
-    if (rng < 1) { targetSymbol = '💎'; reward = 100; isWin = true; }       // 1% probabilidad (Muy Rara)
-    else if (rng < 6) { targetSymbol = '🔔'; reward = 10; isWin = true; }  // 5% probabilidad (Rara)
-    else if (rng < 21) { targetSymbol = '🍋'; reward = 5; isWin = true; }  // 15% probabilidad (Poco Común)
-    else if (rng < 51) { targetSymbol = '🍒'; reward = 2; isWin = true; }  // 30% probabilidad (Común)
-    else { isWin = false; targetSymbol = '💀'; }                           // 49% probabilidad (Pierde)
+    // LA CASA GANA: 80% de probabilidad de perder la moneda
+    if (rng < 0.2) { targetSymbol = '💎'; reward = 100; isWin = true; }      // 0.1% (Prácticamente un mito)
+    else if (rng < 2) { targetSymbol = '🔔'; reward = 10; isWin = true; }    // 1.9% (Muy raro)
+    else if (rng < 7) { targetSymbol = '🍋'; reward = 5; isWin = true; }     // 5.0% (Poco común)
+    else if (rng < 20) { targetSymbol = '🍒'; reward = 2; isWin = true; }    // 13.0% (Premio de consolación)
+    else { isWin = false; targetSymbol = '💀'; }                             // 80.0% (Pierde)
 
     // 3. Preparar la combinación visual (Si pierde, forzamos que no coincidan los 3)
     const finalReels = [targetSymbol, targetSymbol, targetSymbol];
@@ -674,3 +675,4 @@ function spawnFloatingReward(amount, sourceEl) {
 </script>
 </body>
 </html>
+
