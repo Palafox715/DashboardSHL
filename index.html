@@ -76,6 +76,49 @@
   .win-anim { animation: win-pulse 1s infinite alternate; }
   @keyframes win-pulse { 0% { border-color: var(--neon-gold); box-shadow: 0 0 20px var(--glow-gold); } 100% { border-color: #FFF; box-shadow: 0 0 40px #FFF; } }
 
+/* =========================================
+     MINIJUEGO: LA RULETA MÍSTICA (Izquierda)
+     ========================================= */
+  #roulette-game { position: fixed; top: 80px; left: 20px; z-index: 100; background: var(--glass-strong); padding: 15px; border-radius: 12px; border: 2px solid #555; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: auto; width: 140px; }
+  .roulette-wheel { font-size: 40px; text-shadow: 0 0 15px rgba(255,255,255,0.5); transition: transform 2s cubic-bezier(0.25, 1, 0.5, 1); }
+  .roulette-btns { display: flex; gap: 5px; width: 100%; }
+  .btn-color { color: white; border: none; flex: 1; border-radius: 4px; cursor: pointer; font-weight: bold; padding: 5px 0; text-shadow: 1px 1px 2px black; transition: transform 0.1s; }
+  .btn-color:active { transform: scale(0.9); }
+  .btn-red { background: #FF4444; box-shadow: 0 0 10px rgba(255,68,68,0.5); }
+  .btn-black { background: #222; border: 1px solid #555; }
+  .btn-green { background: #44FF88; color: black; text-shadow: none; box-shadow: 0 0 10px rgba(68,255,136,0.5); }
+
+  /* =========================================
+     MINIJUEGO: EL CRASH (Derecha)
+     ========================================= */
+  #crash-game { position: fixed; top: 160px; right: 20px; z-index: 100; background: var(--glass-strong); padding: 15px; border-radius: 12px; border: 2px solid #555; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: auto; width: 140px; }
+  .crash-display { font-size: 28px; font-weight: 900; color: var(--neon-blue); text-shadow: 0 0 10px var(--glow-blue); font-family: monospace; }
+  .crash-balloon { font-size: 40px; transition: transform 0.1s; filter: drop-shadow(0 0 10px rgba(255,68,68,0.5)); margin: 5px 0; }
+  .crash-btn { background: linear-gradient(180deg, #FFDD44, #AA7700); color: #000; border: none; padding: 8px; width: 100%; border-radius: 6px; font-weight: 900; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 0 #664400; transition: all 0.1s; }
+  .crash-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #664400; }
+  .crash-btn:disabled { background: #444; color: #888; box-shadow: 0 4px 0 #222; cursor: not-allowed; transform: none; }
+  
+
+<div id="roulette-game">
+  <div style="font-size:10px; font-weight:bold; color:var(--ink); letter-spacing:1px;">RULETA (1🪙)</div>
+  <div class="roulette-wheel" id="roulette-wheel">🎡</div>
+  <div class="roulette-btns">
+    <button class="btn-color btn-red" onclick="playRoulette('red')">R</button>
+    <button class="btn-color btn-green" onclick="playRoulette('green')">V</button>
+    <button class="btn-color btn-black" onclick="playRoulette('black')">N</button>
+  </div>
+  <div class="slot-message" id="roulette-msg">X2 / X10</div>
+</div>
+
+<div id="crash-game">
+  <div style="font-size:10px; font-weight:bold; color:var(--ink); letter-spacing:1px;">CRASH (1🪙)</div>
+  <div class="crash-balloon" id="crash-balloon">🎈</div>
+  <div class="crash-display" id="crash-multiplier">1.00x</div>
+  <button class="crash-btn" id="crash-btn" onclick="startCrash()">APOSTAR</button>
+  <div class="slot-message" id="crash-msg">Retira a tiempo</div>
+</div>
+  
+  
   /* =========================================
      NUEVO: TIENDA / MERCADO CLANDESTINO
      ========================================= */
@@ -504,6 +547,155 @@ function spawnFloatingReward(amount, sourceEl) {
     setTimeout(() => floating.remove(), 1000);
 }
 
+
+/* ==========================================================================
+   MINIJUEGO: LA RULETA MÍSTICA
+   ========================================================================== */
+let isRouletteSpinning = false;
+
+function playRoulette(betColor) {
+    if (vaultCoins < 1 || isRouletteSpinning) return;
+    vaultCoins--; updateCoinHUD();
+    isRouletteSpinning = true;
+    
+    const wheel = document.getElementById('roulette-wheel');
+    const msg = document.getElementById('roulette-msg');
+    msg.innerText = "Girando..."; msg.style.color = "var(--neon-blue)";
+    
+    // Animación visual de giro
+    let spins = 5 + Math.random() * 5;
+    wheel.style.transform = `rotate(${spins * 360}deg)`;
+    
+    // MATEMÁTICAS PUNITIVAS
+    let rng = Math.random();
+    let resultColor = '';
+    
+    if (rng < 0.02) resultColor = 'green';        // 2% Verde (paga x10)
+    else if (rng < 0.35) resultColor = 'red';     // 33% Rojo (paga x2)
+    else if (rng < 0.68) resultColor = 'black';   // 33% Negro (paga x2)
+    else { 
+        // 32% de las veces, la casa interviene y fuerza el color contrario al apostado
+        resultColor = (betColor === 'red') ? 'black' : 'red';
+    }
+
+    setTimeout(() => {
+        isRouletteSpinning = false;
+        
+        // Reset visual sutil
+        wheel.style.transition = 'none';
+        wheel.style.transform = 'rotate(0deg)';
+        void wheel.offsetWidth; // Fuerza reflujo del DOM
+        wheel.style.transition = 'transform 2s cubic-bezier(0.25, 1, 0.5, 1)';
+        
+        let icon = '🔴';
+        if (resultColor === 'black') icon = '⚫';
+        if (resultColor === 'green') icon = '🟢';
+        wheel.innerText = icon;
+
+        if (resultColor === betColor) {
+            let reward = (resultColor === 'green') ? 10 : 2;
+            vaultCoins += reward; updateCoinHUD();
+            msg.innerText = `¡GANASTE +${reward}🪙!`; msg.style.color = "var(--neon-gold)";
+            spawnFloatingReward(reward, document.getElementById('roulette-game'));
+        } else {
+            msg.innerText = "La casa gana..."; msg.style.color = "var(--neon-red)";
+        }
+        
+        // Restaurar icono original tras 2 segundos
+        setTimeout(() => { wheel.innerText = '🎡'; msg.innerText = "X2 / X10"; msg.style.color = "var(--ink)"; }, 2000);
+    }, 2000);
+}
+
+/* ==========================================================================
+   MINIJUEGO: EL CRASH (GLOBO MULTIPLICADOR)
+   ========================================================================== */
+let crashInterval;
+let currentMultiplier = 1.00;
+let isCrashed = false;
+let crashTarget = 0;
+let inCrashGame = false;
+
+function startCrash() {
+    if (vaultCoins < 1 || inCrashGame) return;
+    vaultCoins--; updateCoinHUD();
+    inCrashGame = true; isCrashed = false; currentMultiplier = 1.00;
+    
+    const btn = document.getElementById('crash-btn');
+    const msg = document.getElementById('crash-msg');
+    const balloon = document.getElementById('crash-balloon');
+    
+    btn.innerText = "¡RETIRAR!";
+    btn.onclick = cashOutCrash;
+    btn.style.background = "linear-gradient(180deg, var(--neon-red), #880000)";
+    btn.style.color = "#FFF";
+    
+    msg.innerText = "Inflando..."; msg.style.color = "var(--ink)";
+    balloon.innerText = "🎈"; balloon.style.transform = "scale(1)";
+
+    // MATEMÁTICAS PUNITIVAS: El globo es muy inestable
+    let rng = Math.random();
+    if (rng < 0.45) crashTarget = 1.00 + (Math.random() * 0.40);       // 45% explota antes de 1.40x (Pérdida casi segura)
+    else if (rng < 0.75) crashTarget = 1.41 + (Math.random() * 0.59);  // 30% explota antes de 2.00x (Recuperan la moneda si retiran)
+    else if (rng < 0.95) crashTarget = 2.01 + (Math.random() * 1.99);  // 20% llega entre 2x y 4x (Ganancia real)
+    else crashTarget = 4.01 + (Math.random() * 6.00);                  // 5% llega "to the moon" (Hasta 10x)
+
+    crashInterval = setInterval(() => {
+        // Aceleración exponencial
+        currentMultiplier += 0.01 + (currentMultiplier * 0.008); 
+        
+        if (currentMultiplier >= crashTarget) {
+            doCrash();
+        } else {
+            document.getElementById('crash-multiplier').innerText = currentMultiplier.toFixed(2) + "x";
+            balloon.style.transform = `scale(${1 + (currentMultiplier - 1) * 0.15})`;
+        }
+    }, 50);
+}
+
+function cashOutCrash() {
+    if (!inCrashGame || isCrashed) return;
+    clearInterval(crashInterval);
+    inCrashGame = false;
+    
+    // Solo ganan monedas enteras. Tienen que llegar a 2.00x para tener 1 de ganancia real.
+    let winAmount = Math.floor(currentMultiplier); 
+    if (winAmount < 1) winAmount = 1; // Si retiran en pánico (ej. 1.15x), al menos recuperan su moneda.
+    
+    vaultCoins += winAmount; updateCoinHUD();
+    
+    const btn = document.getElementById('crash-btn');
+    const msg = document.getElementById('crash-msg');
+    
+    resetCrashBtn(btn);
+    msg.innerText = `¡Retirado! +${winAmount}🪙`; msg.style.color = "var(--neon-gold)";
+    spawnFloatingReward(winAmount, document.getElementById('crash-game'));
+}
+
+function doCrash() {
+    clearInterval(crashInterval);
+    isCrashed = true; inCrashGame = false;
+    
+    const balloon = document.getElementById('crash-balloon');
+    const msg = document.getElementById('crash-msg');
+    const btn = document.getElementById('crash-btn');
+    
+    balloon.innerText = "💥"; balloon.style.transform = "scale(1.5)";
+    msg.innerText = "¡EXPLOTÓ!"; msg.style.color = "var(--neon-red)";
+    document.getElementById('crash-multiplier').innerText = crashTarget.toFixed(2) + "x";
+    
+    resetCrashBtn(btn);
+    updateCoinHUD();
+}
+
+function resetCrashBtn(btn) {
+    btn.innerText = "APOSTAR";
+    btn.onclick = startCrash;
+    btn.style.background = "linear-gradient(180deg, #FFDD44, #AA7700)";
+    btn.style.color = "#000";
+}
+
+  
+  
 /* ==========================================================================
    TIENDA: INVENTARIO LOCAL Y MERCADO
    ========================================================================== */
@@ -588,5 +780,6 @@ function buyItem(id, price) {
 </script>
 </body>
 </html>
+
 
 
