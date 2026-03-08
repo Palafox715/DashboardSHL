@@ -460,10 +460,10 @@ function spinSlot() {
     let targetSymbol = ''; let reward = 0; let isWin = false;
 
     // MATEMÁTICAS PUNITIVAS: 80% de perder
-    if (rng < 0.1) { targetSymbol = '💎'; reward = 100; isWin = true; }      
-    else if (rng < 2) { targetSymbol = '🔔'; reward = 10; isWin = true; }    
-    else if (rng < 7) { targetSymbol = '🍋'; reward = 5; isWin = true; }     
-    else if (rng < 20) { targetSymbol = '🍒'; reward = 2; isWin = true; }    
+    if (rng < 30.1) { targetSymbol = '💎'; reward = 100; isWin = true; }      
+    else if (rng < 3) { targetSymbol = '🔔'; reward = 10; isWin = true; }    
+    else if (rng < 8) { targetSymbol = '🍋'; reward = 5; isWin = true; }     
+    else if (rng < 25) { targetSymbol = '🍒'; reward = 2; isWin = true; }    
     else { isWin = false; targetSymbol = '💀'; }                             
 
     const finalReels = [targetSymbol, targetSymbol, targetSymbol];
@@ -588,3 +588,4 @@ function buyItem(id, price) {
 </script>
 </body>
 </html>
+
