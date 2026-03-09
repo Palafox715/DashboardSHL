@@ -182,6 +182,55 @@
   .buy-btn.owned { border-color: var(--neon-blue); color: var(--neon-blue); cursor: default; }
   .buy-btn.owned:hover { background: transparent; color: var(--neon-blue); }
 
+
+/* =========================================
+     NUEVO: EXHIBIDOR DE MEDALLAS (TOP BAR)
+     ========================================= */
+  #achievements-bar {
+    position: fixed;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    display: flex;
+    gap: 10px;
+    pointer-events: auto;
+    background: var(--glass-strong);
+    padding: 8px 20px;
+    border-radius: 50px;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 5px 25px rgba(0,0,0,0.9);
+    min-height: 40px;
+    align-items: center;
+    transition: all 0.3s ease;
+  }
+  .achievement-medal {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    border: 2px solid var(--neon-gold);
+    box-shadow: 0 0 10px var(--glow-gold);
+    cursor: help;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .achievement-medal:hover {
+    transform: scale(1.3);
+    z-index: 10;
+    box-shadow: 0 0 20px var(--neon-gold);
+  }
+  /* Ajuste para que las imágenes encajen en la tienda */
+  .item-icon-img {
+    width: 55px;
+    height: 55px;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  }
+
+  
 </style>
 </head>
 <body>
@@ -205,6 +254,13 @@
   </div>
 </div>
 
+  
+<div id="achievements-bar">
+  <div style="font-size: 11px; color: #888; font-weight: 900; letter-spacing: 2px; margin-right: 10px; text-transform: uppercase;">HALL OF FAME:</div>
+  <div id="medals-container" style="display: flex; gap: 10px;"></div>
+</div>
+
+  
 <div id="game-zone"></div>
 
 <div id="foreground-zone">
@@ -767,16 +823,16 @@ function cashoutMines() {
     document.getElementById('mine-btn-cash').style.display = "none";
 }
   
-
 /* ==========================================================================
-   TIENDA: INVENTARIO LOCAL Y MERCADO
+   TIENDA Y EXHIBIDOR DE MEDALLAS
    ========================================================================== */
 const marketCatalog = [
-    { id: 'm1', name: 'Insignia del Novato', icon: '🥉', desc: 'El comienzo de un largo camino. Demuestra que has dado tus primeros pasos.', price: 500 },
-    { id: 'm2', name: 'Ojo del Supervisor', icon: '👁️', desc: 'Permite ver más allá del caos. Una reliquia poco común.', price: 1500 },
-    { id: 'm3', name: 'Sello del Cazador', icon: '🦇', desc: 'Otorgado a quienes dominan el arte de cazar duendes en el bosque.', price: 5000 },
-    { id: 'm4', name: 'Corona de Sombras', icon: '👑', desc: 'Símbolo de la élite de Shoreline. Pocos logran adquirirla.', price: 10000 },
-    { id: 'm5', name: 'Orbe de Obsidiana', icon: '🔮', desc: 'Poder absoluto. El máximo emblema de prestigio y dedicación.', price: 25000 }
+    { id: 'm1', name: "Fortune's Favor", img: 'https://i.ibb.co/wr6mFmb4/Gemini-Generated-Image-3y8j8t3y8j8t3y8j.png', desc: "Luck is just preparation meeting opportunity. You've struck gold.", price: 1000 },
+    { id: 'm2', name: "Silver Tongue", img: 'https://i.ibb.co/3m7sFDc9/Gemini-Generated-Image-qz0vg3qz0vg3qz0v.png', desc: "Master of persuasion. You can sell ice to an Eskimo.", price: 2500 },
+    { id: 'm3', name: "Transfer Virtuoso", img: 'https://i.ibb.co/ZpSvNy6J/Gemini-Generated-Image-bho1m2bho1m2bho1.png', desc: "Flawless execution in every handoff. The ultimate connector.", price: 5000 },
+    { id: 'm4', name: "Peak Performer", img: 'https://i.ibb.co/TMtDXPqT/Gemini-Generated-Image-zct45pzct45pzct4.png', desc: "Consistency breeds success. A testament to relentless excellence.", price: 10000 },
+    { id: 'm5', name: "Apex Predator", img: 'https://i.ibb.co/hJzyXfdJ/Gemini-Generated-Image-72pa7p72pa7p72pa.png', desc: "The biggest fish in the pond. You dominate the leaderboard ecosystem.", price: 25000 },
+    { id: 'm6', name: "The Megalodon", img: 'https://i.ibb.co/HLd31Jbs/Gemini-Generated-Image-kvl61xkvl61xkvl6.png', desc: "An ancient, unstoppable force. True legends never die, they just get bigger.", price: 100000 }
 ];
 
 let userInventory = JSON.parse(localStorage.getItem('shl_user_inventory')) || [];
@@ -804,9 +860,10 @@ function renderMarket() {
                        </button>`;
         }
 
+        // Ahora inyectamos la imagen PNG en lugar del emoji
         container.innerHTML += `
             <div class="store-item">
-                <div class="item-icon">${item.icon}</div>
+                <img src="${item.img}" class="item-icon-img" alt="${item.name}">
                 <div class="item-details">
                     <div class="item-name">${item.name}</div>
                     <div class="item-desc">${item.desc}</div>
@@ -823,10 +880,38 @@ function buyItem(id, price) {
         userInventory.push(id);
         localStorage.setItem('shl_vault_coins', vaultCoins);
         localStorage.setItem('shl_user_inventory', JSON.stringify(userInventory));
+        
         updateCoinHUD();
         renderMarket();
-        console.log(`[Sistema] Objeto ${id} adquirido con éxito.`);
+        renderAchievements(); // Actualiza el HUD superior de medallas inmediatamente
+        
+        console.log(`[Sistema] Logro ${id} adquirido.`);
     }
+}
+
+function renderAchievements() {
+    const container = document.getElementById('medals-container');
+    container.innerHTML = '';
+    
+    // Si no tienen nada, mostramos un pequeño texto
+    if (userInventory.length === 0) {
+        container.innerHTML = '<span style="color: #444; font-size: 11px; font-style: italic;">Aún no hay medallas</span>';
+        return;
+    }
+
+    // Buscamos en el catálogo las medallas que el usuario posee
+    userInventory.forEach(ownedId => {
+        const item = marketCatalog.find(cat => cat.id === ownedId);
+        if (item) {
+            // Creamos la medalla visual con un tooltip nativo (title)
+            container.innerHTML += `
+                <div class="achievement-medal" 
+                     style="background-image: url('${item.img}');" 
+                     title="${item.name} - ${item.desc}">
+                </div>
+            `;
+        }
+    });
 }
 
 /* ==========================================================================
@@ -838,12 +923,14 @@ function buyItem(id, price) {
     initDuendes(); 
     initForeground(); 
     updateCoinHUD();
+    renderAchievements(); /* <--- Nueva línea */
     await updateData(); 
     setInterval(updateData, 60000); 
 })();
 </script>
 </body>
 </html>
+
 
 
 
