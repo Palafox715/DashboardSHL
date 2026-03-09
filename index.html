@@ -588,88 +588,138 @@ function pickShell(index) {
 }
 
 /* ==========================================================================
-   MINIJUEGO 3: EL CRASH (NÚMEROS ENTEROS)
+   MINIJUEGO 3: CARTAS MAYOR O MENOR
    ========================================================================== */
-let crashInterval;
-let currentMultiplier = 1;
-let isCrashed = false;
-let crashTarget = 0;
-let inCrashGame = false;
+let currentCardValue = Math.floor(Math.random() * 10) + 1;
+let isCardsPlaying = false;
+document.getElementById('current-card').innerText = currentCardValue; // Inicializa la primer carta
 
-function startCrash() {
-    if (vaultCoins < 1 || inCrashGame) return;
+function playCards(guess) {
+    if (vaultCoins < 1 || isCardsPlaying) return;
     vaultCoins--; updateCoinHUD();
-    inCrashGame = true; isCrashed = false; currentMultiplier = 1;
+    isCardsPlaying = true;
     
-    const btn = document.getElementById('crash-btn');
-    const msg = document.getElementById('crash-msg');
-    const balloon = document.getElementById('crash-balloon');
+    const display = document.getElementById('current-card');
+    const msg = document.getElementById('cards-msg');
+    msg.innerText = "Sacando..."; msg.style.color = "var(--neon-blue)";
     
-    btn.innerText = "¡RETIRAR!";
-    btn.onclick = cashOutCrash;
-    btn.style.background = "linear-gradient(180deg, var(--neon-red), #880000)";
-    btn.style.color = "#FFF";
-    btn.disabled = false;
-    
-    msg.innerText = "Inflando..."; msg.style.color = "var(--ink)";
-    balloon.innerText = "🎈"; balloon.style.transform = "scale(1)";
-    document.getElementById('crash-multiplier').innerText = "1x";
-
-    // MATEMÁTICAS ESTRICTAS CON NÚMEROS ENTEROS
+    // LA CASA MANDA: 30% de las veces forzamos una carta perdedora o empate
+    let nextCardValue = Math.floor(Math.random() * 10) + 1;
     let rng = Math.random();
-    if (rng < 0.40) crashTarget = 1;       // 40% Explota sin dejarlos llegar a 2x (Pérdida neta)
-    else if (rng < 0.70) crashTarget = 2;  // 30% Explota intentando llegar a 3x (Podrían sacar 2x)
-    else if (rng < 0.90) crashTarget = 3;  // 20% Explota intentando llegar a 4x (Podrían sacar 3x)
-    else crashTarget = Math.floor(Math.random() * 3) + 4; // 10% Llega a 4x, 5x, o 6x.
-
-    // Intervalo más lento: 1.2 segundos de agonía por número
-    crashInterval = setInterval(() => {
-        if (currentMultiplier >= crashTarget) {
-            doCrash();
+    
+    if (rng < 0.30) {
+        if (guess === 'higher') {
+            nextCardValue = Math.floor(Math.random() * currentCardValue) + 1; // Asegura que sea menor o igual
         } else {
-            currentMultiplier++;
-            document.getElementById('crash-multiplier').innerText = currentMultiplier + "x";
-            balloon.style.transform = `scale(${1 + (currentMultiplier - 1) * 0.4})`;
+            nextCardValue = Math.floor(Math.random() * (10 - currentCardValue + 1)) + currentCardValue; // Asegura que sea mayor o igual
         }
-    }, 1200); 
+    }
+
+    display.innerText = "❓";
+    
+    setTimeout(() => {
+        display.innerText = nextCardValue;
+        
+        let won = false;
+        if (guess === 'higher' && nextCardValue > currentCardValue) won = true;
+        if (guess === 'lower' && nextCardValue < currentCardValue) won = true;
+        // Los empates (mismo número) SIEMPRE los gana la casa.
+        
+        if (won) {
+            let reward = 2; // Paga el doble
+            vaultCoins += reward; updateCoinHUD();
+            msg.innerText = `¡GANASTE +${reward}🪙!`; msg.style.color = "var(--neon-gold)";
+            spawnFloatingReward(reward, document.getElementById('cards-game'));
+        } else {
+            msg.innerText = (nextCardValue === currentCardValue) ? "Empate (Casa Gana)" : "Fallaste..."; 
+            msg.style.color = "var(--neon-red)";
+        }
+        
+        currentCardValue = nextCardValue;
+        setTimeout(() => { 
+            isCardsPlaying = false; 
+            msg.innerText = "Adivina la siguiente"; msg.style.color = "var(--ink)";
+            updateCoinHUD();
+        }, 1500);
+    }, 800);
 }
 
-function cashOutCrash() {
-    if (!inCrashGame || isCrashed) return;
-    clearInterval(crashInterval);
-    inCrashGame = false;
+/* ==========================================================================
+   MINIJUEGO 4: CAMPO DE MINAS
+   ========================================================================== */
+let mineCurrentStep = 0;
+let mineInGame = false;
+let currentMineReward = 0;
+
+function takeMineStep() {
+    if (!mineInGame) {
+        if (vaultCoins < 1) return;
+        vaultCoins--; updateCoinHUD();
+        mineInGame = true; mineCurrentStep = 0; currentMineReward = 0;
+        
+        for(let i=1; i<=5; i++) {
+            let st = document.getElementById(`step-${i}`);
+            st.innerText = '🪨'; st.className = 'mine-step';
+        }
+        document.getElementById('step-1').classList.add('active');
+        document.getElementById('mines-msg').innerText = "Pisa con cuidado";
+        document.getElementById('mine-btn-step').innerText = "PASO 1";
+        document.getElementById('mine-btn-cash').style.display = "none";
+    }
+
+    let msg = document.getElementById('mines-msg');
+    mineCurrentStep++;
+    let stepEl = document.getElementById(`step-${mineCurrentStep}`);
     
-    let winAmount = currentMultiplier; 
-    vaultCoins += winAmount; updateCoinHUD();
+    // MATEMÁTICA PUNITIVA: El riesgo aumenta exponencialmente
+    let bombChance = 0;
+    if (mineCurrentStep === 1) bombChance = 0.05;      // 5% mueren en el paso 1
+    else if (mineCurrentStep === 2) bombChance = 0.20; // 20%
+    else if (mineCurrentStep === 3) bombChance = 0.40; // 40%
+    else if (mineCurrentStep === 4) bombChance = 0.65; // 65%
+    else bombChance = 0.85;                            // 85% de probabilidad de bomba en el paso final
     
-    const btn = document.getElementById('crash-btn');
-    const msg = document.getElementById('crash-msg');
-    
-    resetCrashBtn(btn);
-    msg.innerText = `¡Retirado! +${winAmount}🪙`; msg.style.color = "var(--neon-gold)";
-    spawnFloatingReward(winAmount, document.getElementById('crash-game'));
+    let rng = Math.random();
+    if (rng < bombChance) {
+        // EXPLOSIÓN
+        stepEl.innerText = '💣'; stepEl.classList.add('boom');
+        msg.innerText = "¡BOOM! Lo perdiste todo"; msg.style.color = "var(--neon-red)";
+        mineInGame = false;
+        document.getElementById('mine-btn-step').innerText = "JUGAR (1🪙)";
+        document.getElementById('mine-btn-cash').style.display = "none";
+        updateCoinHUD();
+    } else {
+        // A SALVO
+        stepEl.innerText = '✔️'; stepEl.classList.add('safe');
+        
+        if (mineCurrentStep === 1) currentMineReward = 1;      // Recuperan la moneda
+        else if (mineCurrentStep === 2) currentMineReward = 2; // Ganan 2
+        else if (mineCurrentStep === 3) currentMineReward = 3; // Ganan 3
+        else if (mineCurrentStep === 4) currentMineReward = 5; // Ganan 5
+        else if (mineCurrentStep === 5) currentMineReward = 10; // Jackpot
+        
+        msg.innerText = `A salvo. Acumulado: ${currentMineReward}🪙`; msg.style.color = "#44FF88";
+        
+        if (mineCurrentStep < 5) {
+            document.getElementById('mine-btn-step').innerText = "AVANZAR";
+            document.getElementById('mine-btn-cash').style.display = "block";
+            document.getElementById(`step-${mineCurrentStep+1}`).classList.add('active');
+        } else {
+            cashoutMines(); // Si llegan al 5, cobran automáticamente
+        }
+    }
 }
 
-function doCrash() {
-    clearInterval(crashInterval);
-    isCrashed = true; inCrashGame = false;
+function cashoutMines() {
+    if (!mineInGame || currentMineReward === 0) return;
+    vaultCoins += currentMineReward; updateCoinHUD();
+    let msg = document.getElementById('mines-msg');
+    msg.innerText = `¡Retiraste +${currentMineReward}🪙!`; msg.style.color = "var(--neon-gold)";
+    spawnFloatingReward(currentMineReward, document.getElementById('mines-game'));
     
-    const balloon = document.getElementById('crash-balloon');
-    const msg = document.getElementById('crash-msg');
-    const btn = document.getElementById('crash-btn');
-    
-    balloon.innerText = "💥"; balloon.style.transform = "scale(1.5)";
-    msg.innerText = "¡EXPLOTÓ!"; msg.style.color = "var(--neon-red)";
-    
-    resetCrashBtn(btn);
-    updateCoinHUD();
-}
-
-function resetCrashBtn(btn) {
-    btn.innerText = "APOSTAR";
-    btn.onclick = startCrash;
-    btn.style.background = "linear-gradient(180deg, #FFDD44, #AA7700)";
-    btn.style.color = "#000";
+    mineInGame = false;
+    document.getElementById('mine-btn-step').innerText = "JUGAR (1🪙)";
+    document.getElementById('mine-btn-cash').style.display = "none";
 }
   
 
@@ -749,5 +799,6 @@ function buyItem(id, price) {
 </script>
 </body>
 </html>
+
 
 
