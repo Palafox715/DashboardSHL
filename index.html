@@ -60,7 +60,7 @@
 /* Objetos frontales (Ahora Ollas de Oro) */
   .fg-item { 
     position: absolute; 
-    bottom: 15px; 
+    bottom: 5px; 
     width: 220px; 
     height: 220px; 
     background-image: url('https://i.ibb.co/cKRHMbHX/pngwing-com-1.png'); 
@@ -650,7 +650,7 @@ function pickShell(index) {
     // MATEMÁTICAS PUNITIVAS: La ilusión de elección.
     // Tienen un 15% real de ganar, sin importar qué caja toquen.
     let rng = Math.random();
-    let isWin = (rng < 0.15); 
+    let isWin = (rng < 0.25); 
     let winningShell = 0;
     
     if (isWin) {
@@ -770,7 +770,7 @@ function takeMineStep() {
     // MATEMÁTICA PUNITIVA: El riesgo aumenta exponencialmente
     let bombChance = 0;
     if (mineCurrentStep === 1) bombChance = 0.05;      // 5% mueren en el paso 1
-    else if (mineCurrentStep === 2) bombChance = 0.20; // 20%
+    else if (mineCurrentStep === 2) bombChance = 0.30; // 30%
     else if (mineCurrentStep === 3) bombChance = 0.40; // 40%
     else if (mineCurrentStep === 4) bombChance = 0.65; // 65%
     else bombChance = 0.85;                            // 85% de probabilidad de bomba en el paso final
@@ -790,9 +790,9 @@ function takeMineStep() {
         
         if (mineCurrentStep === 1) currentMineReward = 1;      // Recuperan la moneda
         else if (mineCurrentStep === 2) currentMineReward = 2; // Ganan 2
-        else if (mineCurrentStep === 3) currentMineReward = 3; // Ganan 3
-        else if (mineCurrentStep === 4) currentMineReward = 5; // Ganan 5
-        else if (mineCurrentStep === 5) currentMineReward = 10; // Jackpot
+        else if (mineCurrentStep === 3) currentMineReward = 5; // Ganan 3
+        else if (mineCurrentStep === 4) currentMineReward = 15; // Ganan 5
+        else if (mineCurrentStep === 5) currentMineReward = 50; // Jackpot
         
         msg.innerText = `A salvo. Acumulado: ${currentMineReward}🪙`; msg.style.color = "#44FF88";
         
@@ -925,6 +925,7 @@ function renderAchievements() {
 </script>
 </body>
 </html>
+
 
 
 
