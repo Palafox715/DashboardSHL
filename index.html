@@ -77,28 +77,30 @@
   .win-anim { animation: win-pulse 1s infinite alternate; }
   @keyframes win-pulse { 0% { border-color: var(--neon-gold); box-shadow: 0 0 20px var(--glow-gold); } 100% { border-color: #FFF; box-shadow: 0 0 40px #FFF; } }
 
-  /* =========================================
-     MINIJUEGO: LA RULETA MÍSTICA (Izquierda)
+/* =========================================
+     MINIJUEGO 2: EL TRILERO (Izquierda)
      ========================================= */
-  #roulette-game { position: fixed; top: 90px; left: 20px; z-index: 100; background: var(--glass-strong); padding: 15px; border-radius: 12px; border: 2px solid #555; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: auto; width: 140px; box-sizing: border-box; }
-  .roulette-wheel { font-size: 40px; text-shadow: 0 0 15px rgba(255,255,255,0.5); transition: transform 2s cubic-bezier(0.25, 1, 0.5, 1); }
-  .roulette-btns { display: flex; gap: 5px; width: 100%; }
-  .btn-color { color: white; border: none; flex: 1; border-radius: 4px; cursor: pointer; font-weight: bold; padding: 5px 0; text-shadow: 1px 1px 2px black; transition: transform 0.1s; }
-  .btn-color:active { transform: scale(0.9); }
-  .btn-red { background: #FF4444; box-shadow: 0 0 10px rgba(255,68,68,0.5); }
-  .btn-black { background: #222; border: 1px solid #555; }
-  .btn-green { background: #44FF88; color: black; text-shadow: none; box-shadow: 0 0 10px rgba(68,255,136,0.5); }
+  #shell-game { position: fixed; top: 90px; left: 20px; z-index: 100; background: var(--glass-strong); padding: 15px; border-radius: 12px; border: 2px solid #555; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: auto; width: 140px; box-sizing: border-box; }
+  .shell-container { display: flex; gap: 8px; font-size: 32px; cursor: pointer; }
+  .shell { transition: transform 0.2s; user-select: none; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.8)); }
+  .shell:hover { transform: translateY(-5px); }
+  .shell.shuffle { animation: shuffle-anim 0.3s infinite; }
+  @keyframes shuffle-anim { 0% { transform: translateX(0); } 50% { transform: translateX(5px); } 100% { transform: translateX(0); } }
 
   /* =========================================
-     MINIJUEGO: EL CRASH (Derecha)
+     MINIJUEGO 3: EL CRASH (Derecha)
      ========================================= */
-  #crash-game { position: fixed; top: 170px; right: 20px; z-index: 100; background: var(--glass-strong); padding: 15px; border-radius: 12px; border: 2px solid #555; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: auto; width: 140px; box-sizing: border-box; }
-  .crash-display { font-size: 24px; font-weight: 900; color: var(--neon-blue); text-shadow: 0 0 10px var(--glow-blue); font-family: monospace; }
-  .crash-balloon { font-size: 40px; transition: transform 0.1s; filter: drop-shadow(0 0 10px rgba(255,68,68,0.5)); margin: 5px 0; }
+  #crash-game { 
+    position: fixed; 
+    top: 260px; /* <--- Movido hacia abajo para que no estorbe */
+    right: 20px; 
+    z-index: 100; background: var(--glass-strong); padding: 15px; border-radius: 12px; border: 2px solid #555; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: auto; width: 140px; box-sizing: border-box; }
+  .crash-display { font-size: 28px; font-weight: 900; color: var(--neon-blue); text-shadow: 0 0 10px var(--glow-blue); font-family: monospace; }
+  .crash-balloon { font-size: 40px; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); filter: drop-shadow(0 0 10px rgba(255,68,68,0.5)); margin: 5px 0; }
   .crash-btn { background: linear-gradient(180deg, #FFDD44, #AA7700); color: #000; border: none; padding: 8px; width: 100%; border-radius: 6px; font-weight: 900; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 0 #664400; transition: all 0.1s; }
   .crash-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #664400; }
   .crash-btn:disabled { background: #444; color: #888; box-shadow: 0 4px 0 #222; cursor: not-allowed; transform: none; }
-
+  
   /* =========================================
      MERCADO CLANDESTINO
      ========================================= */
@@ -165,15 +167,15 @@
   <div class="coin-value" id="coin-count">0</div>
 </div>
 
-<div id="roulette-game">
-  <div style="font-size:10px; font-weight:bold; color:var(--ink); letter-spacing:1px;">RULETA (1🪙)</div>
-  <div class="roulette-wheel" id="roulette-wheel">🎡</div>
-  <div class="roulette-btns">
-    <button class="btn-color btn-red" onclick="playRoulette('red')">R</button>
-    <button class="btn-color btn-green" onclick="playRoulette('green')">V</button>
-    <button class="btn-color btn-black" onclick="playRoulette('black')">N</button>
+<div id="shell-game">
+  <div style="font-size:10px; font-weight:bold; color:var(--ink); letter-spacing:1px;">EL TRILERO (1🪙)</div>
+  <div class="shell-container">
+    <div class="shell" onclick="pickShell(0)">📦</div>
+    <div class="shell" onclick="pickShell(1)">📦</div>
+    <div class="shell" onclick="pickShell(2)">📦</div>
   </div>
-  <div class="slot-message" id="roulette-msg">X2 / X10</div>
+  <button class="crash-btn" id="shell-btn" onclick="startShellGame()" style="font-size: 11px;">MEZCLAR</button>
+  <div class="slot-message" id="shell-msg">Paga x3</div>
 </div>
 
 <div id="slot-machine">
@@ -189,9 +191,9 @@
 <div id="crash-game">
   <div style="font-size:10px; font-weight:bold; color:var(--ink); letter-spacing:1px;">CRASH (1🪙)</div>
   <div class="crash-balloon" id="crash-balloon">🎈</div>
-  <div class="crash-display" id="crash-multiplier">1.00x</div>
+  <div class="crash-display" id="crash-multiplier">1x</div>
   <button class="crash-btn" id="crash-btn" onclick="startCrash()">APOSTAR</button>
-  <div class="slot-message" id="crash-msg">Retira a tiempo</div>
+  <div class="slot-message" id="crash-msg">Multiplica tu apuesta</div>
 </div>
 
 <button id="market-toggle" onclick="toggleMarket()" title="Mercado Clandestino">🛒</button>
@@ -313,18 +315,18 @@ function updateCoinHUD() {
     document.getElementById('coin-count').innerText = vaultCoins;
     localStorage.setItem('shl_vault_coins', vaultCoins);
     
-    // Validar estado de los botones de los 3 juegos
     const spinBtn = document.getElementById('spin-btn');
     if(vaultCoins >= 1 && !isSpinning) { spinBtn.disabled = false; } else { spinBtn.disabled = true; }
     
     const crashBtn = document.getElementById('crash-btn');
     if(vaultCoins < 1 && !inCrashGame) { crashBtn.disabled = true; } else if (!inCrashGame) { crashBtn.disabled = false; }
 
-    const rouletteBtns = document.querySelectorAll('.btn-color');
-    rouletteBtns.forEach(btn => {
-        if(vaultCoins < 1 || isRouletteSpinning) { btn.disabled = true; btn.style.opacity = '0.5'; }
-        else { btn.disabled = false; btn.style.opacity = '1'; }
-    });
+    // Control del botón del Trilero
+    const shellBtn = document.getElementById('shell-btn');
+    if (shellBtn) {
+        if(vaultCoins < 1 && !isShellShuffling && !shellGameActive) { shellBtn.disabled = true; } 
+        else if (!isShellShuffling && !shellGameActive) { shellBtn.disabled = false; }
+    }
     
     renderMarket(); 
 }
@@ -477,61 +479,80 @@ function spinSlot() {
 }
 
 /* ==========================================================================
-   MINIJUEGO 2: LA RULETA MÍSTICA
+   MINIJUEGO 2: EL TRILERO
    ========================================================================== */
-let isRouletteSpinning = false;
+let isShellShuffling = false;
+let shellGameActive = false;
 
-function playRoulette(betColor) {
-    if (vaultCoins < 1 || isRouletteSpinning) return;
+function startShellGame() {
+    if (vaultCoins < 1 || isShellShuffling || shellGameActive) return;
     vaultCoins--; updateCoinHUD();
-    isRouletteSpinning = true;
     
-    const wheel = document.getElementById('roulette-wheel');
-    const msg = document.getElementById('roulette-msg');
-    msg.innerText = "Girando..."; msg.style.color = "var(--neon-blue)";
+    isShellShuffling = true;
+    const shells = document.querySelectorAll('.shell');
+    const msg = document.getElementById('shell-msg');
+    const btn = document.getElementById('shell-btn');
     
-    let spins = 5 + Math.random() * 5;
-    wheel.style.transform = `rotate(${spins * 360}deg)`;
+    btn.disabled = true;
+    msg.innerText = "Mezclando..."; msg.style.color = "var(--neon-blue)";
     
-    let rng = Math.random();
-    let resultColor = '';
+    shells.forEach(s => { s.innerText = '📦'; s.classList.add('shuffle'); });
     
-    if (rng < 0.02) resultColor = 'green';        
-    else if (rng < 0.35) resultColor = 'red';     
-    else if (rng < 0.68) resultColor = 'black';   
-    else { resultColor = (betColor === 'red') ? 'black' : 'red'; }
-
     setTimeout(() => {
-        isRouletteSpinning = false;
-        
-        wheel.style.transition = 'none';
-        wheel.style.transform = 'rotate(0deg)';
-        void wheel.offsetWidth; 
-        wheel.style.transition = 'transform 2s cubic-bezier(0.25, 1, 0.5, 1)';
-        
-        let icon = '🔴';
-        if (resultColor === 'black') icon = '⚫';
-        if (resultColor === 'green') icon = '🟢';
-        wheel.innerText = icon;
+        shells.forEach(s => s.classList.remove('shuffle'));
+        isShellShuffling = false;
+        shellGameActive = true;
+        msg.innerText = "¡Elige una caja!"; msg.style.color = "var(--ink)";
+    }, 1200);
+}
 
-        if (resultColor === betColor) {
-            let reward = (resultColor === 'green') ? 10 : 2;
-            vaultCoins += reward; updateCoinHUD();
-            msg.innerText = `¡GANASTE +${reward}🪙!`; msg.style.color = "var(--neon-gold)";
-            spawnFloatingReward(reward, document.getElementById('roulette-game'));
-        } else {
-            msg.innerText = "La casa gana..."; msg.style.color = "var(--neon-red)";
-        }
-        
-        setTimeout(() => { wheel.innerText = '🎡'; msg.innerText = "X2 / X10"; msg.style.color = "var(--ink)"; updateCoinHUD();}, 2000);
+function pickShell(index) {
+    if (!shellGameActive) return;
+    shellGameActive = false;
+    
+    const shells = document.querySelectorAll('.shell');
+    const msg = document.getElementById('shell-msg');
+    const btn = document.getElementById('shell-btn');
+    
+    // MATEMÁTICAS PUNITIVAS: La ilusión de elección.
+    // Tienen un 15% real de ganar, sin importar qué caja toquen.
+    let rng = Math.random();
+    let isWin = (rng < 0.15); 
+    let winningShell = 0;
+    
+    if (isWin) {
+        winningShell = index; // Si ganan, forzamos que la moneda esté donde tocaron
+    } else {
+        // Si pierden, ponemos la moneda en otra caja al azar
+        do { winningShell = Math.floor(Math.random() * 3); } while (winningShell === index);
+    }
+    
+    shells.forEach((s, i) => {
+        if (i === winningShell) { s.innerText = '🪙'; } 
+        else { s.innerText = '💨'; } // Humo
+    });
+    
+    if (isWin) {
+        let reward = 3; 
+        vaultCoins += reward; updateCoinHUD();
+        msg.innerText = `¡GANASTE +${reward}🪙!`; msg.style.color = "var(--neon-gold)";
+        spawnFloatingReward(reward, document.getElementById('shell-game'));
+    } else {
+        msg.innerText = "Caja vacía..."; msg.style.color = "var(--neon-red)";
+    }
+    
+    setTimeout(() => {
+        shells.forEach(s => s.innerText = '📦');
+        msg.innerText = "Paga x3"; msg.style.color = "var(--ink)";
+        updateCoinHUD(); // Esto reactiva el botón si hay dinero
     }, 2000);
 }
 
 /* ==========================================================================
-   MINIJUEGO 3: EL CRASH
+   MINIJUEGO 3: EL CRASH (NÚMEROS ENTEROS)
    ========================================================================== */
 let crashInterval;
-let currentMultiplier = 1.00;
+let currentMultiplier = 1;
 let isCrashed = false;
 let crashTarget = 0;
 let inCrashGame = false;
@@ -539,7 +560,7 @@ let inCrashGame = false;
 function startCrash() {
     if (vaultCoins < 1 || inCrashGame) return;
     vaultCoins--; updateCoinHUD();
-    inCrashGame = true; isCrashed = false; currentMultiplier = 1.00;
+    inCrashGame = true; isCrashed = false; currentMultiplier = 1;
     
     const btn = document.getElementById('crash-btn');
     const msg = document.getElementById('crash-msg');
@@ -553,23 +574,25 @@ function startCrash() {
     
     msg.innerText = "Inflando..."; msg.style.color = "var(--ink)";
     balloon.innerText = "🎈"; balloon.style.transform = "scale(1)";
+    document.getElementById('crash-multiplier').innerText = "1x";
 
+    // MATEMÁTICAS ESTRICTAS CON NÚMEROS ENTEROS
     let rng = Math.random();
-    if (rng < 0.45) crashTarget = 1.00 + (Math.random() * 0.40);       
-    else if (rng < 0.75) crashTarget = 1.41 + (Math.random() * 0.59);  
-    else if (rng < 0.95) crashTarget = 2.01 + (Math.random() * 1.99);  
-    else crashTarget = 4.01 + (Math.random() * 6.00);                  
+    if (rng < 0.40) crashTarget = 1;       // 40% Explota sin dejarlos llegar a 2x (Pérdida neta)
+    else if (rng < 0.70) crashTarget = 2;  // 30% Explota intentando llegar a 3x (Podrían sacar 2x)
+    else if (rng < 0.90) crashTarget = 3;  // 20% Explota intentando llegar a 4x (Podrían sacar 3x)
+    else crashTarget = Math.floor(Math.random() * 3) + 4; // 10% Llega a 4x, 5x, o 6x.
 
+    // Intervalo más lento: 1.2 segundos de agonía por número
     crashInterval = setInterval(() => {
-        currentMultiplier += 0.01 + (currentMultiplier * 0.008); 
-        
         if (currentMultiplier >= crashTarget) {
             doCrash();
         } else {
-            document.getElementById('crash-multiplier').innerText = currentMultiplier.toFixed(2) + "x";
-            balloon.style.transform = `scale(${1 + (currentMultiplier - 1) * 0.15})`;
+            currentMultiplier++;
+            document.getElementById('crash-multiplier').innerText = currentMultiplier + "x";
+            balloon.style.transform = `scale(${1 + (currentMultiplier - 1) * 0.4})`;
         }
-    }, 50);
+    }, 1200); 
 }
 
 function cashOutCrash() {
@@ -577,9 +600,7 @@ function cashOutCrash() {
     clearInterval(crashInterval);
     inCrashGame = false;
     
-    let winAmount = Math.floor(currentMultiplier); 
-    if (winAmount < 1) winAmount = 1; 
-    
+    let winAmount = currentMultiplier; 
     vaultCoins += winAmount; updateCoinHUD();
     
     const btn = document.getElementById('crash-btn');
@@ -600,7 +621,6 @@ function doCrash() {
     
     balloon.innerText = "💥"; balloon.style.transform = "scale(1.5)";
     msg.innerText = "¡EXPLOTÓ!"; msg.style.color = "var(--neon-red)";
-    document.getElementById('crash-multiplier').innerText = crashTarget.toFixed(2) + "x";
     
     resetCrashBtn(btn);
     updateCoinHUD();
@@ -612,6 +632,7 @@ function resetCrashBtn(btn) {
     btn.style.background = "linear-gradient(180deg, #FFDD44, #AA7700)";
     btn.style.color = "#000";
 }
+  
 
 /* ==========================================================================
    TIENDA: INVENTARIO LOCAL Y MERCADO
@@ -689,3 +710,4 @@ function buyItem(id, price) {
 </script>
 </body>
 </html>
+
