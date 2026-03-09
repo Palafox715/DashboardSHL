@@ -88,18 +88,26 @@
   @keyframes shuffle-anim { 0% { transform: translateX(0); } 50% { transform: translateX(5px); } 100% { transform: translateX(0); } }
 
   /* =========================================
-     MINIJUEGO 3: EL CRASH (Derecha)
+     MINIJUEGO 3: CARTAS MAYOR/MENOR (Derecha)
      ========================================= */
-  #crash-game { 
-    position: fixed; 
-    top: 260px; /* <--- Movido hacia abajo para que no estorbe */
-    right: 20px; 
-    z-index: 100; background: var(--glass-strong); padding: 15px; border-radius: 12px; border: 2px solid #555; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: auto; width: 140px; box-sizing: border-box; }
-  .crash-display { font-size: 28px; font-weight: 900; color: var(--neon-blue); text-shadow: 0 0 10px var(--glow-blue); font-family: monospace; }
-  .crash-balloon { font-size: 40px; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); filter: drop-shadow(0 0 10px rgba(255,68,68,0.5)); margin: 5px 0; }
-  .crash-btn { background: linear-gradient(180deg, #FFDD44, #AA7700); color: #000; border: none; padding: 8px; width: 100%; border-radius: 6px; font-weight: 900; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 0 #664400; transition: all 0.1s; }
-  .crash-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #664400; }
-  .crash-btn:disabled { background: #444; color: #888; box-shadow: 0 4px 0 #222; cursor: not-allowed; transform: none; }
+  #cards-game { position: fixed; top: 260px; right: 20px; z-index: 100; background: var(--glass-strong); padding: 15px; border-radius: 12px; border: 2px solid #555; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: auto; width: 140px; box-sizing: border-box; }
+  .card-display { font-size: 35px; background: #FFF; border-radius: 6px; width: 45px; height: 55px; display: flex; justify-content: center; align-items: center; color: #000; font-weight: 900; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); user-select: none; }
+  .cards-btns { display: flex; gap: 5px; width: 100%; }
+  .btn-card { background: linear-gradient(180deg, #555, #222); color: white; border: 1px solid #777; flex: 1; border-radius: 4px; cursor: pointer; font-size: 16px; padding: 5px 0; transition: transform 0.1s; }
+  .btn-card:active { transform: scale(0.9); }
+  .btn-card:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* =========================================
+     MINIJUEGO 4: CAMPO DE MINAS (Izquierda)
+     ========================================= */
+  #mines-game { position: fixed; top: 260px; left: 20px; z-index: 100; background: var(--glass-strong); padding: 15px; border-radius: 12px; border: 2px solid #555; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: auto; width: 140px; box-sizing: border-box; }
+  .mines-path { display: flex; gap: 2px; width: 100%; justify-content: space-between; font-size: 14px; user-select: none; }
+  .mine-step { opacity: 0.4; filter: grayscale(1); transition: all 0.3s; text-align: center; }
+  .mine-step.active { opacity: 1; filter: none; transform: scale(1.3); }
+  .mine-step.safe { opacity: 1; filter: drop-shadow(0 0 5px #44FF88); }
+  .mine-step.boom { opacity: 1; filter: drop-shadow(0 0 5px #FF4444); }
+  .mines-controls { display: flex; gap: 5px; width: 100%; }
+  
   
   /* =========================================
      MERCADO CLANDESTINO
@@ -188,14 +196,33 @@
   <div class="slot-message" id="slot-msg">Premio Máx: 100🪙</div>
 </div>
 
-<div id="crash-game">
-  <div style="font-size:10px; font-weight:bold; color:var(--ink); letter-spacing:1px;">CRASH (1🪙)</div>
-  <div class="crash-balloon" id="crash-balloon">🎈</div>
-  <div class="crash-display" id="crash-multiplier">1x</div>
-  <button class="crash-btn" id="crash-btn" onclick="startCrash()">APOSTAR</button>
-  <div class="slot-message" id="crash-msg">Multiplica tu apuesta</div>
+<div id="mines-game">
+  <div style="font-size:10px; font-weight:bold; color:var(--ink); letter-spacing:1px;">MINAS (1🪙)</div>
+  <div class="mines-path">
+    <div class="mine-step active" id="step-1">🪨</div>
+    <div class="mine-step" id="step-2">🪨</div>
+    <div class="mine-step" id="step-3">🪨</div>
+    <div class="mine-step" id="step-4">🪨</div>
+    <div class="mine-step" id="step-5">🪨</div>
+  </div>
+  <div class="mines-controls">
+     <button class="crash-btn" id="mine-btn-step" onclick="takeMineStep()" style="font-size: 10px; flex:1;">JUGAR</button>
+     <button class="crash-btn" id="mine-btn-cash" onclick="cashoutMines()" style="font-size: 10px; flex:1; display:none; background: linear-gradient(180deg, #44FF88, #008822);">COBRAR</button>
+  </div>
+  <div class="slot-message" id="mines-msg">Premio Máx: x10</div>
 </div>
 
+<div id="cards-game">
+  <div style="font-size:10px; font-weight:bold; color:var(--ink); letter-spacing:1px;">CARTAS (1🪙)</div>
+  <div class="card-display" id="current-card">?</div>
+  <div class="cards-btns">
+    <button class="btn-card" onclick="playCards('lower')">🔽</button>
+    <button class="btn-card" onclick="playCards('higher')">🔼</button>
+  </div>
+  <div class="slot-message" id="cards-msg">¿Mayor o Menor?</div>
+</div>
+
+  
 <button id="market-toggle" onclick="toggleMarket()" title="Mercado Clandestino">🛒</button>
 
 <div id="market-drawer">
@@ -315,17 +342,29 @@ function updateCoinHUD() {
     document.getElementById('coin-count').innerText = vaultCoins;
     localStorage.setItem('shl_vault_coins', vaultCoins);
     
+    // Tragaperras
     const spinBtn = document.getElementById('spin-btn');
     if(vaultCoins >= 1 && !isSpinning) { spinBtn.disabled = false; } else { spinBtn.disabled = true; }
     
-    const crashBtn = document.getElementById('crash-btn');
-    if(vaultCoins < 1 && !inCrashGame) { crashBtn.disabled = true; } else if (!inCrashGame) { crashBtn.disabled = false; }
-
-    // Control del botón del Trilero
+    // Trilero
     const shellBtn = document.getElementById('shell-btn');
     if (shellBtn) {
         if(vaultCoins < 1 && !isShellShuffling && !shellGameActive) { shellBtn.disabled = true; } 
         else if (!isShellShuffling && !shellGameActive) { shellBtn.disabled = false; }
+    }
+
+    // Cartas
+    const cardsBtns = document.querySelectorAll('.btn-card');
+    cardsBtns.forEach(btn => {
+        if(vaultCoins < 1 && !isCardsPlaying) { btn.disabled = true; }
+        else { btn.disabled = false; }
+    });
+
+    // Minas
+    const mineBtn = document.getElementById('mine-btn-step');
+    if(mineBtn) {
+        if(vaultCoins < 1 && !mineInGame) { mineBtn.disabled = true; }
+        else { mineBtn.disabled = false; }
     }
     
     renderMarket(); 
@@ -710,4 +749,5 @@ function buyItem(id, price) {
 </script>
 </body>
 </html>
+
 
