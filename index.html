@@ -430,6 +430,29 @@ const GRAVITY = 0.6;
 const FLOOR_OFFSET = 30; 
 let vaultCoins = 0;
 
+// --- SISTEMAS DE HABILIDADES PASIVAS (M2 y M4) ---
+
+// Habilidad M2 (Lengua de Plata): 20% de probabilidad de reembolso al perder
+function checkCashback(sourceElement) {
+    if (userInventory.includes('m2') && Math.random() < 0.20) {
+        vaultCoins++;
+        updateCoinHUD();
+        setTimeout(() => {
+            spawnFloatingReward("1🪙 (Cashback)", sourceElement || document.getElementById('coin-hud'));
+        }, 600); // Pequeño retraso para que no se encime con el mensaje de pérdida
+    }
+}
+
+// Habilidad M4 (Exitoso): Ingreso Pasivo (+2 monedas cada minuto)
+setInterval(() => {
+    if (userInventory.includes('m4')) {
+        vaultCoins += 2;
+        updateCoinHUD();
+        spawnFloatingReward(2, document.getElementById('coin-hud'));
+    }
+}, 60000);
+  
+
 function updateCoinHUD() {
     document.getElementById('coin-count').innerText = vaultCoins;
     localStorage.setItem('shl_vault_coins', vaultCoins);
@@ -516,18 +539,30 @@ function pokeDuende(index) {
 function spawnCoin(originX) {
     const coin = document.createElement('div');
     coin.className = 'coin-drop'; 
+    
+    // HABILIDAD M3 (Maestro Xfers): 10% prob. de valer 3 monedas y caen más lento
+    let isGoldenDrop = userInventory.includes('m3') && Math.random() < 0.10;
+    let coinValue = isGoldenDrop ? 3 : 1;
+    let fallTime = userInventory.includes('m3') ? 4500 : 3000; // 4.5s vs 3.0s
+    
+    coin.style.animationDuration = `${fallTime / 1000}s`;
+    if (isGoldenDrop) {
+        coin.style.filter = 'drop-shadow(0 0 25px #44FF88)'; // Resplandor verde especial
+        coin.style.transform = 'scale(1.2)';
+    }
+
     const safeX = Math.max(30, Math.min(window.innerWidth - 60, originX));
     coin.style.left = `${safeX}px`;
     
     coin.onclick = (e) => {
         e.stopPropagation(); 
-        vaultCoins++; updateCoinHUD();
+        vaultCoins += coinValue; updateCoinHUD();
         coin.style.animation = 'none'; coin.style.transform = 'scale(1.5)'; coin.style.opacity = '0'; coin.style.transition = 'all 0.2s ease-out';
         setTimeout(() => coin.remove(), 200);
     };
 
     document.getElementById('game-zone').appendChild(coin);
-    setTimeout(() => { if (document.body.contains(coin)) { coin.remove(); } }, 3000);
+    setTimeout(() => { if (document.body.contains(coin)) { coin.remove(); } }, fallTime);
 }
 
 /* ==========================================================================
@@ -607,6 +642,7 @@ function spinSlot() {
         } else {
             msg.innerText = "Sigue intentando..."; msg.style.color = "var(--ink)";
             updateCoinHUD(); 
+            checkCashback(document.getElementById('slot-machine'));
         }
     }, 2000);
 }
@@ -645,26 +681,19 @@ function pickShell(index) {
     
     const shells = document.querySelectorAll('.shell');
     const msg = document.getElementById('shell-msg');
-    const btn = document.getElementById('shell-btn');
     
-    // MATEMÁTICAS PUNITIVAS: La ilusión de elección.
-    // Tienen un 15% real de ganar, sin importar qué caja toquen.
+    // HABILIDAD M1 (Afortunado): Sube probabilidad de 20% a 30%
+    let winChance = userInventory.includes('m1') ? 0.30 : 0.20;
     let rng = Math.random();
-    let isWin = (rng < 0.25); 
+    let isWin = (rng < winChance); 
     let winningShell = 0;
     
-    if (isWin) {
-        winningShell = index; // Si ganan, forzamos que la moneda esté donde tocaron
-    } else {
-        // Si pierden, ponemos la moneda en otra caja al azar
-        do { winningShell = Math.floor(Math.random() * 3); } while (winningShell === index);
-    }
+    if (isWin) { winningShell = index; } 
+    else { do { winningShell = Math.floor(Math.random() * 3); } while (winningShell === index); }
     
     shells.forEach((s, i) => {
-        if (i === winningShell) { 
-            s.innerHTML = '<img src="https://i.ibb.co/hFWzhLvV/pngwing-com.png" style="width: 32px; vertical-align: middle;">'; 
-        } 
-        else { s.innerText = '💨'; } // Humo
+        if (i === winningShell) { s.innerHTML = '<img src="https://i.ibb.co/hFWzhLvV/pngwing-com.png" style="width: 32px; vertical-align: middle;">'; } 
+        else { s.innerText = '💨'; }
     });
     
     if (isWin) {
@@ -674,12 +703,13 @@ function pickShell(index) {
         spawnFloatingReward(reward, document.getElementById('shell-game'));
     } else {
         msg.innerText = "Caja vacía..."; msg.style.color = "var(--neon-red)";
+        checkCashback(document.getElementById('shell-game')); // Llama a M2
     }
     
     setTimeout(() => {
         shells.forEach(s => s.innerText = '📦');
         msg.innerText = "Paga x3"; msg.style.color = "var(--ink)";
-        updateCoinHUD(); // Esto reactiva el botón si hay dinero
+        updateCoinHUD(); 
     }, 2000);
 }
 
@@ -699,15 +729,16 @@ function playCards(guess) {
     const msg = document.getElementById('cards-msg');
     msg.innerText = "Sacando..."; msg.style.color = "var(--neon-blue)";
     
-    // LA CASA MANDA: 30% de las veces forzamos una carta perdedora o empate
+    // HABILIDAD M1 (Afortunado): Reduce la trampa de la casa en las cartas de 30% a 15%
+    let houseCheatChance = userInventory.includes('m1') ? 0.15 : 0.30;
     let nextCardValue = Math.floor(Math.random() * 10) + 1;
     let rng = Math.random();
     
-    if (rng < 0.30) {
+    if (rng < houseCheatChance) {
         if (guess === 'higher') {
-            nextCardValue = Math.floor(Math.random() * currentCardValue) + 1; // Asegura que sea menor o igual
+            nextCardValue = Math.floor(Math.random() * currentCardValue) + 1; // Asegura menor o igual
         } else {
-            nextCardValue = Math.floor(Math.random() * (10 - currentCardValue + 1)) + currentCardValue; // Asegura que sea mayor o igual
+            nextCardValue = Math.floor(Math.random() * (10 - currentCardValue + 1)) + currentCardValue; // Asegura mayor o igual
         }
     }
 
@@ -719,7 +750,6 @@ function playCards(guess) {
         let won = false;
         if (guess === 'higher' && nextCardValue > currentCardValue) won = true;
         if (guess === 'lower' && nextCardValue < currentCardValue) won = true;
-        // Los empates (mismo número) SIEMPRE los gana la casa.
         
         if (won) {
             let reward = 2; // Paga el doble
@@ -729,6 +759,8 @@ function playCards(guess) {
         } else {
             msg.innerText = (nextCardValue === currentCardValue) ? "Empate (Casa Gana)" : "Fallaste..."; 
             msg.style.color = "var(--neon-red)";
+            // HABILIDAD M2 (Lengua de Plata): Llamamos al reembolso al perder
+            checkCashback(document.getElementById('cards-game')); 
         }
         
         currentCardValue = nextCardValue;
@@ -767,13 +799,15 @@ function takeMineStep() {
     mineCurrentStep++;
     let stepEl = document.getElementById(`step-${mineCurrentStep}`);
     
-    // MATEMÁTICA PUNITIVA: El riesgo aumenta exponencialmente
+    // HABILIDAD M1 (Afortunado): Reduce sutilmente la probabilidad de que haya bombas
+    let isLucky = userInventory.includes('m1');
     let bombChance = 0;
-    if (mineCurrentStep === 1) bombChance = 0.05;      // 5% mueren en el paso 1
-    else if (mineCurrentStep === 2) bombChance = 0.30; // 30%
-    else if (mineCurrentStep === 3) bombChance = 0.40; // 40%
-    else if (mineCurrentStep === 4) bombChance = 0.65; // 65%
-    else bombChance = 0.85;                            // 85% de probabilidad de bomba en el paso final
+    
+    if (mineCurrentStep === 1) bombChance = isLucky ? 0.02 : 0.05;      // Paso 1
+    else if (mineCurrentStep === 2) bombChance = isLucky ? 0.20 : 0.30; // Paso 2
+    else if (mineCurrentStep === 3) bombChance = isLucky ? 0.30 : 0.40; // Paso 3
+    else if (mineCurrentStep === 4) bombChance = isLucky ? 0.50 : 0.65; // Paso 4
+    else bombChance = isLucky ? 0.70 : 0.85;                            // Paso 5 final
     
     let rng = Math.random();
     if (rng < bombChance) {
@@ -784,14 +818,16 @@ function takeMineStep() {
         document.getElementById('mine-btn-step').innerText = "JUGAR (1🪙)";
         document.getElementById('mine-btn-cash').style.display = "none";
         updateCoinHUD();
+        // HABILIDAD M2 (Lengua de Plata): Llamamos al reembolso
+        checkCashback(document.getElementById('mines-game')); 
     } else {
         // A SALVO
         stepEl.innerText = '✔️'; stepEl.classList.add('safe');
         
-        if (mineCurrentStep === 1) currentMineReward = 1;      // Recuperan la moneda
+        if (mineCurrentStep === 1) currentMineReward = 1;      // Recuperan
         else if (mineCurrentStep === 2) currentMineReward = 2; // Ganan 2
-        else if (mineCurrentStep === 3) currentMineReward = 5; // Ganan 3
-        else if (mineCurrentStep === 4) currentMineReward = 15; // Ganan 5
+        else if (mineCurrentStep === 3) currentMineReward = 5; // Ganan 5
+        else if (mineCurrentStep === 4) currentMineReward = 15; // Ganan 15
         else if (mineCurrentStep === 5) currentMineReward = 50; // Jackpot
         
         msg.innerText = `A salvo. Acumulado: ${currentMineReward}🪙`; msg.style.color = "#44FF88";
@@ -801,10 +837,11 @@ function takeMineStep() {
             document.getElementById('mine-btn-cash').style.display = "block";
             document.getElementById(`step-${mineCurrentStep+1}`).classList.add('active');
         } else {
-            cashoutMines(); // Si llegan al 5, cobran automáticamente
+            cashoutMines(); // Si llegan al 5, cobran
         }
     }
 }
+  
 
 function cashoutMines() {
     if (!mineInGame || currentMineReward === 0) return;
@@ -925,6 +962,7 @@ function renderAchievements() {
 </script>
 </body>
 </html>
+
 
 
 
