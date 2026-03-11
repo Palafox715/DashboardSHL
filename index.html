@@ -503,7 +503,7 @@ setInterval(() => {
   
 
 function updateCoinHUD() {
-    document.getElementById('coin-count').innerText = vaultCoins;
+    document.getElementById('coin-count').innerText = vaultCoins.toLocaleString('en-US');
     localStorage.setItem('shl_vault_coins', vaultCoins);
     
     // Tragaperras
@@ -1003,10 +1003,10 @@ function playPoker(betType) {
     let isM1 = userInventory.includes('m1'); // Afortunado mejora un poco esto
     
     if (rng < (isM1 ? 0.02 : 0.01)) { outcome = 'legendary'; multiplier = 50; }       // 1% Full House/Poker
-    else if (rng < (isM1 ? 0.08 : 0.05)) { outcome = 'epic'; multiplier = 10; }       // 4% Color/Escalera
-    else if (rng < (isM1 ? 0.16 : 0.12)) { outcome = 'three'; multiplier = 5; }       // 7% Tercia
-    else if (rng < (isM1 ? 0.30 : 0.22)) { outcome = 'twopair'; multiplier = 3; }     // 10% Doble Par
-    else if (rng < (isM1 ? 0.50 : 0.40)) { outcome = 'pair'; multiplier = 2; }        // 18% Un Par
+    else if (rng < (isM1 ? 0.07 : 0.03)) { outcome = 'epic'; multiplier = 10; }       // 4% Color/Escalera
+    else if (rng < (isM1 ? 0.10 : 0.8)) { outcome = 'three'; multiplier = 5; }       // 7% Tercia
+    else if (rng < (isM1 ? 0.20 : 0.12)) { outcome = 'twopair'; multiplier = 3; }     // 10% Doble Par
+    else if (rng < (isM1 ? 0.40 : 0.30)) { outcome = 'pair'; multiplier = 2; }        // 18% Un Par
     else { outcome = 'lose'; multiplier = 0; }                                        // 60% Pierde (Nada)
     
     // 2. Generar la "Ilusión" visual
@@ -1156,3 +1156,4 @@ function renderAchievements() {
 </script>
 </body>
 </html>
+
