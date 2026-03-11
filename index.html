@@ -20,28 +20,8 @@
     --glow-gold: rgba(255, 215, 0, .6);
   }
   
-html,body { 
-    margin: 0; 
-    min-height: 100%; 
-    width: 100%; 
-    
-    /* === NUEVO FONDO CON IMAGEN Y VELO OSCURO === */
-    background-color: var(--dark-bg);
-    background-image: 
-      linear-gradient(rgba(10, 10, 10, 0.85), rgba(10, 10, 10, 0.85)), /* Este es el sombreado (85% de oscuridad) */
-      url('https://i.ibb.co/fdGbRTpn/Gemini-Generated-Image-s84471s84471s844.png');
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: cover;       /* Asegura que cubra toda la pantalla sin deformarse */
-    background-attachment: fixed; /* Mantiene la imagen estática si hubiera scroll */
-    
-    color: var(--ink); 
-    font-family: system-ui, -apple-system, sans-serif; 
-    overflow: hidden; 
-  }
+  html,body{ margin:0; min-height:100%; width:100%; background:var(--dark-bg); color:var(--ink); font-family:system-ui,-apple-system,sans-serif; overflow: hidden; }
 
-  
-  
   /* CAPA -2: FONDO MATRIX Y GRADIENTES */
   #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; opacity: 0.12; pointer-events: none; }
   body::before, body::after{ content:""; position:fixed; inset:-20%; background: radial-gradient(40% 40% at 20% 20%, var(--glow-blue), transparent), radial-gradient(30% 30% at 50% 90%, var(--glow-purple), transparent); z-index:-1; pointer-events:none; mix-blend-mode:lighten; animation:float 22s linear infinite; }
@@ -507,7 +487,7 @@ function checkCashback(sourceElement) {
         vaultCoins++;
         updateCoinHUD();
         setTimeout(() => {
-            spawnFloatingReward("1🪙 (Cashback)", sourceElement || document.getElementById('coin-count').innerText = vaultCoins.toLocaleString('en-US');
+            spawnFloatingReward("1🪙 (Cashback)", sourceElement || document.getElementById('coin-hud'));
         }, 600); // Pequeño retraso para que no se encime con el mensaje de pérdida
     }
 }
@@ -1023,11 +1003,11 @@ function playPoker(betType) {
     let isM1 = userInventory.includes('m1'); // Afortunado mejora un poco esto
     
     if (rng < (isM1 ? 0.02 : 0.01)) { outcome = 'legendary'; multiplier = 50; }       // 1% Full House/Poker
-    else if (rng < (isM1 ? 0.04 : 0.03)) { outcome = 'epic'; multiplier = 10; }       // 4% Color/Escalera
-    else if (rng < (isM1 ? 0.7 : 0.5)) { outcome = 'three'; multiplier = 5; }       // 7% Tercia
-    else if (rng < (isM1 ? 0.20 : 0.12)) { outcome = 'twopair'; multiplier = 3; }     // 10% Doble Par
-    else if (rng < (isM1 ? 0.35 : 0.30)) { outcome = 'pair'; multiplier = 2; }        // 20% Un Par
-    else { outcome = 'lose'; multiplier = 0; }                                        // 40% Pierde (Nada)
+    else if (rng < (isM1 ? 0.08 : 0.05)) { outcome = 'epic'; multiplier = 10; }       // 4% Color/Escalera
+    else if (rng < (isM1 ? 0.16 : 0.12)) { outcome = 'three'; multiplier = 5; }       // 7% Tercia
+    else if (rng < (isM1 ? 0.30 : 0.22)) { outcome = 'twopair'; multiplier = 3; }     // 10% Doble Par
+    else if (rng < (isM1 ? 0.50 : 0.40)) { outcome = 'pair'; multiplier = 2; }        // 18% Un Par
+    else { outcome = 'lose'; multiplier = 0; }                                        // 60% Pierde (Nada)
     
     // 2. Generar la "Ilusión" visual
     const finalCards = generateFakeHand(outcome);
@@ -1176,6 +1156,3 @@ function renderAchievements() {
 </script>
 </body>
 </html>
-
-
-
