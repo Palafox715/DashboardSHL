@@ -202,7 +202,7 @@
 
 
 /* =========================================
-     EXHIBIDOR DE MEDALLAS (INTEGRADO AL DASHBOARD)
+     EXHIBIDOR DE MEDALLAS (ESTILO ELEGANTE/LIMPIO)
      ========================================= */
   #achievements-bar {
     display: flex;
@@ -218,19 +218,21 @@
     border-radius: 12px; /* Cuadrado con bordes suaves para no recortar la imagen */
     background-size: cover;
     background-position: center;
-    border: 2px solid var(--neon-purple); /* Borde neón */
-    /* Resplandor neón intenso hacia afuera y sombra hacia adentro para profundidad */
-    box-shadow: 0 0 15px var(--glow-purple), 0 0 30px var(--neon-purple), inset 0 0 15px rgba(0,0,0,0.8);
+    border: 2px solid rgba(255, 255, 255, 0.15); /* Borde claro muy sutil */
+    /* Sombra oscura clásica para dar peso y profundidad física, sin luces de colores */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
     cursor: help;
     transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
   }
   
   .achievement-medal:hover {
     transform: scale(1.15) translateY(-5px);
-    border-color: var(--neon-gold);
-    box-shadow: 0 0 25px var(--glow-gold), 0 0 50px var(--neon-gold), inset 0 0 10px rgba(0,0,0,0.5);
+    border-color: rgba(255, 215, 0, 0.6); /* Borde dorado elegante al pasar el cursor */
+    /* La sombra se hace más grande y oscura hacia abajo para simular que la placa se eleva */
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.95);
     z-index: 10;
   }
+
 
   
   /* Ajuste para que las imágenes encajen en la tienda */
@@ -493,7 +495,7 @@ function checkCashback(sourceElement) {
 // Habilidad M4 (Exitoso): Ingreso Pasivo (+2 monedas cada minuto)
 setInterval(() => {
     if (userInventory.includes('m4')) {
-        vaultCoins += 2;
+        vaultCoins += 10;
         updateCoinHUD();
         spawnFloatingReward(2, document.getElementById('coin-hud'));
     }
@@ -622,6 +624,23 @@ function spawnCoin(originX) {
     setTimeout(() => { if (document.body.contains(coin)) { coin.remove(); } }, fallTime);
 }
 
+// Habilidad M5 (Apex Predator): Interés Compuesto (5% de dividendo por hora)
+setInterval(() => {
+    if (userInventory.includes('m5') && vaultCoins >= 5000) {
+        // Calcula el 5% del saldo actual (redondeado hacia abajo para evitar decimales)
+        let dividend = Math.floor(vaultCoins * 0.05); 
+        
+        if (dividend > 0) {
+            vaultCoins += dividend;
+            updateCoinHUD();
+            
+            // Reutilizamos el sistema visual para anunciarle el pago
+            spawnFloatingReward(dividend + "🪙 (Dividendo)", document.getElementById('coin-hud'));
+            console.log(`[Banco Shoreline] Dividendo pagado: +${dividend} monedas.`);
+        }
+    }
+}, 3600000); // 3600000 milisegundos = 1 Hora exacta
+  
 /* ==========================================================================
    SISTEMA DE FOREGROUND
    ========================================================================== */
@@ -1038,7 +1057,7 @@ const marketCatalog = [
     { id: 'm2', name: "Silver Tongue", img: 'https://i.ibb.co/3m7sFDc9/Gemini-Generated-Image-qz0vg3qz0vg3qz0v.png', desc: "Master of persuasion. You can sell ice to an Eskimo.", price: 2500 },
     { id: 'm3', name: "Transfer Virtuoso", img: 'https://i.ibb.co/ZpSvNy6J/Gemini-Generated-Image-bho1m2bho1m2bho1.png', desc: "Flawless execution in every handoff. The ultimate connector.", price: 5000 },
     { id: 'm4', name: "Peak Performer", img: 'https://i.ibb.co/TMtDXPqT/Gemini-Generated-Image-zct45pzct45pzct4.png', desc: "Consistency breeds success. A testament to relentless excellence.", price: 10000 },
-    { id: 'm5', name: "Apex Predator", img: 'https://i.ibb.co/hJzyXfdJ/Gemini-Generated-Image-72pa7p72pa7p72pa.png', desc: "The biggest fish in the pond. You dominate the leaderboard ecosystem.", price: 25000 },
+    { id: 'm5', name: "Apex Predator", img: 'https://i.ibb.co/hJzyXfdJ/Gemini-Generated-Image-72pa7p72pa7p72pa.png', desc: "The biggest fish. Yields a 5% compound interest dividend every hour if your balance is over 5,000🪙.", price: 25000 },
     { id: 'm6', name: "The Megalodon", img: 'https://i.ibb.co/HLd31Jbs/Gemini-Generated-Image-kvl61xkvl61xkvl6.png', desc: "An ancient, unstoppable force. True legends never die, they just get bigger.", price: 100000 }
 ];
 
@@ -1137,3 +1156,4 @@ function renderAchievements() {
 </script>
 </body>
 </html>
+
