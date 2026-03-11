@@ -148,6 +148,24 @@
   .mine-step.safe { opacity: 1; filter: drop-shadow(0 0 5px #44FF88); }
   .mine-step.boom { opacity: 1; filter: drop-shadow(0 0 5px #FF4444); }
   .mines-controls { display: flex; gap: 5px; width: 100%; }
+
+  /* =========================================
+     MINIJUEGO 5: TEXAS EXPRESS (Póker Vertical)
+     ========================================= */
+  #poker-game { position: fixed; top: 420px; left: 20px; z-index: 100; background: var(--glass-strong); padding: 15px; border-radius: 12px; border: 2px solid #555; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: auto; width: 140px; box-sizing: border-box; }
+  .poker-table { display: flex; gap: 5px; justify-content: center; width: 100%; }
+  .poker-card { width: 32px; height: 46px; background: #FFF; border-radius: 4px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-weight: 900; font-size: 14px; box-shadow: inset 0 0 5px rgba(0,0,0,0.3), 0 2px 5px rgba(0,0,0,0.8); user-select: none; transition: transform 0.3s; }
+  .poker-card.back { background: repeating-linear-gradient(45deg, #800, #800 5px, #500 5px, #500 10px); border: 2px solid #FFF; }
+  .poker-card.red-suit { color: #DD0000; }
+  .poker-card.black-suit { color: #111; }
+  .poker-paytable { background: rgba(0,0,0,0.6); width: 100%; border-radius: 4px; padding: 4px; font-size: 9px; color: #aaa; text-align: center; border: 1px solid #333; line-height: 1.2; }
+  .poker-controls { display: flex; flex-wrap: wrap; gap: 4px; width: 100%; }
+  .btn-bet { flex: 1; font-size: 10px; padding: 6px 0; background: linear-gradient(180deg, #44CCFF, #005588); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; box-shadow: 0 3px 0 #003355; transition: transform 0.1s; }
+  .btn-bet:active { transform: translateY(3px); box-shadow: none; }
+  .btn-allin { width: 100%; font-size: 10px; padding: 6px 0; background: linear-gradient(180deg, #FF4444, #880000); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; box-shadow: 0 3px 0 #550000; transition: transform 0.1s; margin-top: 2px;}
+  .btn-allin:active { transform: translateY(3px); box-shadow: none; }
+  .btn-bet:disabled, .btn-allin:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
   
   
   /* =========================================
@@ -314,6 +332,35 @@
   <div class="slot-message" id="cards-msg">¿Mayor o Menor?</div>
 </div>
 
+
+<div id="poker-game">
+  <div style="font-size:10px; font-weight:bold; color:var(--neon-blue); letter-spacing:1px; text-align:center;">TEXAS EXPRESS</div>
+  
+  <div style="font-size:8px; color:#888; margin-top:2px;">LA MESA</div>
+  <div class="poker-table" id="poker-community">
+    <div class="poker-card back"></div><div class="poker-card back"></div><div class="poker-card back"></div>
+  </div>
+  
+  <div class="poker-paytable">
+    Par: x2 | Doble: x3<br>Tercia: x5 | Esc/Col: x10<br>Full House+: x50
+  </div>
+  
+  <div style="font-size:8px; color:#888;">TU MANO</div>
+  <div class="poker-table" id="poker-player">
+    <div class="poker-card back"></div><div class="poker-card back"></div>
+  </div>
+
+  <div class="poker-controls">
+    <button class="btn-bet" onclick="playPoker(10)">10🪙</button>
+    <button class="btn-bet" onclick="playPoker(50)">50🪙</button>
+    <button class="btn-allin" onclick="playPoker('ALL')">ALL IN 🔥</button>
+  </div>
+  <div class="slot-message" id="poker-msg" style="margin-top:2px;">Elige tu apuesta</div>
+</div>
+  
+  
+
+  
   
 <button id="market-toggle" onclick="toggleMarket()" title="Mercado Clandestino">🛒</button>
 
@@ -482,6 +529,16 @@ function updateCoinHUD() {
         else { mineBtn.disabled = false; }
     }
     
+    // Poker
+    const pokerBtns = document.querySelectorAll('#poker-game button');
+    pokerBtns.forEach(btn => {
+        if(isPokerPlaying) { btn.disabled = true; }
+        else if(vaultCoins < 10 && btn.innerText.includes('10')) { btn.disabled = true; }
+        else if(vaultCoins < 50 && btn.innerText.includes('50')) { btn.disabled = true; }
+        else if(vaultCoins < 1 && btn.innerText.includes('ALL')) { btn.disabled = true; }
+        else { btn.disabled = false; }
+    });  
+  
     renderMarket(); 
 }
 
@@ -854,6 +911,124 @@ function cashoutMines() {
     document.getElementById('mine-btn-step').innerText = "JUGAR (1🪙)";
     document.getElementById('mine-btn-cash').style.display = "none";
 }
+
+
+
+/* ==========================================================================
+   MINIJUEGO 5: TEXAS EXPRESS (POKER ILUSORIO)
+   ========================================================================== */
+let isPokerPlaying = false;
+
+// Generador de humo y espejos: Crea una mano que coincida con el resultado predeterminado
+function generateFakeHand(outcome) {
+    const ranks = ['9','10','J','Q','K','A'];
+    const suits = [{s:'♥️', c:'red'}, {s:'♦️', c:'red'}, {s:'♠️', c:'black'}, {s:'♣️', c:'black'}];
+    let hand = [];
+    const shuffle = (arr) => arr.sort(() => 0.5 - Math.random());
+    
+    let shRanks = shuffle([...ranks]);
+    let shSuits = shuffle([...suits]);
+    
+    if (outcome === 'lose') {
+        for(let i=0; i<5; i++) hand.push({r: shRanks[i], s: suits[Math.floor(Math.random()*4)].s, c: suits[Math.floor(Math.random()*4)].c});
+        hand[4].s = suits[(suits.findIndex(x=>x.s===hand[0].s) + 1) % 4].s; // Evitar color por accidente
+    } else if (outcome === 'pair') {
+        hand.push({r: shRanks[0], s: shSuits[0].s, c: shSuits[0].c}); hand.push({r: shRanks[0], s: shSuits[1].s, c: shSuits[1].c});
+        hand.push({r: shRanks[1], s: suits[0].s, c: suits[0].c}); hand.push({r: shRanks[2], s: suits[1].s, c: suits[1].c}); hand.push({r: shRanks[3], s: suits[2].s, c: suits[2].c});
+    } else if (outcome === 'twopair') {
+        hand.push({r: shRanks[0], s: shSuits[0].s, c: shSuits[0].c}); hand.push({r: shRanks[0], s: shSuits[1].s, c: shSuits[1].c});
+        hand.push({r: shRanks[1], s: shSuits[2].s, c: shSuits[2].c}); hand.push({r: shRanks[1], s: shSuits[3].s, c: shSuits[3].c});
+        hand.push({r: shRanks[2], s: suits[0].s, c: suits[0].c});
+    } else if (outcome === 'three') {
+        hand.push({r: shRanks[0], s: suits[0].s, c: suits[0].c}); hand.push({r: shRanks[0], s: suits[1].s, c: suits[1].c}); hand.push({r: shRanks[0], s: suits[2].s, c: suits[2].c});
+        hand.push({r: shRanks[1], s: suits[0].s, c: suits[0].c}); hand.push({r: shRanks[2], s: suits[1].s, c: suits[1].c});
+    } else if (outcome === 'epic') {
+        // Color
+        for(let i=0; i<5; i++) hand.push({r: shRanks[i], s: shSuits[0].s, c: shSuits[0].c});
+    } else if (outcome === 'legendary') {
+        // Poker (4 iguales)
+        hand.push({r: shRanks[0], s: suits[0].s, c: suits[0].c}); hand.push({r: shRanks[0], s: suits[1].s, c: suits[1].c}); hand.push({r: shRanks[0], s: suits[2].s, c: suits[2].c}); hand.push({r: shRanks[0], s: suits[3].s, c: suits[3].c});
+        hand.push({r: shRanks[1], s: suits[0].s, c: suits[0].c});
+    }
+    
+    // Corregir colores de palos que se hayan desincronizado
+    hand.forEach(crd => { if(crd.s==='♥️'||crd.s==='♦️') crd.c='red'; else crd.c='black'; });
+    return shuffle(hand);
+}
+
+function playPoker(betType) {
+    let betAmount = 0;
+    if (betType === 'ALL') {
+        if(vaultCoins < 1) return;
+        betAmount = vaultCoins;
+    } else {
+        betAmount = parseInt(betType);
+        if(vaultCoins < betAmount) return;
+    }
+    
+    vaultCoins -= betAmount;
+    isPokerPlaying = true;
+    updateCoinHUD();
+    
+    const msg = document.getElementById('poker-msg');
+    msg.innerText = "Repartiendo..."; msg.style.color = "var(--neon-blue)";
+    
+    // Ocultar cartas
+    const allCards = document.querySelectorAll('.poker-card');
+    allCards.forEach(c => { c.className = 'poker-card back'; c.innerHTML = ''; });
+    
+    // 1. EL ALGORITMO PUNITIVO (Decide el futuro antes de mostrar las cartas)
+    let rng = Math.random();
+    let outcome = 'lose';
+    let multiplier = 0;
+    let isM1 = userInventory.includes('m1'); // Afortunado mejora un poco esto
+    
+    if (rng < (isM1 ? 0.02 : 0.01)) { outcome = 'legendary'; multiplier = 50; }       // 1% Full House/Poker
+    else if (rng < (isM1 ? 0.08 : 0.05)) { outcome = 'epic'; multiplier = 10; }       // 4% Color/Escalera
+    else if (rng < (isM1 ? 0.16 : 0.12)) { outcome = 'three'; multiplier = 5; }       // 7% Tercia
+    else if (rng < (isM1 ? 0.30 : 0.22)) { outcome = 'twopair'; multiplier = 3; }     // 10% Doble Par
+    else if (rng < (isM1 ? 0.50 : 0.40)) { outcome = 'pair'; multiplier = 2; }        // 18% Un Par
+    else { outcome = 'lose'; multiplier = 0; }                                        // 60% Pierde (Nada)
+    
+    // 2. Generar la "Ilusión" visual
+    const finalCards = generateFakeHand(outcome);
+    
+    // 3. Animar la revelación de cartas
+    setTimeout(() => {
+        // Revelar Flop (Mesa)
+        const commCards = document.getElementById('poker-community').children;
+        for(let i=0; i<3; i++) {
+            commCards[i].className = `poker-card ${finalCards[i].c}-suit`;
+            commCards[i].innerHTML = `<span>${finalCards[i].r}</span><span>${finalCards[i].s}</span>`;
+        }
+    }, 500);
+    
+    setTimeout(() => {
+        // Revelar Mano del Jugador
+        const playerCards = document.getElementById('poker-player').children;
+        for(let i=0; i<2; i++) {
+            playerCards[i].className = `poker-card ${finalCards[i+3].c}-suit`;
+            playerCards[i].innerHTML = `<span>${finalCards[i+3].r}</span><span>${finalCards[i+3].s}</span>`;
+        }
+        
+        // Resultado Final
+        isPokerPlaying = false;
+        if (multiplier > 0) {
+            let winAmount = betAmount * multiplier;
+            vaultCoins += winAmount;
+            msg.innerText = `¡GANASTE +${winAmount}🪙!`; msg.style.color = "var(--neon-gold)";
+            spawnFloatingReward(winAmount, document.getElementById('poker-game'));
+        } else {
+            msg.innerText = "Mala suerte..."; msg.style.color = "var(--neon-red)";
+            checkCashback(document.getElementById('poker-game')); // M2 Te puede salvar
+        }
+        updateCoinHUD();
+        
+    }, 1200);
+}
+
+  
+  
   
 /* ==========================================================================
    TIENDA Y EXHIBIDOR DE MEDALLAS
@@ -962,12 +1137,3 @@ function renderAchievements() {
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
