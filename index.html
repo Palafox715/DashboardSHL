@@ -848,65 +848,6 @@ function pickShell(index) {
 }
 
 /* ==========================================================================
-   MINIJUEGO 3: CARTAS MAYOR O MENOR
-   ========================================================================== */
-let currentCardValue = Math.floor(Math.random() * 10) + 1;
-let isCardsPlaying = false;
-document.getElementById('current-card').innerText = currentCardValue; // Inicializa la primer carta
-
-function playCards(guess) {
-    if (vaultCoins < 1 || isCardsPlaying) return;
-    vaultCoins--; updateCoinHUD();
-    isCardsPlaying = true;
-    
-    const display = document.getElementById('current-card');
-    const msg = document.getElementById('cards-msg');
-    msg.innerText = "Sacando..."; msg.style.color = "var(--neon-blue)";
-    
-    // HABILIDAD M1 (Afortunado): Reduce la trampa de la casa en las cartas de 30% a 15%
-    let houseCheatChance = userInventory.includes('m1') ? 0.15 : 0.30;
-    let nextCardValue = Math.floor(Math.random() * 10) + 1;
-    let rng = Math.random();
-    
-    if (rng < houseCheatChance) {
-        if (guess === 'higher') {
-            nextCardValue = Math.floor(Math.random() * currentCardValue) + 1; // Asegura menor o igual
-        } else {
-            nextCardValue = Math.floor(Math.random() * (10 - currentCardValue + 1)) + currentCardValue; // Asegura mayor o igual
-        }
-    }
-
-    display.innerText = "❓";
-    
-    setTimeout(() => {
-        display.innerText = nextCardValue;
-        
-        let won = false;
-        if (guess === 'higher' && nextCardValue > currentCardValue) won = true;
-        if (guess === 'lower' && nextCardValue < currentCardValue) won = true;
-        
-        if (won) {
-            let reward = 2; // Paga el doble
-            vaultCoins += reward; updateCoinHUD();
-            msg.innerText = `¡GANASTE +${reward}🪙!`; msg.style.color = "var(--neon-gold)";
-            spawnFloatingReward(reward, document.getElementById('cards-game'));
-        } else {
-            msg.innerText = (nextCardValue === currentCardValue) ? "Empate (Casa Gana)" : "Fallaste..."; 
-            msg.style.color = "var(--neon-red)";
-            // HABILIDAD M2 (Lengua de Plata): Llamamos al reembolso al perder
-            checkCashback(document.getElementById('cards-game')); 
-        }
-        
-        currentCardValue = nextCardValue;
-        setTimeout(() => { 
-            isCardsPlaying = false; 
-            msg.innerText = "Adivina la siguiente"; msg.style.color = "var(--ink)";
-            updateCoinHUD();
-        }, 1500);
-    }, 800);
-}
-
-/* ==========================================================================
    MINIJUEGO 4: CAMPO DE MINAS
    ========================================================================== */
 let mineCurrentStep = 0;
@@ -1406,7 +1347,3 @@ function renderAchievements() {
 </script>
 </body>
 </html>
-
-
-
-
