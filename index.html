@@ -147,15 +147,25 @@ html,body {
   .shell.shuffle { animation: shuffle-anim 0.3s infinite; }
   @keyframes shuffle-anim { 0% { transform: translateX(0); } 50% { transform: translateX(5px); } 100% { transform: translateX(0); } }
 
-  /* =========================================
-     MINIJUEGO 3: CARTAS MAYOR/MENOR (Derecha)
+
+/* =========================================
+     MINIJUEGO: EL GRAN BLACKJACK 21 (Derecha)
      ========================================= */
-  #cards-game { position: fixed; top: 260px; right: 20px; z-index: 100; background: var(--glass-strong); padding: 15px; border-radius: 12px; border: 2px solid #555; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: auto; width: 140px; box-sizing: border-box; }
-  .card-display { font-size: 35px; background: #FFF; border-radius: 6px; width: 45px; height: 55px; display: flex; justify-content: center; align-items: center; color: #000; font-weight: 900; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); user-select: none; }
-  .cards-btns { display: flex; gap: 5px; width: 100%; }
-  .btn-card { background: linear-gradient(180deg, #555, #222); color: white; border: 1px solid #777; flex: 1; border-radius: 4px; cursor: pointer; font-size: 16px; padding: 5px 0; transition: transform 0.1s; }
-  .btn-card:active { transform: scale(0.9); }
-  .btn-card:disabled { opacity: 0.5; cursor: not-allowed; }
+  #blackjack-game { position: fixed; top: 260px; right: 20px; z-index: 100; background: var(--glass-strong); padding: 12px; border-radius: 12px; border: 2px solid #555; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: auto; width: 140px; box-sizing: border-box; }
+  .bj-table { display: flex; gap: -15px; justify-content: center; width: 100%; min-height: 46px; flex-wrap: wrap; }
+  .bj-table .poker-card { margin-left: -15px; box-shadow: -2px 2px 5px rgba(0,0,0,0.8); }
+  .bj-table .poker-card:first-child { margin-left: 0; }
+  .bj-score { font-size: 9px; color: #aaa; text-align: center; font-weight: bold; background: rgba(0,0,0,0.5); padding: 2px 5px; border-radius: 4px; width: 100%; box-sizing: border-box; border: 1px solid #333; }
+  .bj-bet-display { font-size: 16px; font-weight: 900; color: var(--neon-gold); text-shadow: 0 0 10px var(--neon-gold); text-align: center; width: 100%; margin: 2px 0; background: #000; border-radius: 4px; padding: 2px 0; border: inset 2px #333; }
+  .bj-controls, .bj-bet-controls { display: flex; flex-wrap: wrap; gap: 4px; width: 100%; }
+  .btn-bj { flex: 1; min-width: 45%; font-size: 10px; padding: 6px 0; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; transition: transform 0.1s; }
+  .btn-bj:active { transform: translateY(2px); }
+  .btn-bj:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-bj.bet { background: linear-gradient(180deg, #44CCFF, #005588); box-shadow: 0 3px 0 #003355; }
+  .btn-bj.clear { background: linear-gradient(180deg, #666, #333); box-shadow: 0 3px 0 #111; }
+  .btn-bj.deal { background: linear-gradient(180deg, #FFDD44, #AA7700); color: #000; min-width: 100%; box-shadow: 0 3px 0 #664400; }
+  .btn-bj.hit { background: linear-gradient(180deg, #44FF88, #008822); color: #000; box-shadow: 0 3px 0 #004411; }
+  .btn-bj.stand { background: linear-gradient(180deg, #FF4444, #880000); box-shadow: 0 3px 0 #440000; }
 
   /* =========================================
      MINIJUEGO 4: CAMPO DE MINAS (Izquierda)
@@ -343,14 +353,32 @@ html,body {
   <div class="slot-message" id="mines-msg">Premio Máx: x10</div>
 </div>
 
-<div id="cards-game">
-  <div style="font-size:10px; font-weight:bold; color:var(--ink); letter-spacing:1px;">CARTAS (1🪙)</div>
-  <div class="card-display" id="current-card">?</div>
-  <div class="cards-btns">
-    <button class="btn-card" onclick="playCards('lower')">🔽</button>
-    <button class="btn-card" onclick="playCards('higher')">🔼</button>
+<div id="blackjack-game">
+  <div style="font-size:10px; font-weight:bold; color:var(--neon-blue); letter-spacing:1px; text-align:center;">BLACKJACK 21</div>
+  
+  <div class="bj-score" id="bj-dealer-score">Crupier: ?</div>
+  <div class="bj-table" id="bj-dealer-hand"></div>
+  
+  <div class="bj-score" id="bj-player-score">Tú: 0</div>
+  <div class="bj-table" id="bj-player-hand"></div>
+
+  <div class="bj-bet-display" id="bj-current-bet">0🪙</div>
+
+  <div class="bj-bet-controls" id="bj-phase-bet">
+    <button class="btn-bj bet" onclick="addBjBet(1000)">+1K</button>
+    <button class="btn-bj bet" onclick="addBjBet(10000)">+10K</button>
+    <button class="btn-bj bet" onclick="addBjBet(100000)">+100K</button>
+    <button class="btn-bj clear" onclick="clearBjBet()">0</button>
+    <button class="btn-bj deal" id="btn-bj-deal" onclick="startBjHand()" disabled>REPARTIR</button>
   </div>
-  <div class="slot-message" id="cards-msg">¿Mayor o Menor?</div>
+
+  <div class="bj-controls" id="bj-phase-play" style="display:none;">
+    <button class="btn-bj hit" onclick="hitBj()">PEDIR</button>
+    <button class="btn-bj stand" onclick="standBj()">QUEDARSE</button>
+    <button class="btn-bj deal" id="btn-bj-double" onclick="doubleBj()">DOBLAR X2</button>
+  </div>
+  
+  <div class="slot-message" id="bj-msg" style="margin-top:2px;">Arma tu apuesta</div>
 </div>
 
 
@@ -546,12 +574,13 @@ function updateCoinHUD() {
         else if (!isShellShuffling && !shellGameActive) { shellBtn.disabled = false; }
     }
 
-    // Cartas
-    const cardsBtns = document.querySelectorAll('.btn-card');
-    cardsBtns.forEach(btn => {
-        if(vaultCoins < 1 && !isCardsPlaying) { btn.disabled = true; }
-        else { btn.disabled = false; }
-    });
+
+    // Blackjack
+    const btnDeal = document.getElementById('btn-bj-deal');
+    if(btnDeal) { btnDeal.disabled = (bjBet === 0 || bjState !== 'betting'); }
+    const btnDouble = document.getElementById('btn-bj-double');
+    if(btnDouble) { btnDouble.disabled = (vaultCoins < bjBet); } // Bloquea si no hay fondos para doblar
+  
 
     // Minas
     const mineBtn = document.getElementById('mine-btn-step');
@@ -1075,7 +1104,199 @@ function playPoker(betType) {
     }, 1200);
 }
 
-  
+
+
+/* ==========================================================================
+   MINIJUEGO: EL GRAN BLACKJACK (Reglas de Las Vegas)
+   ========================================================================== */
+let bjBet = 0;
+let bjPlayerHand = [];
+let bjDealerHand = [];
+let bjState = 'betting'; // betting, playing, dealer, gameover
+let bjDeck = [];
+
+function createBjDeck() {
+    const suits = [{s:'♥️', c:'red'}, {s:'♦️', c:'red'}, {s:'♠️', c:'black'}, {s:'♣️', c:'black'}];
+    const values = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+    let deck = [];
+    for(let suit of suits) {
+        for(let val of values) {
+            let weight = parseInt(val);
+            if (val === 'J' || val === 'Q' || val === 'K') weight = 10;
+            if (val === 'A') weight = 11;
+            deck.push({ v: val, w: weight, s: suit.s, c: suit.c });
+        }
+    }
+    // Mezcla aleatoria real
+    return deck.sort(() => Math.random() - 0.5);
+}
+
+function calculateBjScore(hand) {
+    let score = 0; let aces = 0;
+    for(let card of hand) { score += card.w; if (card.v === 'A') aces++; }
+    while(score > 21 && aces > 0) { score -= 10; aces--; }
+    return score;
+}
+
+function renderBjHand(hand, elementId, hiddenFirst = false) {
+    const el = document.getElementById(elementId);
+    el.innerHTML = '';
+    hand.forEach((card, i) => {
+        if (hiddenFirst && i === 0) {
+            el.innerHTML += `<div class="poker-card back" style="z-index:${i};"></div>`;
+        } else {
+            el.innerHTML += `<div class="poker-card ${card.c}-suit" style="z-index:${i};"><span>${card.v}</span><span>${card.s}</span></div>`;
+        }
+    });
+}
+
+function addBjBet(amount) {
+    if (vaultCoins >= amount && bjState === 'betting') {
+        vaultCoins -= amount; bjBet += amount;
+        document.getElementById('bj-current-bet').innerText = bjBet.toLocaleString('en-US') + "🪙";
+        updateCoinHUD();
+    }
+}
+
+function clearBjBet() {
+    if (bjState === 'betting' && bjBet > 0) {
+        vaultCoins += bjBet; bjBet = 0;
+        document.getElementById('bj-current-bet').innerText = "0🪙";
+        updateCoinHUD();
+    }
+}
+
+function startBjHand() {
+    if (bjBet <= 0 || bjState !== 'betting') return;
+    bjState = 'playing';
+    bjDeck = createBjDeck();
+    bjPlayerHand = [bjDeck.pop(), bjDeck.pop()];
+    bjDealerHand = [bjDeck.pop(), bjDeck.pop()];
+    
+    document.getElementById('bj-phase-bet').style.display = 'none';
+    document.getElementById('bj-phase-play').style.display = 'flex';
+    document.getElementById('bj-msg').innerText = "Tu turno..."; document.getElementById('bj-msg').style.color = "var(--ink)";
+    
+    updateBjUI(true);
+    
+    // Revisar Blackjack natural inicial
+    let pScore = calculateBjScore(bjPlayerHand);
+    if (pScore === 21) {
+        endBjGame('blackjack');
+    }
+}
+
+function hitBj() {
+    if (bjState !== 'playing') return;
+    document.getElementById('btn-bj-double').disabled = true; // Solo puedes doblar en la primera mano
+    bjPlayerHand.push(bjDeck.pop());
+    updateBjUI(true);
+    if (calculateBjScore(bjPlayerHand) > 21) endBjGame('bust');
+}
+
+function doubleBj() {
+    if (bjState !== 'playing' || vaultCoins < bjBet) return;
+    vaultCoins -= bjBet; 
+    bjBet *= 2; 
+    document.getElementById('bj-current-bet').innerText = bjBet.toLocaleString('en-US') + "🪙";
+    updateCoinHUD();
+    
+    bjPlayerHand.push(bjDeck.pop());
+    updateBjUI(true);
+    if (calculateBjScore(bjPlayerHand) > 21) endBjGame('bust');
+    else standBj(); // Después de doblar, te plantas obligatoriamente
+}
+
+function standBj() {
+    if (bjState !== 'playing') return;
+    bjState = 'dealer';
+    document.getElementById('bj-phase-play').style.display = 'none';
+    updateBjUI(false); // Revelar carta del crupier
+    playDealerTurn();
+}
+
+function playDealerTurn() {
+    let dScore = calculateBjScore(bjDealerHand);
+    document.getElementById('bj-msg').innerText = "Crupier jugando...";
+    
+    const dealerTimer = setInterval(() => {
+        dScore = calculateBjScore(bjDealerHand);
+        if (dScore < 17) {
+            bjDealerHand.push(bjDeck.pop());
+            updateBjUI(false);
+        } else {
+            clearInterval(dealerTimer);
+            evaluateBjWinner();
+        }
+    }, 1000);
+}
+
+function evaluateBjWinner() {
+    let pScore = calculateBjScore(bjPlayerHand);
+    let dScore = calculateBjScore(bjDealerHand);
+    
+    if (dScore > 21) endBjGame('dealer_bust');
+    else if (pScore > dScore) endBjGame('win');
+    else if (pScore < dScore) endBjGame('lose');
+    else endBjGame('push');
+}
+
+function endBjGame(result) {
+    bjState = 'gameover';
+    const msg = document.getElementById('bj-msg');
+    document.getElementById('bj-phase-play').style.display = 'none';
+    updateBjUI(false);
+    
+    let payout = 0;
+    if (result === 'blackjack') {
+        payout = Math.floor(bjBet * 2.5); // Paga 3 a 2
+        msg.innerText = "¡BLACKJACK NATURAL!"; msg.style.color = "var(--neon-gold)";
+    } else if (result === 'win' || result === 'dealer_bust') {
+        payout = bjBet * 2; // Paga 1 a 1 (recuperas y ganas)
+        msg.innerText = result === 'dealer_bust' ? "Crupier se pasa. ¡GANAS!" : "¡GANAS!"; msg.style.color = "var(--neon-gold)";
+    } else if (result === 'push') {
+        payout = bjBet; // Empate, te devuelven tu apuesta
+        msg.innerText = "Empate (Push)"; msg.style.color = "var(--ink)";
+    } else {
+        msg.innerText = "La casa gana."; msg.style.color = "var(--neon-red)";
+        checkCashback(document.getElementById('blackjack-game')); // Sinergia con M2 Lengua de Plata
+    }
+    
+    if (payout > 0) {
+        vaultCoins += payout;
+        spawnFloatingReward(payout, document.getElementById('blackjack-game'));
+    }
+    
+    bjBet = 0;
+    updateCoinHUD();
+    
+    // Resetear interfaz después de 3 segundos
+    setTimeout(() => {
+        document.getElementById('bj-current-bet').innerText = "0🪙";
+        document.getElementById('bj-phase-bet').style.display = 'flex';
+        renderBjHand([], 'bj-player-hand'); renderBjHand([], 'bj-dealer-hand');
+        document.getElementById('bj-player-score').innerText = "Tú: 0";
+        document.getElementById('bj-dealer-score').innerText = "Crupier: 0";
+        msg.innerText = "Arma tu apuesta"; msg.style.color = "var(--ink)";
+        bjState = 'betting';
+        updateCoinHUD();
+    }, 3000);
+}
+
+function updateBjUI(dealerHidden) {
+    renderBjHand(bjPlayerHand, 'bj-player-hand');
+    renderBjHand(bjDealerHand, 'bj-dealer-hand', dealerHidden);
+    document.getElementById('bj-player-score').innerText = `Tú: ${calculateBjScore(bjPlayerHand)}`;
+    
+    if (dealerHidden) {
+        // Solo calcular el valor de la carta visible (la segunda)
+        let visibleScore = bjDealerHand.length > 1 ? bjDealerHand[1].w : 0;
+        if (visibleScore === 11) visibleScore = 11; // Es un As
+        document.getElementById('bj-dealer-score').innerText = `Crupier: ${visibleScore}`;
+    } else {
+        document.getElementById('bj-dealer-score').innerText = `Crupier: ${calculateBjScore(bjDealerHand)}`;
+    }
+}
   
   
 /* ==========================================================================
