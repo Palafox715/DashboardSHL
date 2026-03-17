@@ -197,12 +197,13 @@ html,body {
 
   
 /* =========================================
-     MINIJUEGO FINAL: VIDEO PÓKER (Horizontal Top)
+     MINIJUEGO FINAL: VIDEO PÓKER (Horizontal Bottom)
      ========================================= */
   #vp-game { 
     position: fixed; 
-    top: 20px; 
-    right: 200px; /* Se ancla perfectamente a la izquierda de la Tragaperras */
+    bottom: 45px; /* Anclado a la parte inferior, justo por encima del pasto y el diagnóstico */
+    left: 50%;    /* Lo empuja al centro de la pantalla */
+    transform: translateX(-50%); /* Ajuste matemático para un centrado perfecto */
     z-index: 110; 
     background: var(--glass-strong); 
     padding: 10px 20px; 
