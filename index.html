@@ -196,6 +196,38 @@ html,body {
   .btn-bet:disabled, .btn-allin:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
   
+/* =========================================
+     MINIJUEGO FINAL: VIDEO PÓKER (Horizontal Top)
+     ========================================= */
+  #vp-game { 
+    position: fixed; 
+    top: 15px; 
+    left: 55%; /* Ligeramente a la derecha para no tapar todas las medallas */
+    transform: translateX(-30%);
+    z-index: 110; /* Mayor que las medallas para superponerse */
+    background: var(--glass-strong); 
+    padding: 10px 20px; 
+    border-radius: 12px; 
+    border: 2px solid var(--neon-purple); 
+    box-shadow: 0 10px 40px rgba(0,0,0,0.95), inset 0 0 20px rgba(255, 68, 204, 0.2); 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    gap: 8px; 
+    pointer-events: auto; 
+    min-width: 450px; 
+  }
+  .vp-paytable { font-size: 10px; color: #FFD700; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; background: rgba(0,0,0,0.7); padding: 6px; border-radius: 6px; border: 1px solid #333; width: 100%; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
+  .vp-paytable span { background: rgba(255,215,0,0.1); padding: 2px 6px; border-radius: 4px; }
+  .vp-table { display: flex; gap: 10px; justify-content: center; margin: 5px 0; }
+  .vp-card-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; transition: transform 0.2s; }
+  .vp-hold-text { font-size: 11px; font-weight: 900; color: transparent; text-transform: uppercase; height: 14px; letter-spacing: 2px; }
+  .vp-card-wrap.held .vp-hold-text { color: #44FF88; text-shadow: 0 0 8px #008822; }
+  .vp-card-wrap.held .poker-card { border-color: #44FF88; box-shadow: 0 0 15px #44FF88; transform: translateY(-5px); }
+  .vp-controls { display: flex; gap: 6px; width: 100%; justify-content: center; align-items: center; }
+
+  
+
   
   /* =========================================
      MERCADO CLANDESTINO
@@ -286,6 +318,35 @@ html,body {
   <div id="achievements-bar">
     <div id="medals-container" style="display: flex; gap: 20px;"></div>
   </div>
+  
+  <div id="vp-game">
+  <div style="font-size:12px; font-weight:900; color:var(--neon-purple); letter-spacing:3px; text-align:center; text-shadow: 0 0 10px var(--neon-purple);">VIDEO PÓKER VIP</div>
+  
+  <div class="vp-paytable">
+     <span>Jacks+: x1</span><span>2 Par: x2</span><span>Tercia: x3</span><span>Escalera: x4</span><span>Color: x6</span><span>Full: x9</span><span>Póker: x25</span><span style="color:#FFF; box-shadow:0 0 5px #FFF;">St. Flush: x50</span><span style="color:var(--neon-blue); box-shadow:0 0 5px var(--neon-blue);">Royal: x250</span>
+  </div>
+  
+  <div class="vp-table" id="vp-hand">
+     </div>
+  
+  <div style="display:flex; justify-content:space-between; width:100%; align-items:center; padding: 0 10px; box-sizing:border-box;">
+     <div class="bj-bet-display" id="vp-current-bet" style="width: 120px; margin:0; font-size:18px;">0🪙</div>
+     <div class="slot-message" id="vp-msg" style="margin:0; font-size: 14px;">Mesa de Alto Riesgo</div>
+  </div>
+  
+  <div class="vp-controls" id="vp-phase-bet">
+     <button class="btn-bj bet" onclick="addVpBet(10000)">+10K</button>
+     <button class="btn-bj bet" onclick="addVpBet(100000)">+100K</button>
+     <button class="btn-bj bet" onclick="addVpBet(1000000)">+1M</button>
+     <button class="btn-allin" style="margin:0; width:auto; padding:6px 15px;" onclick="addVpBet('ALL')">ALL IN 🔥</button>
+     <button class="btn-bj clear" onclick="clearVpBet()">0</button>
+     <button class="btn-bj deal" id="btn-vp-deal" onclick="dealVp()" disabled style="width:120px;">REPARTIR</button>
+  </div>
+  
+  <div class="vp-controls" id="vp-phase-draw" style="display:none;">
+     <button class="btn-bj deal" onclick="drawVp()" style="width: 100%; font-size: 14px; padding: 10px; background: linear-gradient(180deg, var(--neon-purple), #880088); box-shadow: 0 4px 0 #440044; color:#FFF;">ROBAR (CAMBIAR CARTAS NO RETENIDAS)</button>
+  </div>
+</div>
   
   <div class='top-header-flex'> 
     <h2 style="margin:0; font-size: 28px;">🏁 Leaderboard</h2>
@@ -574,22 +635,29 @@ function updateCoinHUD() {
         else if (!isShellShuffling && !shellGameActive) { shellBtn.disabled = false; }
     }
 
-
     // Blackjack
     const btnDeal = document.getElementById('btn-bj-deal');
     if(btnDeal) { btnDeal.disabled = (bjBet === 0 || bjState !== 'betting'); }
     const btnDouble = document.getElementById('btn-bj-double');
     if(btnDouble) { btnDouble.disabled = (vaultCoins < bjBet); } // Bloquea si no hay fondos para doblar
   
-
     // Minas
     const mineBtn = document.getElementById('mine-btn-step');
     if(mineBtn) {
         if(vaultCoins < 1 && !mineInGame) { mineBtn.disabled = true; }
         else { mineBtn.disabled = false; }
     }
-    
-    // Poker
+
+    // Video Poker VIP
+    const vpDeal = document.getElementById('btn-vp-deal');
+    if(vpDeal) { vpDeal.disabled = (vpBet === 0 || vpState !== 'betting'); }
+    const vpBtns = document.querySelectorAll('#vp-phase-bet .bet, #vp-phase-bet .btn-allin');
+    vpBtns.forEach(btn => {
+        if(vpState !== 'betting') { btn.disabled = true; }
+        else { btn.disabled = false; }
+    }); // <--- AQUÍ ESTÁ LA CORRECCIÓN EXACTA
+  
+    // Poker Express
     const pokerBtns = document.querySelectorAll('#poker-game button');
     pokerBtns.forEach(btn => {
         if(isPokerPlaying) { btn.disabled = true; }
@@ -598,9 +666,10 @@ function updateCoinHUD() {
         else if(vaultCoins < 1 && btn.innerText.includes('ALL')) { btn.disabled = true; }
         else { btn.disabled = false; }
     });  
-  
+
     renderMarket(); 
 }
+  
 
 function initDuendes() {
     const gameZone = document.getElementById('game-zone');
