@@ -227,8 +227,6 @@ html,body {
   .vp-controls { display: flex; gap: 6px; width: 100%; justify-content: center; align-items: center; }
 
   
-
-  
   /* =========================================
      MERCADO CLANDESTINO
      ========================================= */
@@ -324,12 +322,6 @@ html,body {
 
 <canvas id="matrix-canvas"></canvas>
 
-<div id='board'>
-  
-  <div id="achievements-bar">
-    <div id="medals-container" style="display: flex; gap: 20px;"></div>
-  </div>
-  
 <button id="vip-toggle" onclick="toggleVIP()" title="Sala VIP">🎰</button>
 
 <div id="vp-overlay">
@@ -364,29 +356,12 @@ html,body {
     </div>
   </div>
 </div>
+
+<div id='board'>
   
-  
-  <div class="vp-table" id="vp-hand">
-     </div>
-  
-  <div style="display:flex; justify-content:space-between; width:100%; align-items:center; padding: 0 10px; box-sizing:border-box;">
-     <div class="bj-bet-display" id="vp-current-bet" style="width: 120px; margin:0; font-size:18px;">0🪙</div>
-     <div class="slot-message" id="vp-msg" style="margin:0; font-size: 14px;">Mesa de Alto Riesgo</div>
+  <div id="achievements-bar">
+    <div id="medals-container" style="display: flex; gap: 20px;"></div>
   </div>
-  
-  <div class="vp-controls" id="vp-phase-bet">
-     <button class="btn-bj bet" onclick="addVpBet(10000)">+10K</button>
-     <button class="btn-bj bet" onclick="addVpBet(100000)">+100K</button>
-     <button class="btn-bj bet" onclick="addVpBet(1000000)">+1M</button>
-     <button class="btn-allin" style="margin:0; width:auto; padding:6px 15px;" onclick="addVpBet('ALL')">ALL IN 🔥</button>
-     <button class="btn-bj clear" onclick="clearVpBet()">0</button>
-     <button class="btn-bj deal" id="btn-vp-deal" onclick="dealVp()" disabled style="width:120px;">REPARTIR</button>
-  </div>
-  
-  <div class="vp-controls" id="vp-phase-draw" style="display:none;">
-     <button class="btn-bj deal" onclick="drawVp()" style="width: 100%; font-size: 14px; padding: 10px; background: linear-gradient(180deg, var(--neon-purple), #880088); box-shadow: 0 4px 0 #440044; color:#FFF;">ROBAR (CAMBIAR CARTAS NO RETENIDAS)</button>
-  </div>
-</div>
   
   <div class='top-header-flex'> 
     <h2 style="margin:0; font-size: 28px;">🏁 Leaderboard</h2>
@@ -695,7 +670,7 @@ function updateCoinHUD() {
     vpBtns.forEach(btn => {
         if(vpState !== 'betting') { btn.disabled = true; }
         else { btn.disabled = false; }
-    }); // <--- AQUÍ ESTÁ LA CORRECCIÓN EXACTA
+    }); 
   
     // Poker Express
     const pokerBtns = document.querySelectorAll('#poker-game button');
@@ -1527,6 +1502,15 @@ function toggleMarket() {
     if(drawer.classList.contains('open')) { renderMarket(); }
 }
 
+function toggleVIP() {
+    const overlay = document.getElementById('vp-overlay');
+    if (overlay.style.display === 'none' || overlay.style.display === '') {
+        overlay.style.display = 'flex';
+    } else {
+        overlay.style.display = 'none';
+    }
+}
+
 function renderMarket() {
     const container = document.getElementById('market-list');
     container.innerHTML = '';
@@ -1583,15 +1567,6 @@ function renderAchievements() {
         return;
     }
 
-function toggleVIP() {
-    const overlay = document.getElementById('vp-overlay');
-    if (overlay.style.display === 'none' || overlay.style.display === '') {
-        overlay.style.display = 'flex';
-    } else {
-        overlay.style.display = 'none';
-    }
-}
-  
     // Buscamos en el catálogo las medallas que el usuario posee
     userInventory.forEach(ownedId => {
         const item = marketCatalog.find(cat => cat.id === ownedId);
