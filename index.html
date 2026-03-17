@@ -201,10 +201,9 @@ html,body {
      ========================================= */
   #vp-game { 
     position: fixed; 
-    top: 15px; 
-    left: 55%; /* Ligeramente a la derecha para no tapar todas las medallas */
-    transform: translateX(-30%);
-    z-index: 110; /* Mayor que las medallas para superponerse */
+    top: 20px; 
+    right: 200px; /* Se ancla perfectamente a la izquierda de la Tragaperras */
+    z-index: 110; 
     background: var(--glass-strong); 
     padding: 10px 20px; 
     border-radius: 12px; 
@@ -1308,6 +1307,164 @@ function updateBjUI(dealerHidden) {
     }
 }
   
+
+
+/* ==========================================================================
+   MINIJUEGO 6: VIDEO PÓKER VIP (JACKS OR BETTER REAL)
+   ========================================================================== */
+let vpBet = 0;
+let vpState = 'betting'; // betting, holding, gameover
+let vpDeck = [];
+let vpHand = [];
+let vpHolds = [false, false, false, false, false];
+
+function createStandardDeck() {
+    const suits = [{s:'♥️', c:'red'}, {s:'♦️', c:'red'}, {s:'♠️', c:'black'}, {s:'♣️', c:'black'}];
+    const values = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+    let deck = [];
+    for(let suit of suits) {
+        for(let val of values) { deck.push({ v: val, s: suit.s, c: suit.c }); }
+    }
+    return deck.sort(() => Math.random() - 0.5); // Mezcla aleatoria real
+}
+
+function renderVpHand() {
+    const el = document.getElementById('vp-hand');
+    el.innerHTML = '';
+    for(let i=0; i<5; i++) {
+        let isHeld = vpHolds[i] ? 'held' : '';
+        let cardHtml = vpHand[i] 
+            ? `<div class="poker-card ${vpHand[i].c}-suit"><span>${vpHand[i].v}</span><span>${vpHand[i].s}</span></div>` 
+            : `<div class="poker-card back"></div>`;
+            
+        el.innerHTML += `
+            <div class="vp-card-wrap ${isHeld}" onclick="toggleVpHold(${i})">
+                <div class="vp-hold-text">HOLD</div>
+                ${cardHtml}
+            </div>
+        `;
+    }
+}
+
+// Inicializar cartas boca abajo
+renderVpHand();
+
+function addVpBet(amount) {
+    if (vpState !== 'betting') return;
+    let actualBet = (amount === 'ALL') ? vaultCoins : parseInt(amount);
+    if (vaultCoins >= actualBet && actualBet > 0) {
+        vaultCoins -= actualBet; vpBet += actualBet;
+        document.getElementById('vp-current-bet').innerText = vpBet.toLocaleString('en-US') + "🪙";
+        updateCoinHUD();
+    }
+}
+
+function clearVpBet() {
+    if (vpState === 'betting' && vpBet > 0) {
+        vaultCoins += vpBet; vpBet = 0;
+        document.getElementById('vp-current-bet').innerText = "0🪙";
+        updateCoinHUD();
+    }
+}
+
+function toggleVpHold(index) {
+    if (vpState !== 'holding') return;
+    vpHolds[index] = !vpHolds[index];
+    renderVpHand();
+}
+
+function dealVp() {
+    if (vpBet <= 0 || vpState !== 'betting') return;
+    vpState = 'holding';
+    vpDeck = createStandardDeck();
+    vpHand = []; vpHolds = [false, false, false, false, false];
+    
+    // Robar 5 cartas iniciales
+    for(let i=0; i<5; i++) vpHand.push(vpDeck.pop());
+    
+    document.getElementById('vp-phase-bet').style.display = 'none';
+    document.getElementById('vp-phase-draw').style.display = 'flex';
+    document.getElementById('vp-msg').innerText = "Clic para RETENER cartas"; 
+    document.getElementById('vp-msg').style.color = "var(--neon-blue)";
+    
+    renderVpHand();
+}
+
+function drawVp() {
+    if (vpState !== 'holding') return;
+    vpState = 'gameover';
+    document.getElementById('vp-phase-draw').style.display = 'none';
+    document.getElementById('vp-msg').innerText = "Evaluando...";
+    
+    // Cambiar las que no tienen Hold
+    for(let i=0; i<5; i++) {
+        if (!vpHolds[i]) vpHand[i] = vpDeck.pop();
+    }
+    renderVpHand();
+    
+    setTimeout(() => { evaluateVpHand(); }, 500);
+}
+
+// Lógica pura de Póker
+function evaluateVpHand() {
+    let counts = {}; let suits = {};
+    let ranksMap = {'J':11, 'Q':12, 'K':13, 'A':14};
+    
+    let ranks = vpHand.map(c => ranksMap[c.v] || parseInt(c.v)).sort((a,b)=>a-b);
+    vpHand.forEach(c => {
+        counts[c.v] = (counts[c.v] || 0) + 1;
+        suits[c.s] = (suits[c.s] || 0) + 1;
+    });
+
+    let isFlush = Object.keys(suits).length === 1;
+    let isStraight = ranks.every((val, i) => i === 0 || val === ranks[i - 1] + 1);
+    if (!isStraight && ranks.join(',') === '2,3,4,5,14') isStraight = true; // Escalera A-5
+
+    let countsArr = Object.values(counts).sort((a,b)=>b-a); // [4,1] o [3,2] etc
+    let result = {n: 'NADA', m: 0};
+
+    if (isFlush && isStraight && ranks[4] === 14 && ranks[0] === 10) result = {n: 'ESCALERA REAL', m: 250};
+    else if (isFlush && isStraight) result = {n: 'ESCALERA DE COLOR', m: 50};
+    else if (countsArr[0] === 4) result = {n: 'PÓKER (4 IGUALES)', m: 25};
+    else if (countsArr[0] === 3 && countsArr[1] === 2) result = {n: 'FULL HOUSE', m: 9};
+    else if (isFlush) result = {n: 'COLOR', m: 6};
+    else if (isStraight) result = {n: 'ESCALERA', m: 4};
+    else if (countsArr[0] === 3) result = {n: 'TERCIA', m: 3};
+    else if (countsArr[0] === 2 && countsArr[1] === 2) result = {n: 'DOBLE PAR', m: 2};
+    else if (countsArr[0] === 2 && (counts['J']===2 || counts['Q']===2 || counts['K']===2 || counts['A']===2)) result = {n: 'JACKS O MEJOR', m: 1};
+
+    payoutVp(result);
+}
+
+function payoutVp(result) {
+    const msg = document.getElementById('vp-msg');
+    
+    if (result.m > 0) {
+        let winAmount = vpBet * result.m;
+        vaultCoins += winAmount;
+        msg.innerText = `¡${result.n}! +${winAmount.toLocaleString('en-US')}🪙`; 
+        msg.style.color = "var(--neon-gold)";
+        spawnFloatingReward(winAmount, document.getElementById('vp-game'));
+    } else {
+        msg.innerText = "Pierdes. (Necesitas Par de J o mejor)"; 
+        msg.style.color = "var(--neon-red)";
+        checkCashback(document.getElementById('vp-game')); // Sinergia M2
+    }
+    
+    updateCoinHUD();
+    vpBet = 0;
+    
+    // Resetear después de 3 seg
+    setTimeout(() => {
+        vpHand = []; vpHolds = [false,false,false,false,false];
+        renderVpHand();
+        document.getElementById('vp-current-bet').innerText = "0🪙";
+        document.getElementById('vp-phase-bet').style.display = 'flex';
+        msg.innerText = "Mesa de Alto Riesgo"; msg.style.color = "var(--ink)";
+        vpState = 'betting';
+        updateCoinHUD();
+    }, 3000);
+}
   
 /* ==========================================================================
    TIENDA Y EXHIBIDOR DE MEDALLAS
