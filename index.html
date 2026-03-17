@@ -202,7 +202,8 @@ html,body {
   #vip-toggle { position: fixed; bottom: 30px; right: 30px; z-index: 105; background: var(--glass-strong); border: 2px solid var(--neon-gold); color: #FFF; font-size: 24px; width: 60px; height: 60px; border-radius: 50%; cursor: pointer; box-shadow: 0 0 15px var(--glow-gold); display: flex; justify-content: center; align-items: center; pointer-events: auto; transition: transform 0.2s, box-shadow 0.2s; }
   #vip-toggle:hover { transform: scale(1.1); box-shadow: 0 0 25px var(--glow-gold); }
 
-  #vp-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 150; display: none; justify-content: center; align-items: center; pointer-events: auto; }
+  #vp-overlay { position: fixed; inset: 0; background: transparent; z-index: 150; display: none; justify-content: center; align-items: center; pointer-events: none; }
+  #vp-overlay > * { pointer-events: auto; } /* Reactiva los clics solo para la máquina, no para el fondo invisible */
   
   #vp-game { 
     position: relative; /* Ya no está fixed, el overlay lo centra automáticamente */
