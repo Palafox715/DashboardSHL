@@ -197,25 +197,25 @@ html,body {
 
   
 /* =========================================
-     MINIJUEGO FINAL: VIDEO PÓKER (Horizontal Bottom)
+     SALA VIP: VIDEO PÓKER (Modal Overlay)
      ========================================= */
+  #vip-toggle { position: fixed; bottom: 30px; right: 30px; z-index: 105; background: var(--glass-strong); border: 2px solid var(--neon-gold); color: #FFF; font-size: 24px; width: 60px; height: 60px; border-radius: 50%; cursor: pointer; box-shadow: 0 0 15px var(--glow-gold); display: flex; justify-content: center; align-items: center; pointer-events: auto; transition: transform 0.2s, box-shadow 0.2s; }
+  #vip-toggle:hover { transform: scale(1.1); box-shadow: 0 0 25px var(--glow-gold); }
+
+  #vp-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 150; display: none; justify-content: center; align-items: center; pointer-events: auto; }
+  
   #vp-game { 
-    position: fixed; 
-    bottom: 45px; /* Anclado a la parte inferior, justo por encima del pasto y el diagnóstico */
-    left: 50%;    /* Lo empuja al centro de la pantalla */
-    transform: translateX(-50%); /* Ajuste matemático para un centrado perfecto */
-    z-index: 110; 
+    position: relative; /* Ya no está fixed, el overlay lo centra automáticamente */
     background: var(--glass-strong); 
-    padding: 10px 20px; 
+    padding: 20px 30px; 
     border-radius: 12px; 
     border: 2px solid var(--neon-purple); 
-    box-shadow: 0 10px 40px rgba(0,0,0,0.95), inset 0 0 20px rgba(255, 68, 204, 0.2); 
+    box-shadow: 0 20px 50px rgba(0,0,0,1), inset 0 0 20px rgba(255, 68, 204, 0.2); 
     display: flex; 
     flex-direction: column; 
     align-items: center; 
-    gap: 8px; 
-    pointer-events: auto; 
-    min-width: 450px; 
+    gap: 12px; 
+    min-width: 500px; 
   }
   .vp-paytable { font-size: 10px; color: #FFD700; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; background: rgba(0,0,0,0.7); padding: 6px; border-radius: 6px; border: 1px solid #333; width: 100%; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
   .vp-paytable span { background: rgba(255,215,0,0.1); padding: 2px 6px; border-radius: 4px; }
@@ -330,12 +330,41 @@ html,body {
     <div id="medals-container" style="display: flex; gap: 20px;"></div>
   </div>
   
+<button id="vip-toggle" onclick="toggleVIP()" title="Sala VIP">🎰</button>
+
+<div id="vp-overlay">
   <div id="vp-game">
-  <div style="font-size:12px; font-weight:900; color:var(--neon-purple); letter-spacing:3px; text-align:center; text-shadow: 0 0 10px var(--neon-purple);">VIDEO PÓKER VIP</div>
-  
-  <div class="vp-paytable">
-     <span>Jacks+: x1</span><span>2 Par: x2</span><span>Tercia: x3</span><span>Escalera: x4</span><span>Color: x6</span><span>Full: x9</span><span>Póker: x25</span><span style="color:#FFF; box-shadow:0 0 5px #FFF;">St. Flush: x50</span><span style="color:var(--neon-blue); box-shadow:0 0 5px var(--neon-blue);">Royal: x250</span>
+    <button class="close-market" onclick="toggleVIP()" style="position:absolute; top:10px; right:15px; font-size:24px;">✖</button>
+    
+    <div style="font-size:12px; font-weight:900; color:var(--neon-purple); letter-spacing:3px; text-align:center; text-shadow: 0 0 10px var(--neon-purple);">VIDEO PÓKER VIP</div>
+    
+    <div class="vp-paytable">
+       <span>Jacks+: x1</span><span>2 Par: x2</span><span>Tercia: x3</span><span>Escalera: x4</span><span>Color: x6</span><span>Full: x9</span><span>Póker: x25</span><span style="color:#FFF; box-shadow:0 0 5px #FFF;">St. Flush: x50</span><span style="color:var(--neon-blue); box-shadow:0 0 5px var(--neon-blue);">Royal: x250</span>
+    </div>
+    
+    <div class="vp-table" id="vp-hand">
+       </div>
+    
+    <div style="display:flex; justify-content:space-between; width:100%; align-items:center; padding: 0 10px; box-sizing:border-box;">
+       <div class="bj-bet-display" id="vp-current-bet" style="width: 120px; margin:0; font-size:18px;">0🪙</div>
+       <div class="slot-message" id="vp-msg" style="margin:0; font-size: 14px;">Mesa de Alto Riesgo</div>
+    </div>
+    
+    <div class="vp-controls" id="vp-phase-bet">
+       <button class="btn-bj bet" onclick="addVpBet(10000)">+10K</button>
+       <button class="btn-bj bet" onclick="addVpBet(100000)">+100K</button>
+       <button class="btn-bj bet" onclick="addVpBet(1000000)">+1M</button>
+       <button class="btn-allin" style="margin:0; width:auto; padding:6px 15px;" onclick="addVpBet('ALL')">ALL IN 🔥</button>
+       <button class="btn-bj clear" onclick="clearVpBet()">0</button>
+       <button class="btn-bj deal" id="btn-vp-deal" onclick="dealVp()" disabled style="width:120px;">REPARTIR</button>
+    </div>
+    
+    <div class="vp-controls" id="vp-phase-draw" style="display:none;">
+       <button class="btn-bj deal" onclick="drawVp()" style="width: 100%; font-size: 14px; padding: 10px; background: linear-gradient(180deg, var(--neon-purple), #880088); box-shadow: 0 4px 0 #440044; color:#FFF;">ROBAR (CAMBIAR CARTAS NO RETENIDAS)</button>
+    </div>
   </div>
+</div>
+  
   
   <div class="vp-table" id="vp-hand">
      </div>
@@ -1554,6 +1583,15 @@ function renderAchievements() {
         return;
     }
 
+function toggleVIP() {
+    const overlay = document.getElementById('vp-overlay');
+    if (overlay.style.display === 'none' || overlay.style.display === '') {
+        overlay.style.display = 'flex';
+    } else {
+        overlay.style.display = 'none';
+    }
+}
+  
     // Buscamos en el catálogo las medallas que el usuario posee
     userInventory.forEach(ownedId => {
         const item = marketCatalog.find(cat => cat.id === ownedId);
