@@ -352,15 +352,15 @@ async function getActiveWeeklyTabsForCurrentMonth() {
 
 async function loadData() {
   try {
-    // 1. LEER EL NUEVO FORMATO DE EQUIPOS
-    const teamRange = `NewTeamLayout!A2:F100`;
+    // 1. CORRECCIÓN: El nombre exacto de la pestaña es "TeamLayout"
+    const teamRange = `TeamLayout!A2:F150`;
     const teamData  = (await fetchJSON(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(teamRange)}?key=${API_KEY}`)).values || [];
 
     const { tabs } = await getActiveWeeklyTabsForCurrentMonth();
     const map = new Map();
 
     for (const weeklyTab of tabs) {
-      const dataRange = `${weeklyTab}!A1:T100`;
+      const dataRange = `${weeklyTab}!A1:T150`;
       const dataValues = (await fetchJSON(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(dataRange)}?valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`)).values || [];
       if (dataValues.length < 3) continue;
 
@@ -391,14 +391,16 @@ async function loadData() {
 
     const javiArr = [], rickyArr = [];
 
-    // 2. CLASIFICACIÓN DINÁMICA POR COLUMNA F
+    // 2. CLASIFICACIÓN DINÁMICA POR EQUIPO (Columna F / Índice 5)
     teamData.forEach(row => {
       const id   = String(row[0] || "").trim();
       const name = String(row[1] || "").trim();
       const team = String(row[5] || "").trim().toLowerCase(); 
 
       if (id && team) {
+        // Sumamos los datos que encontramos en las pestañas semanales
         const stats = map.get(id) || { cr:0, xf:0, total:0 };
+        
         if (team === "javi") {
           javiArr.push({ name, id, ...stats });
         } else if (team === "ricky") {
@@ -444,7 +446,7 @@ async function loadData() {
     if (jXf > rXf){ javiBox.classList.add("win"); rickyBox.classList.add("lose"); }
     else if (rXf > jXf){ rickyBox.classList.add("win"); javiBox.classList.add("lose"); }
 
-  } catch (err) { // AQUI ESTABA EL ERROR DE SINTAXIS ANTERIOR
+  } catch (err) {
     console.error("❌ Error al cargar los datos:", err);
   }
 }
