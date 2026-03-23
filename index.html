@@ -7,7 +7,7 @@
 <style>
   :root {
     --bg-dark: #0b0c10;
-    --panel-dark: rgba(31, 40, 51, 0.85); /* Ligeramente transparente para ver las partículas detrás */
+    --panel-dark: rgba(31, 40, 51, 0.9); /* Ligeramente transparente para ver los sprites detrás */
     --text-main: #c5c6c7;
     --text-light: #ffffff;
     --neon-green: #00ffcc;
@@ -30,7 +30,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    z-index: -1; /* Mantiene las partículas detrás del texto y paneles */
+    z-index: -1; /* Mantiene los sprites detrás del texto y paneles */
     pointer-events: none; /* Permite hacer clic a través del canvas */
   }
 
@@ -125,7 +125,7 @@
   .team {
     flex: 1;
     background: var(--panel-dark);
-    backdrop-filter: blur(5px); /* Añade un efecto cristal mate a las tablas */
+    backdrop-filter: blur(4px); /* Añade un efecto cristal mate a las tablas */
     border-radius: 46px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.5);
     overflow: hidden;
@@ -164,7 +164,7 @@
     left: 50%;
     transform: translate(-50%, -55%);
     background: var(--panel-dark);
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(4px);
     border-radius: 65px;
     padding: 1.3rem 2.3rem;
     text-align: center;
@@ -228,12 +228,23 @@ const API_KEY  = "AIzaSyCCBAapFj9Fd-8cOIfpDJxrOP__76zxAxM";
 const TIMEZONE = "America/Tijuana";
 
 // ==========================================
-// MOTOR DE PARTÍCULAS / ENTIDADES
+// 1. CARGA DEL ASSET (GITHUB PNG)
+// ==========================================
+const spriteImage = new Image();
+// Usamos la URL "raw" para acceso directo a la imagen
+spriteImage.src = 'https://raw.githubusercontent.com/Palafox715/DashboardSHL/main/Sprite/6173.png'; 
+
+let assetsLoaded = false;
+spriteImage.onload = () => { assetsLoaded = true; };
+
+
+// ==========================================
+// MOTOR DE PARTÍCULAS / ENTIDADES (Modificado para Sprites)
 // ==========================================
 const canvas = document.getElementById('battlefield');
 const ctx = canvas.getContext('2d');
 let width, height;
-let currentDominancePct = 50; // Inicia en 50/50
+let currentDominancePct = 50; 
 let particles = [];
 
 function resizeCanvas() {
@@ -248,6 +259,11 @@ class Entity {
     this.id = id;
     this.name = name;
     this.team = team;
+    
+    // Configuración del sprite base (asumiendo 32x32 por cuadro en la hoja 4x4)
+    this.spriteSize = 32; 
+    this.scaleFactor = 1; // Factor de escala dinámico
+
     this.updateStats(xfer);
     
     // Nacer en posiciones aleatorias dentro de su territorio
@@ -266,8 +282,9 @@ class Entity {
 
   updateStats(xfer) {
     this.xfer = xfer;
-    // Pragmatismo matemático: Radio base 3, crece un máximo de +15 dependiendo de los xfers
-    this.radius = 3 + Math.min(xfer * 0.4, 15); 
+    // Lógica de Escalado Dinámico vinculado a XFER
+    // Base 1x (0 XFER), escala proporcionalmente hasta 4x (+3) basado en transferencias
+    this.scaleFactor = 1 + Math.min(xfer * 0.08, 3); 
     // Velocidad base 0.5, crece hasta +3 dependiendo de los xfers
     this.maxSpeed = 0.5 + Math.min(xfer * 0.1, 3);
   }
@@ -276,58 +293,71 @@ class Entity {
     this.x += this.vx;
     this.y += this.vy;
 
+    // Dimensiones de colisión basadas en el sprite escalado
+    const colSize = (this.spriteSize * this.scaleFactor) / 2;
+
     // Rebote en el techo y el suelo
-    if (this.y - this.radius <= 0 || this.y + this.radius >= height) {
+    if (this.y - colSize <= 0 || this.y + colSize >= height) {
       this.vy *= -1;
-      this.y = Math.max(this.radius, Math.min(this.y, height - this.radius));
+      this.y = Math.max(colSize, Math.min(this.y, height - colSize));
     }
 
     // Lógica del muro de contención "Supremacy Wall"
     if (this.team === 'javi') {
-      if (this.x - this.radius <= 0) { this.vx *= -1; this.x = this.radius; }
-      if (this.x + this.radius >= wallX) { this.vx *= -1; this.x = wallX - this.radius; }
+      if (this.x - colSize <= 0) { this.vx *= -1; this.x = colSize; }
+      if (this.x + colSize >= wallX) { this.vx *= -1; this.x = wallX - colSize; }
     } else {
-      if (this.x + this.radius >= width) { this.vx *= -1; this.x = width - this.radius; }
-      if (this.x - this.radius <= wallX) { this.vx *= -1; this.x = wallX + this.radius; }
+      if (this.x + colSize >= width) { this.vx *= -1; this.x = width - colSize; }
+      if (this.x - colSize <= wallX) { this.vx *= -1; this.x = wallX + colSize; }
     }
   }
 
   draw(ctx) {
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-    
+    // No dibujar si el asset no ha cargado
+    if (!assetsLoaded) return; 
+
+    // Mapeo Táctico de Sprites basado en la hoja 6173.png
+    // sx, sy: Coordenadas de inicio del recorte en la hoja
+    let sx = 0; // Usamos el cuadro estático (columna 1)
+    let sy;
+
     if (this.team === 'javi') {
-      ctx.fillStyle = '#00ffcc';
-      ctx.shadowColor = '#00ffcc';
+      // Javi (Izquierda) -> Mira a la derecha (Fila 3 / sy=64)
+      sy = 64; 
     } else {
-      ctx.fillStyle = '#ff4500';
-      ctx.shadowColor = '#ff4500';
+      // Ricky (Derecha) -> Mira a la izquierda (Fila 2 / sy=32)
+      sy = 32; 
     }
-    
-    ctx.shadowBlur = 10;
-    ctx.fill();
-    ctx.closePath();
-    ctx.shadowBlur = 0; // Reset para no afectar otros dibujos
+
+    // Calcular dimensiones de destino escaladas
+    const dDim = this.spriteSize * this.scaleFactor;
+
+    // Dibujar el sprite centrado en (this.x, this.y)
+    ctx.drawImage(
+      spriteImage,      // Imagen fuente
+      sx, sy,           // Recorte (x, y)
+      this.spriteSize, this.spriteSize, // Recorte (w, h)
+      this.x - dDim/2, this.y - dDim/2, // Destino (x, y) centrado
+      dDim, dDim        // Destino (w, h) escalado
+    );
   }
 }
 
 function animate() {
   ctx.clearRect(0, 0, width, height);
   
-  // Dibujar el muro invisible (opcional, una línea sutil)
-  const wallX = width * (currentDominancePct / 100);
-  ctx.beginPath();
-  ctx.moveTo(wallX, 0);
-  ctx.lineTo(wallX, height);
-  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
-  // Actualizar y dibujar todas las partículas
-  particles.forEach(p => {
-    p.update(wallX);
-    p.draw(ctx);
-  });
+  if (!assetsLoaded) {
+    // Opcional: Mostrar mensaje de carga
+    ctx.fillStyle = "white";
+    ctx.fillText("Cargando Batalla...", 20, 20);
+  } else {
+    const wallX = width * (currentDominancePct / 100);
+    // Actualizar y dibujar todas las partículas
+    particles.forEach(p => {
+      p.update(wallX);
+      p.draw(ctx);
+    });
+  }
 
   requestAnimationFrame(animate);
 }
@@ -485,7 +515,7 @@ async function loadData() {
 
     const javiArr = [], rickyArr = [];
 
-    // Clasificación y sincronización de partículas
+    // Clasificación y sincronización de partículas/sprites
     teamData.forEach(row => {
       const id   = String(row[0] || "").trim();
       const name = String(row[1] || "").trim();
@@ -497,10 +527,10 @@ async function loadData() {
         if (team === "javi") javiArr.push({ name, id, ...stats });
         else if (team === "ricky") rickyArr.push({ name, id, ...stats });
 
-        // Actualizar o crear partícula
-        let existingParticle = particles.find(p => p.id === id);
-        if (existingParticle) {
-          existingParticle.updateStats(stats.xf);
+        // Actualizar o crear entidad (sprite)
+        let existingEntity = particles.find(p => p.id === id);
+        if (existingEntity) {
+          existingEntity.updateStats(stats.xf);
         } else {
           particles.push(new Entity(id, name, team, stats.xf));
         }
@@ -529,7 +559,7 @@ async function loadData() {
     const javiDomination = (jXf / totalXfer) * 100;
     const rickyDomination  = (rXf / totalXfer) * 100;
     
-    // Actualizamos la variable global que controla el muro invisible
+    // Actualizamos la variable global que controla el muro de contención en el canvas
     currentDominancePct = javiDomination;
 
     document.getElementById("javi-bar").style.width = `${javiDomination}%`;
@@ -552,8 +582,9 @@ async function loadData() {
   }
 }
 
+// Iniciar
 loadData();
-setInterval(loadData, 60000);
+setInterval(loadData, 60000); // Actualización de datos cada 60s
 </script>
 </body>
 </html>
