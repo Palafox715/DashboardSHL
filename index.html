@@ -447,81 +447,122 @@ async function getActiveWeeklyTabsForCurrentMonth() {
 
 async function loadData() {
   try {
-    const teamRange = `TeamLayout!A2:F150`;
-    const teamData  = (await fetchJSON(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(teamRange)}?key=${API_KEY}`)).values || [];
-
+    // Obtenemos las pestañas semanales activas
     const { tabs } = await getActiveWeeklyTabsForCurrentMonth();
-    const map = new Map();
+    
+    // Mapas independientes para cada equipo
+    const mapJavi = new Map();
+    const mapRicky = new Map();
 
     for (const weeklyTab of tabs) {
-      const dataRange = `${weeklyTab}!A1:T150`;
+      // Extendemos el rango a Z para cubrir ambas tablas horizontales
+      const dataRange = `${weeklyTab}!A1:Z150`; 
       const dataValues = (await fetchJSON(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(dataRange)}?valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`)).values || [];
+      
       if (dataValues.length < 3) continue;
 
-      const subHeaders = dataValues[1] || [];
-      const crIndexes = [], xfIndexes = [];
-      subHeaders.forEach((h, i) => {
-        const H = String(h || "").trim().toUpperCase();
-        if (H === "CRPULL") crIndexes.push(i);
-        if (H === "XFER")   xfIndexes.push(i);
+      const headers1 = dataValues[0] || []; // Fila 1: "Javi", "Ricky"
+      const headers2 = dataValues[1] || []; // Fila 2: "AGENT NAME", "ID", etc.
+
+      // 1. Encontrar dónde empieza la zona de cada equipo dinámicamente
+      let javiStartIndex = -1, rickyStartIndex = -1;
+      headers1.forEach((h, i) => {
+        const txt = String(h).toUpperCase().trim();
+        if (txt.includes("JAVI")) javiStartIndex = i;
+        if (txt.includes("RICKY")) rickyStartIndex = i;
       });
 
-      if (!crIndexes.length || !xfIndexes.length) continue;
+      // Fallbacks por si alguien borra los títulos de la Fila 1 (basado en su imagen)
+      if (javiStartIndex === -1) javiStartIndex = 0;   // Asume Col A
+      if (rickyStartIndex === -1) rickyStartIndex = 9; // Asume Col J
 
+      // Función auxiliar para mapear índices de columnas en un rango específico
+      function getCols(startIdx, endIdx) {
+        let cols = { name: -1, id: -1, cr: -1, xf: -1 };
+        for(let i = startIdx; i < endIdx; i++) {
+          const h = String(headers2[i] || "").toUpperCase().trim();
+          if (h.includes("AGENT NAME")) cols.name = i;
+          if (h === "ID") cols.id = i;
+          if (h === "CRPULL") cols.cr = i;
+          if (h === "XFER") cols.xf = i;
+        }
+        return cols;
+      }
+
+      // Definir los límites de búsqueda de columnas para cada equipo
+      const limitJavi = rickyStartIndex > javiStartIndex ? rickyStartIndex : headers2.length;
+      const javiCols = getCols(javiStartIndex, limitJavi);
+      const rickyCols = getCols(rickyStartIndex, headers2.length);
+
+      // 2. Extraer los datos fila por fila
       dataValues.slice(2).forEach(row => {
-        const id = String(row[0] || "").trim();
-        if (!id) return;
-        let cr = 0, xf = 0;
-        crIndexes.forEach(i => cr += num(row[i]));
-        xfIndexes.forEach(i => xf += num(row[i]));
-        const prev = map.get(id) || { cr:0, xf:0, total:0 };
-        map.set(id, { cr: prev.cr + cr, xf: prev.xf + xf, total: (prev.cr + cr) + (prev.xf + xf) });
+        // --- Procesar datos de Facción Javi ---
+        if (javiCols.id !== -1 && row[javiCols.id]) {
+          const id = String(row[javiCols.id]).trim();
+          if (id) {
+            const name = String(row[javiCols.name] || "Unknown").trim();
+            const cr = num(row[javiCols.cr]);
+            const xf = num(row[javiCols.xf]);
+            const prev = mapJavi.get(id) || { name, id, team: "javi", cr: 0, xf: 0, total: 0 };
+            prev.cr += cr; prev.xf += xf; prev.total += (cr + xf);
+            mapJavi.set(id, prev);
+          }
+        }
+
+        // --- Procesar datos de Facción Ricky ---
+        if (rickyCols.id !== -1 && row[rickyCols.id]) {
+          const id = String(row[rickyCols.id]).trim();
+          if (id) {
+            const name = String(row[rickyCols.name] || "Unknown").trim();
+            const cr = num(row[rickyCols.cr]);
+            const xf = num(row[rickyCols.xf]);
+            const prev = mapRicky.get(id) || { name, id, team: "ricky", cr: 0, xf: 0, total: 0 };
+            prev.cr += cr; prev.xf += xf; prev.total += (cr + xf);
+            mapRicky.set(id, prev);
+          }
+        }
       });
     }
 
+    // Limpiar tablas en el Dashboard
     const javiBody = document.querySelector("#table-javi tbody");
     const rickyBody = document.querySelector("#table-ricky tbody");
     javiBody.innerHTML = rickyBody.innerHTML = "";
 
-    const javiArr = [], rickyArr = [];
+    // Convertir mapas a arreglos
+    const javiArr = Array.from(mapJavi.values());
+    const rickyArr = Array.from(mapRicky.values());
 
-    // Clasificación y sincronización de partículas
-    teamData.forEach(row => {
-      const id   = String(row[0] || "").trim();
-      const name = String(row[1] || "").trim();
-      const team = String(row[5] || "").trim().toLowerCase(); 
-
-      if (id && team) {
-        const stats = map.get(id) || { cr:0, xf:0, total:0 };
-        
-        if (team === "javi") javiArr.push({ name, id, ...stats });
-        else if (team === "ricky") rickyArr.push({ name, id, ...stats });
-
-        // Actualizar o crear partícula
-        let existingParticle = particles.find(p => p.id === id);
-        if (existingParticle) {
-          existingParticle.updateStats(stats.xf);
-        } else {
-          particles.push(new Entity(id, name, team, stats.xf));
-        }
+    // 3. Sincronizar las partículas en el canvas
+    const allAgents = [...javiArr, ...rickyArr];
+    allAgents.forEach(agent => {
+      let existingParticle = particles.find(p => p.id === agent.id);
+      if (existingParticle) {
+        // Actualizamos stats. Si el agente cambió de equipo, forzamos la actualización visual (opcional pero recomendado)
+        existingParticle.team = agent.team; 
+        existingParticle.updateStats(agent.xf);
+      } else {
+        particles.push(new Entity(agent.id, agent.name, agent.team, agent.xf));
       }
     });
 
+    // 4. Ordenar por totales y renderizar
     javiArr.sort((a,b)=> b.total - a.total);
     rickyArr.sort((a,b)=> b.total - a.total);
 
-    let jCr=0,jXf=0,jTot=0, rCr=0,rXf=0,rTot=0;
+    let jCr=0, jXf=0, jTot=0, rCr=0, rXf=0, rTot=0;
 
     javiArr.forEach(d=>{
-      jCr += num(d.cr); jXf += num(d.xf); jTot += num(d.total);
-      javiBody.insertAdjacentHTML("beforeend", `<tr><td>${d.name}</td><td>${d.id}</td><td>${num(d.cr)}</td><td>${num(d.xf)}</td><td>${num(d.total)}</td></tr>`);
+      jCr += d.cr; jXf += d.xf; jTot += d.total;
+      javiBody.insertAdjacentHTML("beforeend", `<tr><td>${d.name}</td><td>${d.id}</td><td>${d.cr}</td><td>${d.xf}</td><td>${d.total}</td></tr>`);
     });
 
     rickyArr.forEach(d=>{
-      rCr += num(d.cr); rXf += num(d.xf); rTot += num(d.total);
-      rickyBody.insertAdjacentHTML("beforeend", `<tr><td>${d.name}</td><td>${d.id}</td><td>${num(d.cr)}</td><td>${num(d.xf)}</td><td>${num(d.total)}</td></tr>`);
+      rCr += d.cr; rXf += d.xf; rTot += d.total;
+      rickyBody.insertAdjacentHTML("beforeend", `<tr><td>${d.name}</td><td>${d.id}</td><td>${d.cr}</td><td>${d.xf}</td><td>${d.total}</td></tr>`);
     });
 
+    // 5. Actualizar la UI (Totales y Barra de Supremacía)
     document.getElementById("javi-cr").textContent = jCr; document.getElementById("javi-xf").textContent = jXf; document.getElementById("javi-total").textContent = jTot;
     document.getElementById("ricky-cr").textContent = rCr; document.getElementById("ricky-xf").textContent = rXf; document.getElementById("ricky-total").textContent = rTot;
 
@@ -529,8 +570,7 @@ async function loadData() {
     const javiDomination = (jXf / totalXfer) * 100;
     const rickyDomination  = (rXf / totalXfer) * 100;
     
-    // Actualizamos la variable global que controla el muro invisible
-    currentDominancePct = javiDomination;
+    currentDominancePct = javiDomination; // Variable global para el muro
 
     document.getElementById("javi-bar").style.width = `${javiDomination}%`;
     document.getElementById("ricky-bar").style.width = `${rickyDomination}%`;
