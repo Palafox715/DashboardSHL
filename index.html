@@ -7,7 +7,7 @@
 <style>
   :root {
     --bg-dark: #0b0c10;
-    --panel-dark: rgba(31, 40, 51, 0.85); /* Ligeramente transparente para ver las partículas detrás */
+    --panel-dark: rgba(31, 40, 51, 0.85);
     --text-main: #c5c6c7;
     --text-light: #ffffff;
     --neon-green: #00ffcc;
@@ -30,8 +30,8 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    z-index: -1; /* Mantiene las partículas detrás del texto y paneles */
-    pointer-events: none; /* Permite hacer clic a través del canvas */
+    z-index: -1;
+    pointer-events: none;
   }
 
   header {
@@ -125,7 +125,7 @@
   .team {
     flex: 1;
     background: var(--panel-dark);
-    backdrop-filter: blur(5px); /* Añade un efecto cristal mate a las tablas */
+    backdrop-filter: blur(5px);
     border-radius: 46px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.5);
     overflow: hidden;
@@ -233,7 +233,7 @@ const TIMEZONE = "America/Tijuana";
 const canvas = document.getElementById('battlefield');
 const ctx = canvas.getContext('2d');
 let width, height;
-let currentDominancePct = 50; // Inicia en 50/50
+let currentDominancePct = 50; 
 let particles = [];
 
 function resizeCanvas() {
@@ -250,7 +250,6 @@ class Entity {
     this.team = team;
     this.updateStats(xfer);
     
-    // Nacer en posiciones aleatorias dentro de su territorio
     this.y = Math.random() * height;
     if (this.team === 'javi') {
       this.x = Math.random() * (width * (currentDominancePct/100));
@@ -258,7 +257,6 @@ class Entity {
       this.x = (width * (currentDominancePct/100)) + Math.random() * (width * ((100-currentDominancePct)/100));
     }
     
-    // Dirección aleatoria
     const angle = Math.random() * Math.PI * 2;
     this.vx = Math.cos(angle) * this.maxSpeed;
     this.vy = Math.sin(angle) * this.maxSpeed;
@@ -266,9 +264,7 @@ class Entity {
 
   updateStats(xfer) {
     this.xfer = xfer;
-    // Pragmatismo matemático: Radio base 3, crece un máximo de +15 dependiendo de los xfers
     this.radius = 3 + Math.min(xfer * 0.4, 15); 
-    // Velocidad base 0.5, crece hasta +3 dependiendo de los xfers
     this.maxSpeed = 0.5 + Math.min(xfer * 0.1, 3);
   }
 
@@ -276,13 +272,11 @@ class Entity {
     this.x += this.vx;
     this.y += this.vy;
 
-    // Rebote en el techo y el suelo
     if (this.y - this.radius <= 0 || this.y + this.radius >= height) {
       this.vy *= -1;
       this.y = Math.max(this.radius, Math.min(this.y, height - this.radius));
     }
 
-    // Lógica del muro de contención "Supremacy Wall"
     if (this.team === 'javi') {
       if (this.x - this.radius <= 0) { this.vx *= -1; this.x = this.radius; }
       if (this.x + this.radius >= wallX) { this.vx *= -1; this.x = wallX - this.radius; }
@@ -307,14 +301,13 @@ class Entity {
     ctx.shadowBlur = 10;
     ctx.fill();
     ctx.closePath();
-    ctx.shadowBlur = 0; // Reset para no afectar otros dibujos
+    ctx.shadowBlur = 0; 
   }
 }
 
 function animate() {
   ctx.clearRect(0, 0, width, height);
   
-  // Dibujar el muro invisible (opcional, una línea sutil)
   const wallX = width * (currentDominancePct / 100);
   ctx.beginPath();
   ctx.moveTo(wallX, 0);
@@ -323,7 +316,6 @@ function animate() {
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // Actualizar y dibujar todas las partículas
   particles.forEach(p => {
     p.update(wallX);
     p.draw(ctx);
@@ -331,8 +323,7 @@ function animate() {
 
   requestAnimationFrame(animate);
 }
-animate(); // Iniciar el bucle de renderizado
-
+animate(); 
 
 // ==========================================
 // LÓGICA DE EXTRACCIÓN DE DATOS
@@ -447,24 +438,20 @@ async function getActiveWeeklyTabsForCurrentMonth() {
 
 async function loadData() {
   try {
-    // Obtenemos las pestañas semanales activas
     const { tabs } = await getActiveWeeklyTabsForCurrentMonth();
     
-    // Mapas independientes para cada equipo
     const mapJavi = new Map();
     const mapRicky = new Map();
 
     for (const weeklyTab of tabs) {
-      // Extendemos el rango a Z para cubrir ambas tablas horizontales
       const dataRange = `${weeklyTab}!A1:Z150`; 
       const dataValues = (await fetchJSON(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(dataRange)}?valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`)).values || [];
       
       if (dataValues.length < 3) continue;
 
-      const headers1 = dataValues[0] || []; // Fila 1: "Javi", "Ricky"
-      const headers2 = dataValues[1] || []; // Fila 2: "AGENT NAME", "ID", etc.
+      const headers1 = dataValues[0] || [];
+      const headers2 = dataValues[1] || [];
 
-      // 1. Encontrar dónde empieza la zona de cada equipo dinámicamente
       let javiStartIndex = -1, rickyStartIndex = -1;
       headers1.forEach((h, i) => {
         const txt = String(h).toUpperCase().trim();
@@ -472,31 +459,27 @@ async function loadData() {
         if (txt.includes("RICKY")) rickyStartIndex = i;
       });
 
-      // Fallbacks por si alguien borra los títulos de la Fila 1 (basado en su imagen)
-      if (javiStartIndex === -1) javiStartIndex = 0;   // Asume Col A
-      if (rickyStartIndex === -1) rickyStartIndex = 9; // Asume Col J
+      if (javiStartIndex === -1) javiStartIndex = 0;   
+      if (rickyStartIndex === -1) rickyStartIndex = 9; 
 
-      // Función auxiliar para mapear índices de columnas en un rango específico
+      // Función auxiliar blindada contra errores humanos en los nombres de las columnas
       function getCols(startIdx, endIdx) {
         let cols = { name: -1, id: -1, cr: -1, xf: -1 };
         for(let i = startIdx; i < endIdx; i++) {
-          const h = String(headers2[i] || "").toUpperCase().trim();
-          if (h.includes("AGENT NAME")) cols.name = i;
+          const h = String(headers2[i] || "").toUpperCase().replace(/\s+/g, "");
+          if (h.includes("AGENTNAME") || h.includes("AGENT")) cols.name = i;
           if (h === "ID") cols.id = i;
-          if (h === "CRPULL") cols.cr = i;
-          if (h === "XFER") cols.xf = i;
+          if (h.includes("CRPULL") || h === "CR") cols.cr = i;
+          if (h.includes("XFER") || h === "XF") cols.xf = i;
         }
         return cols;
       }
 
-      // Definir los límites de búsqueda de columnas para cada equipo
       const limitJavi = rickyStartIndex > javiStartIndex ? rickyStartIndex : headers2.length;
       const javiCols = getCols(javiStartIndex, limitJavi);
       const rickyCols = getCols(rickyStartIndex, headers2.length);
 
-      // 2. Extraer los datos fila por fila
       dataValues.slice(2).forEach(row => {
-        // --- Procesar datos de Facción Javi ---
         if (javiCols.id !== -1 && row[javiCols.id]) {
           const id = String(row[javiCols.id]).trim();
           if (id) {
@@ -509,7 +492,6 @@ async function loadData() {
           }
         }
 
-        // --- Procesar datos de Facción Ricky ---
         if (rickyCols.id !== -1 && row[rickyCols.id]) {
           const id = String(row[rickyCols.id]).trim();
           if (id) {
@@ -524,21 +506,17 @@ async function loadData() {
       });
     }
 
-    // Limpiar tablas en el Dashboard
     const javiBody = document.querySelector("#table-javi tbody");
     const rickyBody = document.querySelector("#table-ricky tbody");
     javiBody.innerHTML = rickyBody.innerHTML = "";
 
-    // Convertir mapas a arreglos
     const javiArr = Array.from(mapJavi.values());
     const rickyArr = Array.from(mapRicky.values());
 
-    // 3. Sincronizar las partículas en el canvas
     const allAgents = [...javiArr, ...rickyArr];
     allAgents.forEach(agent => {
       let existingParticle = particles.find(p => p.id === agent.id);
       if (existingParticle) {
-        // Actualizamos stats. Si el agente cambió de equipo, forzamos la actualización visual (opcional pero recomendado)
         existingParticle.team = agent.team; 
         existingParticle.updateStats(agent.xf);
       } else {
@@ -546,23 +524,24 @@ async function loadData() {
       }
     });
 
-    // 4. Ordenar por totales y renderizar
     javiArr.sort((a,b)=> b.total - a.total);
     rickyArr.sort((a,b)=> b.total - a.total);
 
     let jCr=0, jXf=0, jTot=0, rCr=0, rXf=0, rTot=0;
 
-    javiArr.forEach(d=>{
+    javiArr.forEach((d, index) => {
       jCr += d.cr; jXf += d.xf; jTot += d.total;
-      javiBody.insertAdjacentHTML("beforeend", `<tr><td>${d.name}</td><td>${d.id}</td><td>${d.cr}</td><td>${d.xf}</td><td>${d.total}</td></tr>`);
+      // Lógica MVP: Asigna una corona al primer lugar (siempre que tenga más de 0 puntos)
+      const mvpIcon = (index === 0 && d.total > 0) ? " 👑" : "";
+      javiBody.insertAdjacentHTML("beforeend", `<tr><td>${d.name}${mvpIcon}</td><td>${d.id}</td><td>${d.cr}</td><td>${d.xf}</td><td>${d.total}</td></tr>`);
     });
 
-    rickyArr.forEach(d=>{
+    rickyArr.forEach((d, index) => {
       rCr += d.cr; rXf += d.xf; rTot += d.total;
-      rickyBody.insertAdjacentHTML("beforeend", `<tr><td>${d.name}</td><td>${d.id}</td><td>${d.cr}</td><td>${d.xf}</td><td>${d.total}</td></tr>`);
+      const mvpIcon = (index === 0 && d.total > 0) ? " 👑" : "";
+      rickyBody.insertAdjacentHTML("beforeend", `<tr><td>${d.name}${mvpIcon}</td><td>${d.id}</td><td>${d.cr}</td><td>${d.xf}</td><td>${d.total}</td></tr>`);
     });
 
-    // 5. Actualizar la UI (Totales y Barra de Supremacía)
     document.getElementById("javi-cr").textContent = jCr; document.getElementById("javi-xf").textContent = jXf; document.getElementById("javi-total").textContent = jTot;
     document.getElementById("ricky-cr").textContent = rCr; document.getElementById("ricky-xf").textContent = rXf; document.getElementById("ricky-total").textContent = rTot;
 
@@ -570,7 +549,7 @@ async function loadData() {
     const javiDomination = (jXf / totalXfer) * 100;
     const rickyDomination  = (rXf / totalXfer) * 100;
     
-    currentDominancePct = javiDomination; // Variable global para el muro
+    currentDominancePct = javiDomination; 
 
     document.getElementById("javi-bar").style.width = `${javiDomination}%`;
     document.getElementById("ricky-bar").style.width = `${rickyDomination}%`;
@@ -597,4 +576,3 @@ setInterval(loadData, 60000);
 </script>
 </body>
 </html>
-
