@@ -668,9 +668,22 @@ async function loadData() {
     const rickyBox = document.getElementById("ricky-xfer-total");
     javiBox.textContent = jXf; rickyBox.textContent = rXf;
 
-    javiBox.classList.remove("win","lose"); rickyBox.classList.remove("win","lose");
-    if (jXf > rXf){ javiBox.classList.add("win"); rickyBox.classList.add("lose"); }
-    else if (rXf > jXf){ rickyBox.classList.add("win"); javiBox.classList.add("lose"); }
+    // Colores fijos a su facción
+    javiBox.style.color = "var(--neon-green)";
+    rickyBox.style.color = "var(--neon-orange)";
+
+    // Resaltar al ganador (brillo total) y atenuar al perdedor
+    if (jXf > rXf) {
+      javiBox.style.opacity = "1"; javiBox.style.textShadow = "0 0 15px var(--neon-green)";
+      rickyBox.style.opacity = "0.5"; rickyBox.style.textShadow = "none";
+    } else if (rXf > jXf) {
+      rickyBox.style.opacity = "1"; rickyBox.style.textShadow = "0 0 15px var(--neon-orange)";
+      javiBox.style.opacity = "0.5"; javiBox.style.textShadow = "none";
+    } else {
+      // En caso de empate, ambos brillan
+      javiBox.style.opacity = "1"; rickyBox.style.opacity = "1";
+      javiBox.style.textShadow = "none"; rickyBox.style.textShadow = "none";
+    }
 
   } catch (err) {
     console.error("❌ Error al cargar los datos:", err);
