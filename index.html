@@ -278,55 +278,48 @@ class Entity {
 
 
 update(wallX) {
-    // 1. Atracción Táctica (Gravedad hacia el muro)
-    const attractionForce = 0.015; // Pragmático: fuerza suave y constante
+    // 1. Atracción Táctica (Gravedad constante hacia la frontera)
+    const attractionForce = 0.015;
     if (this.team === 'javi') {
       this.vx += attractionForce;
     } else {
       this.vx -= attractionForce;
     }
 
-    // 2. Control de Velocidad Máxima (Límite para evitar aceleración infinita)
+    // 2. Límite de Velocidad (Fuerza de carga)
     const currentSpeed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
     if (currentSpeed > this.maxSpeed) {
       this.vx = (this.vx / currentSpeed) * this.maxSpeed;
       this.vy = (this.vy / currentSpeed) * this.maxSpeed;
     }
 
-    // 3. Aplicar el movimiento final
     this.x += this.vx;
     this.y += this.vy;
 
-    // Rebote en el techo y el suelo
+    // Rebote natural en el techo y el suelo
     if (this.y - this.radius <= 0 || this.y + this.radius >= height) {
       this.vy *= -1;
       this.y = Math.max(this.radius, Math.min(this.y, height - this.radius));
     }
 
-    // 4. Lógica de Colisión (El Frente de Batalla)
+    // 3. Táctica de Escaramuza (El Rebote a la Retaguardia)
     if (this.team === 'javi') {
-      // Borde izquierdo de la pantalla
-      if (this.x - this.radius <= 0) { 
-        this.vx *= -1; 
-        this.x = this.radius; 
-      }
-      // Choque contra el muro central
+      if (this.x - this.radius <= 0) { this.vx = Math.abs(this.vx); this.x = this.radius; }
+      
       if (this.x + this.radius >= wallX) { 
-        this.vx *= -0.8; // Rebote mermado simula resistencia
+        // Inyectar un fuerte impulso negativo al chocar contra el muro enemigo
+        this.vx = -(this.maxSpeed * (1.5 + Math.random())); 
+        this.vy += (Math.random() - 0.5) * 2; // Ligero caos vertical para dispersarlos
         this.x = wallX - this.radius; 
-        this.vy += (Math.random() - 0.5) * 0.8; // Caos vertical de combate
       }
     } else {
-      // Borde derecho de la pantalla
-      if (this.x + this.radius >= width) { 
-        this.vx *= -1; 
-        this.x = width - this.radius; 
-      }
-      // Choque contra el muro central
+      if (this.x + this.radius >= width) { this.vx = -Math.abs(this.vx); this.x = width - this.radius; }
+      
       if (this.x - this.radius <= wallX) { 
-        this.vx *= -0.8; // Rebote mermado simula resistencia
+        // Inyectar un fuerte impulso positivo al chocar contra el muro enemigo
+        this.vx = this.maxSpeed * (1.5 + Math.random()); 
+        this.vy += (Math.random() - 0.5) * 2; // Ligero caos vertical para dispersarlos
         this.x = wallX + this.radius; 
-        this.vy += (Math.random() - 0.5) * 0.8; // Caos vertical de combate
       }
     }
   }
