@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shoreline — Monthly Dashboard</title>
+<title>Shoreline —  Dashboard</title>
 <style>
   :root {
     --bg-dark: #0b0c10;
@@ -276,7 +276,24 @@ class Entity {
     this.vy = Math.sin(angle) * this.maxSpeed;
   }
 
-  update(wallX) {
+
+update(wallX) {
+    // 1. Atracción Táctica (Gravedad hacia el muro)
+    const attractionForce = 0.015; // Pragmático: fuerza suave y constante
+    if (this.team === 'javi') {
+      this.vx += attractionForce;
+    } else {
+      this.vx -= attractionForce;
+    }
+
+    // 2. Control de Velocidad Máxima (Límite para evitar aceleración infinita)
+    const currentSpeed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+    if (currentSpeed > this.maxSpeed) {
+      this.vx = (this.vx / currentSpeed) * this.maxSpeed;
+      this.vy = (this.vy / currentSpeed) * this.maxSpeed;
+    }
+
+    // 3. Aplicar el movimiento final
     this.x += this.vx;
     this.y += this.vy;
 
@@ -286,13 +303,31 @@ class Entity {
       this.y = Math.max(this.radius, Math.min(this.y, height - this.radius));
     }
 
-    // Lógica del muro de contención "Supremacy Wall"
+    // 4. Lógica de Colisión (El Frente de Batalla)
     if (this.team === 'javi') {
-      if (this.x - this.radius <= 0) { this.vx *= -1; this.x = this.radius; }
-      if (this.x + this.radius >= wallX) { this.vx *= -1; this.x = wallX - this.radius; }
+      // Borde izquierdo de la pantalla
+      if (this.x - this.radius <= 0) { 
+        this.vx *= -1; 
+        this.x = this.radius; 
+      }
+      // Choque contra el muro central
+      if (this.x + this.radius >= wallX) { 
+        this.vx *= -0.8; // Rebote mermado simula resistencia
+        this.x = wallX - this.radius; 
+        this.vy += (Math.random() - 0.5) * 0.8; // Caos vertical de combate
+      }
     } else {
-      if (this.x + this.radius >= width) { this.vx *= -1; this.x = width - this.radius; }
-      if (this.x - this.radius <= wallX) { this.vx *= -1; this.x = wallX + this.radius; }
+      // Borde derecho de la pantalla
+      if (this.x + this.radius >= width) { 
+        this.vx *= -1; 
+        this.x = width - this.radius; 
+      }
+      // Choque contra el muro central
+      if (this.x - this.radius <= wallX) { 
+        this.vx *= -0.8; // Rebote mermado simula resistencia
+        this.x = wallX + this.radius; 
+        this.vy += (Math.random() - 0.5) * 0.8; // Caos vertical de combate
+      }
     }
   }
 
