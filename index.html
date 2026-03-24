@@ -26,9 +26,9 @@
     width: 100%;
   }
 
-  /* ===== El Campo de Batalla (Capas de Renderizado) ===== */
+  /* ===== El Campo de Batalla (Capas de Renderizado Fixed) ===== */
   #battlefield {
-    /* CORRECCIÓN: Anclado al fondo de la pantalla (fixed) para que no baje con el scroll */
+    /* CORRECCIÓN: Anclado al fondo (fixed) para que no baje con el scroll */
     position: fixed;
     top: 0; left: 0;
     width: 100vw; height: 100vh;
@@ -45,7 +45,7 @@
     pointer-events: none; 
   }
 
-  /* === ESTRUCTURA DOM: CONTENEDOR Y SPRITE === */
+  /* === ESTRUCTURA DOM TÁCTICA: CONTENEDOR Y SPRITE === */
   .agent-container {
     position: absolute;
     display: flex;
@@ -59,11 +59,13 @@
   .agent-sprite {
     width: 100%; height: auto;
     object-fit: contain;
+    /* Optimización Pixel-Art: Mantiene los GIFs nítidos al escalar */
     image-rendering: pixelated; 
     image-rendering: crisp-edges;
     transition: filter 0.2s ease; /* Transición suave para el flash */
   }
 
+  /* PRAGMATISMO CSS: drop-shadow perfila la silueta ignorando la transparencia */
   .agent-container.javi .agent-sprite {
     filter: drop-shadow(0 0 5px rgba(0, 255, 204, 0.9)) drop-shadow(0 0 15px rgba(0, 255, 204, 0.6));
   }
@@ -71,7 +73,7 @@
     filter: drop-shadow(0 0 5px rgba(255, 69, 0, 0.9)) drop-shadow(0 0 15px rgba(255, 69, 0, 0.6));
   }
 
-  /* === EFECTO GAMIFICACIÓN (Sube de Nivel) === */
+  /* === EFECTO GAMIFICACIÓN (Sube de Nivel / Puntuación) === */
   @keyframes floatUp {
     0% { opacity: 1; transform: translateY(0) scale(1); }
     100% { opacity: 0; transform: translateY(-60px) scale(1.3); }
@@ -95,7 +97,7 @@
 
   /* === ETIQUETA DE NOMBRE === */
   .agent-name-label {
-    margin-top: -5px; 
+    margin-top: -5px; /* Sube el texto para acercarlo al personaje */
     color: #fff;
     font-size: 11px;
     font-weight: 800;
@@ -103,20 +105,37 @@
     white-space: nowrap; 
     pointer-events: none;
     text-align: center;
-    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    /* Blindaje visual para que sea legible en cualquier fondo */
+    text-shadow: 
+      -1px -1px 0 #000,  
+       1px -1px 0 #000,
+      -1px  1px 0 #000,
+       1px  1px 0 #000;
   }
 
-  /* Capa 3: Interfaz de Usuario (Dashboard) */
-  header, .dashboard { position: relative; z-index: 10; }
+  /* Capa 3: Interfaz de Usuario (Dashboard Escroleable) */
+  header, .dashboard {
+    position: relative;
+    z-index: 10; 
+  }
+
   header { text-align: center; padding: 1rem 0 0.5rem 0; }
   h1 { font-size: 2.4rem; font-weight: 800; margin-bottom: 0.3rem; color: var(--text-light); text-shadow: 0 0 10px rgba(255, 255, 255, 0.2); }
 
   /* ===== Barra de Conquista ===== */
   .supremacy-wrapper {
-    position: relative; width: 80%; height: 45px; margin: 1.5rem auto; background: #111;
-    border-radius: 8px; border: 2px solid #333; display: flex; overflow: hidden;
+    position: relative;
+    width: 80%;
+    height: 45px;
+    margin: 1.5rem auto;
+    background: #111;
+    border-radius: 8px;
+    border: 2px solid #333;
+    display: flex;
+    overflow: hidden;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.8) inset, 0 5px 15px rgba(0,0,0,0.5);
   }
+
   .supremacy-side { height: 100%; transition: width 0.8s cubic-bezier(0.25, 1, 0.5, 1); display: flex; align-items: center; position: relative; }
   .team-javi-bar { width: 50%; background: linear-gradient(90deg, rgba(0,255,204,0.2) 0%, rgba(0,255,204,0.8) 100%); box-shadow: inset -5px 0 15px var(--neon-green); }
   .team-ricky-bar { width: 50%; background: linear-gradient(270deg, rgba(255,69,0,0.2) 0%, rgba(255,69,0,0.8) 100%); box-shadow: inset 5px 0 15px var(--neon-orange); }
@@ -193,12 +212,14 @@
 </div>
 
 <script>
+// ==========================================
+// CONFIGURACIÓN GLOBAL Y EXTRACCIÓN
+// ==========================================
 const SHEET_ID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
 const API_KEY  = "AIzaSyCCBAapFj9Fd-8cOIfpDJxrOP__76zxAxM"; 
 const TIMEZONE = "America/Tijuana";
 
-const URL_JAVI = "https://media.tenor.com/4dZZhXOYipYAAAAi/link-toon-link.gif";
-const URL_RICKY = "https://media.tenor.com/jVspFHPHuSMAAAAi/walk-mario.gif";
+// Eliminamos URLs estáticas. El sistema ahora es dinámico por ID.
 
 const canvas = document.getElementById('battlefield');
 const ctx = canvas.getContext('2d');
@@ -215,6 +236,9 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
+// ==========================================
+// MOTOR DE FÍSICA Y RENDERIZADO DOM
+// ==========================================
 class Entity {
   constructor(id, name, team, xfer) {
     this.id = id;
@@ -222,18 +246,34 @@ class Entity {
     this.team = team;
     this.xfer = 0; // Inicializar en 0 para que siempre haga flash en su primer punto
     
+    // 1. Crear el contenedor principal
     this.domElement = document.createElement('div');
     this.domElement.className = `agent-container ${this.team}`;
     this.domElement.id = `agent-${id}`; 
     
+    // 2. Inyectar el GIF animado (Lógica Dinámica Táctica)
     const img = document.createElement('img');
-    img.src = (this.team === 'javi') ? URL_JAVI : URL_RICKY;
+    
+    // === IMPLEMENTACIÓN MAESTRA DE AVATARES DINÁMICOS POR ID ===
+    const spritePath = `./Sprite/${id}.gif`;
+    img.src = spritePath;
+    
+    // BLINDAJE CONTRA ERRORES: Si el GIF con ese ID no existe en la carpeta, carga un fallback
+    img.onerror = function() {
+      // Cargará automáticamente default.gif si el ID.gif no se encuentra
+      this.src = "./Sprite/default.gif"; 
+      // Si default.gif tampoco existe (doble fallo), oculta la imagen para no romper el diseño
+      this.onerror = function() { this.style.display = 'none'; };
+      console.warn(`⚠️ Sprite no encontrado para el agente ${id} en la ruta: ${spritePath}. Cargando avatar por defecto.`);
+    };
+
     img.className = 'agent-sprite';
     this.domElement.appendChild(img);
     
+    // 3. Inyectar la Etiqueta de Nombre
     const nameLabel = document.createElement('span');
     nameLabel.className = 'agent-name-label';
-    nameLabel.textContent = this.name.split(' ')[0]; 
+    nameLabel.textContent = this.name.split(' ')[0]; // Pragmatismo: Solo primer nombre
     this.domElement.appendChild(nameLabel);
 
     entitiesContainer.appendChild(this.domElement);
@@ -252,22 +292,22 @@ class Entity {
     this.updateStats(xfer);
   }
 
-  // Lógica de Gamificación: Flash visual y texto flotante
+  // Lógica de Gamificación: Flash visual y texto flotante cuando anotan puntos
   triggerScoreEffect(pointsGained) {
     if (!this.domElement) return;
     
-    // 1. Efecto Flash en el sprite
+    // 1. Efecto Flash en el sprite (neón blanco)
     this.domElement.classList.add('flash-active');
     setTimeout(() => {
       if (this.domElement) this.domElement.classList.remove('flash-active');
     }, 500);
 
-    // 2. Texto Flotante animado
+    // 2. Texto Flotante RPG animado
     const scorePopup = document.createElement('div');
     scorePopup.className = 'floating-score';
     scorePopup.textContent = `+${pointsGained} XFER!`;
     
-    // Color del texto dinámico
+    // Color del texto dinámico según facción
     const glowColor = this.team === 'javi' ? 'var(--neon-green)' : 'var(--neon-orange)';
     scorePopup.style.textShadow = `0 0 5px #000, 0 0 15px ${glowColor}`;
     
@@ -281,8 +321,10 @@ class Entity {
 
   updateStats(xfer) {
     this.xfer = xfer;
+    // El tamaño del GIF crece con los XFER
     this.size = 50 + Math.min(xfer * 2.0, 100); 
     this.collideRadius = this.size / 2;
+    // Velocidad crece con los XFER
     this.maxSpeed = 1.0 + Math.min(xfer * 0.15, 5.0);
     
     if (this.domElement) {
@@ -346,6 +388,9 @@ function animate() {
 }
 animate(); 
 
+// ==========================================
+// LÓGICA DE EXTRACCIÓN DE DATOS (Sheets API)
+// ==========================================
 function num(v) { const n = Number(String(v ?? "").replace(/,/g, "").trim()); return Number.isFinite(n) ? n : 0; }
 function pad2(n) { return String(n).padStart(2, "0"); }
 function nowTZ() { return new Date(new Date().toLocaleString("en-US", { timeZone: TIMEZONE })); }
@@ -476,13 +521,14 @@ async function loadData() {
     const javiArr = Array.from(mapJavi.values()).filter(a => a.total > 0 || a.cr > 0 || a.xf > 0);
     const rickyArr = Array.from(mapRicky.values()).filter(a => a.total > 0 || a.cr > 0 || a.xf > 0);
 
+    // Sincronizar personajes en el DOM (Actualizar tamaño, velocidad, o crearlos)
     const allAgents = [...javiArr, ...rickyArr];
     allAgents.forEach(agent => {
       let existingParticle = particles.find(p => p.id === agent.id);
       if (existingParticle) {
         existingParticle.team = agent.team; 
         
-        // DETECCIÓN TÁCTICA: Si el agente subió de puntos desde la última revisión (cada minuto)
+        // GAMIFICACIÓN TÁCTICA: Si el agente subió de puntos desde la última revisión (cada minuto)
         if (agent.xf > existingParticle.xfer && existingParticle.xfer > 0) {
           const pointsGained = agent.xf - existingParticle.xfer;
           existingParticle.triggerScoreEffect(pointsGained);
@@ -503,21 +549,27 @@ async function loadData() {
     javiArr.sort((a,b)=> b.total - a.total);
     rickyArr.sort((a,b)=> b.total - a.total);
     let jCr=0, jXf=0, jTot=0, rCr=0, rXf=0, rTot=0;
+    
+    // MVP Rey (Ícono de corona en tablas UI)
     javiArr.forEach((d, index) => { jCr += d.cr; jXf += d.xf; jTot += d.total; const mvpIcon = (index === 0 && d.total > 0) ? " 👑" : ""; javiBody.insertAdjacentHTML("beforeend", `<tr><td>${d.name}${mvpIcon}</td><td>${d.id}</td><td>${d.cr}</td><td>${d.xf}</td><td>${d.total}</td></tr>`); });
     rickyArr.forEach((d, index) => { rCr += d.cr; rXf += d.xf; rTot += d.total; const mvpIcon = (index === 0 && d.total > 0) ? " 👑" : ""; rickyBody.insertAdjacentHTML("beforeend", `<tr><td>${d.name}${mvpIcon}</td><td>${d.id}</td><td>${d.cr}</td><td>${d.xf}</td><td>${d.total}</td></tr>`); });
 
+    // Actualizar Totales UI
     document.getElementById("javi-cr").textContent = jCr; document.getElementById("javi-xf").textContent = jXf; document.getElementById("javi-total").textContent = jTot;
     document.getElementById("ricky-cr").textContent = rCr; document.getElementById("ricky-xf").textContent = rXf; document.getElementById("ricky-total").textContent = rTot;
     const totalXfer = (jXf + rXf) > 0 ? (jXf + rXf) : 1; 
     const javiDomination = (jXf / totalXfer) * 100;
     const rickyDomination  = (rXf / totalXfer) * 100;
     currentDominancePct = javiDomination; 
+    
     document.getElementById("javi-bar").style.width = `${javiDomination}%`; document.getElementById("ricky-bar").style.width = `${rickyDomination}%`; document.getElementById("clash-indicator").style.left = `${javiDomination}%`;
     document.getElementById("javi-label").textContent = `🟢 Facción Javi: ${javiDomination.toFixed(1)}% (${jXf} XFER)`; document.getElementById("ricky-label").textContent = `🟠 Facción Ricky: ${rickyDomination.toFixed(1)}% (${rXf} XFER)`;
 
     const javiBox = document.getElementById("javi-xfer-total");
     const rickyBox = document.getElementById("ricky-xfer-total");
     javiBox.textContent = jXf; rickyBox.textContent = rXf;
+    
+    // CORRECCIÓN IDENTIDAD DE FACCIÓN (Colores Fijos en Marcador central)
     javiBox.style.color = "var(--neon-green)"; rickyBox.style.color = "var(--neon-orange)";
     if (jXf > rXf) { javiBox.style.opacity = "1"; javiBox.style.textShadow = "0 0 15px var(--neon-green)"; rickyBox.style.opacity = "0.5"; rickyBox.style.textShadow = "none"; } 
     else if (rXf > jXf) { rickyBox.style.opacity = "1"; rickyBox.style.textShadow = "0 0 15px var(--neon-orange)"; javiBox.style.opacity = "0.5"; javiBox.style.textShadow = "none"; }
@@ -527,8 +579,10 @@ async function loadData() {
   }
 }
 
+// Iniciar extracción de datos
 loadData();
-setInterval(loadData, 60000); // Revisa datos cada 60 segundos buscando si alguien anotó un punto
+// Actualización automática cada minuto buscando si alguien anotó un punto para lanzar flash RPG
+setInterval(loadData, 60000); 
 </script>
 </body>
 </html>
