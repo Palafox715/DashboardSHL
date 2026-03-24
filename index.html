@@ -227,8 +227,41 @@ const SHEET_ID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
 const API_KEY  = "AIzaSyCCBAapFj9Fd-8cOIfpDJxrOP__76zxAxM"; 
 const TIMEZONE = "America/Tijuana";
 
+// Actualmente Javi y Ricky comparten el mismo personaje
+const URL_JAVI = "https://media.tenor.com/yD9nL9u8C-IAAAAC/glorp-bouncing-slime.gif";
+const URL_RICKY = "https://media.tenor.com/yD9nL9u8C-IAAAAC/glorp-bouncing-slime.gif";
+
 // ==========================================
-// MOTOR DE PARTÍCULAS / ENTIDADES
+// MOTOR DE PRECARGA ASÍNCRONA DE IMÁGENES
+// ==========================================
+let imagesLoaded = false;
+const imgJavi = new Image();
+const imgRicky = new Image();
+
+// Contador de precarga
+let loadedCount = 0;
+const totalImages = 2;
+
+function checkImagesLoaded() {
+  loadedCount++;
+  if (loadedCount === totalImages) {
+    imagesLoaded = true;
+    console.log("✅ Personajes de combate listos para la batalla.");
+  }
+}
+
+imgJavi.onload = checkImagesLoaded;
+imgRicky.onload = checkImagesLoaded;
+imgJavi.onerror = () => console.error("❌ Error cargando imagen Javi");
+imgRicky.onerror = () => console.error("❌ Error cargando imagen Ricky");
+
+// Iniciar carga de GIFs
+imgJavi.src = URL_JAVI;
+imgRicky.src = URL_RICKY;
+
+
+// ==========================================
+// MOTOR DE PARTÍCULAS / ENTIDADES (Personajes)
 // ==========================================
 const canvas = document.getElementById('battlefield');
 const ctx = canvas.getContext('2d');
@@ -243,13 +276,12 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-
-
 class Entity {
   constructor(id, name, team, xfer) {
     this.id = id;
     this.name = name;
     this.team = team;
+    this.updateStats(xfer);
     
     // Nacer en posiciones aleatorias dentro de su territorio
     this.y = Math.random() * height;
@@ -259,25 +291,25 @@ class Entity {
       this.x = (width * (currentDominancePct/100)) + Math.random() * (width * ((100-currentDominancePct)/100));
     }
     
-    // Inicializar stats y vectores de velocidad
-    this.updateStats(xfer);
-  }
-
-  updateStats(xfer) {
-    this.xfer = xfer;
-    // Pragmatismo físico: El radio base sube a 14 para que el texto de 4 dígitos sea legible
-    this.radius = 14 + Math.min(xfer * 0.4, 20); 
-    // Velocidad reducida ligeramente para poder leer los IDs en movimiento
-    this.maxSpeed = 0.3 + Math.min(xfer * 0.05, 1.5);
-    
-    // Recalcular dirección con la nueva velocidad
+    // Dirección aleatoria
     const angle = Math.random() * Math.PI * 2;
     this.vx = Math.cos(angle) * this.maxSpeed;
     this.vy = Math.sin(angle) * this.maxSpeed;
   }
 
+  updateStats(xfer) {
+    this.xfer = xfer;
+    // Pragmatismo: El tamaño total del personaje crece con los XFER
+    // Base 40px, crece hasta max +40px (Total 80px)
+    this.size = 40 + Math.min(xfer * 0.8, 40); 
+    // Radio de colisión para la física (mitad del tamaño del personaje)
+    this.collideRadius = this.size / 2;
 
-update(wallX) {
+    // Velocidad base 0.5, crece hasta +3 dependiendo de los xfers
+    this.maxSpeed = 0.5 + Math.min(xfer * 0.1, 3);
+  }
+
+  update(wallX) {
     // 1. Atracción Táctica (Gravedad constante hacia la frontera)
     const attractionForce = 0.015;
     if (this.team === 'javi') {
@@ -286,7 +318,7 @@ update(wallX) {
       this.vx -= attractionForce;
     }
 
-    // 2. Límite de Velocidad (Fuerza de carga)
+    // 2. Control de Velocidad (Fuerza de carga vs límite terminal)
     const currentSpeed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
     if (currentSpeed > this.maxSpeed) {
       this.vx = (this.vx / currentSpeed) * this.maxSpeed;
@@ -296,64 +328,76 @@ update(wallX) {
     this.x += this.vx;
     this.y += this.vy;
 
-    // Rebote natural en el techo y el suelo
-    if (this.y - this.radius <= 0 || this.y + this.radius >= height) {
+    // Rebote natural en el techo y el suelo (basado en collideRadius)
+    if (this.y - this.collideRadius <= 0 || this.y + this.collideRadius >= height) {
       this.vy *= -1;
-      this.y = Math.max(this.radius, Math.min(this.y, height - this.radius));
+      this.y = Math.max(this.collideRadius, Math.min(this.y, height - this.collideRadius));
     }
 
-    // 3. Táctica de Escaramuza (El Rebote a la Retaguardia)
+    // 3. Táctica de Escaramuza (Choque y retirarse a retaguardia)
     if (this.team === 'javi') {
-      if (this.x - this.radius <= 0) { this.vx = Math.abs(this.vx); this.x = this.radius; }
+      // Borde izquierdo pantalla
+      if (this.x - this.collideRadius <= 0) { 
+        this.vx = Math.abs(this.vx); 
+        this.x = this.collideRadius; 
+      }
       
-      if (this.x + this.radius >= wallX) { 
-        // Inyectar un fuerte impulso negativo al chocar contra el muro enemigo
+      // Choque contra el muro enemigo
+      if (this.x + this.collideRadius >= wallX) { 
+        // Impulso fuerte de retroceso hacia retaguardia (negativo)
         this.vx = -(this.maxSpeed * (1.5 + Math.random())); 
         this.vy += (Math.random() - 0.5) * 2; // Ligero caos vertical para dispersarlos
-        this.x = wallX - this.radius; 
+        this.x = wallX - this.collideRadius; 
       }
     } else {
-      if (this.x + this.radius >= width) { this.vx = -Math.abs(this.vx); this.x = width - this.radius; }
+      // Borde derecho pantalla
+      if (this.x + this.collideRadius >= width) { 
+        this.vx = -Math.abs(this.vx); 
+        this.x = width - this.collideRadius; 
+      }
       
-      if (this.x - this.radius <= wallX) { 
-        // Inyectar un fuerte impulso positivo al chocar contra el muro enemigo
+      // Choque contra el muro enemigo
+      if (this.x - this.collideRadius <= wallX) { 
+        // Impulso fuerte de retroceso hacia retaguardia (positivo)
         this.vx = this.maxSpeed * (1.5 + Math.random()); 
         this.vy += (Math.random() - 0.5) * 2; // Ligero caos vertical para dispersarlos
-        this.x = wallX + this.radius; 
+        this.x = wallX + this.collideRadius; 
       }
     }
   }
 
   draw(ctx) {
-    // 1. Dibujar el fondo de la esfera
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-    
-    if (this.team === 'javi') {
-      ctx.fillStyle = 'rgba(0, 255, 204, 0.6)'; // Ligeramente más transparente para que el texto resalte
-      ctx.shadowColor = '#00ffcc';
-    } else {
-      ctx.fillStyle = 'rgba(255, 69, 0, 0.6)';
-      ctx.shadowColor = '#ff4500';
-    }
-    
-    ctx.shadowBlur = 10;
-    ctx.fill();
-    ctx.closePath();
-    
-    // 2. Dibujar el ID del agente en el centro
-    ctx.shadowBlur = 0; // Apagamos el resplandor para que el texto sea nítido
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 10px Inter, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(this.id, this.x, this.y);
+    // Seguridad: No dibujar si las imágenes no están precargadas
+    if (!imagesLoaded) return;
+
+    // Seleccionar imagen basada en equipo (Fácil expansión a futuro)
+    const activeImage = (this.team === 'javi') ? imgJavi : imgRicky;
+
+    // Resplandor de facción detrás del GIF (opcional, ayuda a identificarlos si comparten imagen)
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = (this.team === 'javi') ? '#00ffcc' : '#ff4500';
+
+    // Dibujar el GIF escalado y centrado
+    //drawImage requiere (imagen, x, y, ancho, alto)
+    // El Canvas dibuja desde arriba a la izquierda, por lo que restamos la mitad del tamaño
+    ctx.drawImage(
+      activeImage, 
+      this.x - this.collideRadius, 
+      this.y - this.collideRadius, 
+      this.size, 
+      this.size
+    );
+
+    // Resetear brillo para no afectar otros dibujos
+    ctx.shadowBlur = 0;
   }
 }
-  
 
 function animate() {
   ctx.clearRect(0, 0, width, height);
+
+  // OPTIMIZACIÓN PIXEL-ART: Desactivar suavizado automático para mantener GIFs nítidos
+  ctx.imageSmoothingEnabled = false;
   
   const wallX = width * (currentDominancePct / 100);
   ctx.beginPath();
@@ -363,6 +407,7 @@ function animate() {
   ctx.lineWidth = 2;
   ctx.stroke();
 
+  // Actualizar y dibujar personajes
   particles.forEach(p => {
     p.update(wallX);
     p.draw(ctx);
@@ -370,6 +415,7 @@ function animate() {
 
   requestAnimationFrame(animate);
 }
+// Iniciar bucle de renderizado inmediatamente
 animate(); 
 
 // ==========================================
@@ -378,8 +424,6 @@ animate();
 function num(v) { const n = Number(String(v ?? "").replace(/,/g, "").trim()); return Number.isFinite(n) ? n : 0; }
 function pad2(n) { return String(n).padStart(2, "0"); }
 function nowTZ() { return new Date(new Date().toLocaleString("en-US", { timeZone: TIMEZONE })); }
-
-
 
 function getCurrentWeekNumber() {
   const now = nowTZ();
@@ -402,7 +446,6 @@ function getCurrentWeekNumber() {
   // Cada 7 días es una nueva semana. Sumamos 1 porque el primer jueves inicia la Semana 1.
   return Math.floor(daysDiff / 7) + 1; 
 }
-  
 
 async function fetchJSON(url, { tries = 4, baseDelay = 700 } = {}) {
   let lastErr;
@@ -439,67 +482,6 @@ function extractW(title) {
   if (!m) return null;
   return { n: Number(m[1]), title, normalized: `W${pad2(Number(m[1]))}` };
 }
-
-async function sheetValues(rangeA1) {
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(rangeA1)}?valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`;
-  const j = await fetchJSON(url);
-  return j.values || [];
-}
-
-function tryParseDate(value) {
-  if (value == null) return null;
-  const s = String(value).trim();
-  if (!s) return null;
-  const d1 = new Date(s);
-  if (Number.isFinite(d1.getTime())) return d1;
-  const n = Number(s);
-  if (Number.isFinite(n) && n > 20000 && n < 90000) {
-    const base = new Date(Date.UTC(1899, 11, 30));
-    return new Date(base.getTime() + n * 86400000);
-  }
-  return null;
-}
-
-async function getWeekTabMonthKey(tabTitle) {
-  window.__wkMonth = window.__wkMonth || new Map();
-  if (window.__wkMonth.has(tabTitle)) return window.__wkMonth.get(tabTitle);
-  const header = await sheetValues(`${tabTitle}!A1:T2`);
-  let found = null;
-  for (const row of header) {
-    for (const cell of row) {
-      const d = tryParseDate(cell);
-      if (d) { found = d; break; }
-    }
-    if (found) break;
-  }
-  const key = found ? `${found.getFullYear()}-${pad2(found.getMonth() + 1)}` : null;
-  window.__wkMonth.set(tabTitle, key);
-  return key;
-}
-
-async function getActiveWeeklyTabsForCurrentMonth() {
-  const titles = await listSheetTitles();
-  const weekTabs = titles.map(extractW).filter(Boolean);
-  if (!weekTabs.length) throw new Error('Sin tabs semanales.');
-  const currentWeek = getCurrentWeekNumber();
-  const candidates = weekTabs.filter(w => w.n >= 1 && w.n <= currentWeek).map(w => w.title);
-  const baseCandidates = candidates.length ? candidates : weekTabs.map(w => w.title);
-  const now = nowTZ();
-  const monthKeyNow = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}`;
-  const monthTabs = [];
-  for (const t of baseCandidates.sort()) {
-    const mk = await getWeekTabMonthKey(t);
-    if (mk && mk === monthKeyNow) monthTabs.push(t);
-  }
-  if (!monthTabs.length) {
-    const best = baseCandidates.map(extractW).filter(Boolean).sort((a,b)=>b.n-a.n)[0];
-    return { tabs: [best?.title || baseCandidates[0]], mode: "fallback", monthKeyNow };
-  }
-  return { tabs: monthTabs, mode: "month-sum", monthKeyNow };
-}
-
-
-
 
 async function loadData() {
   try {
@@ -567,7 +549,7 @@ async function loadData() {
     }
 
     // Actualizar el título principal del Dashboard para transparencia
-    document.querySelector("h1").textContent = `Shoreline  Competition - ${weeklyTab}`;
+    document.querySelector("h1").textContent = `Shoreline Monthly Competition - ${weeklyTab}`;
 
     // 3. EXTRACCIÓN DE MÉTRICAS: Leer los datos diarios de la semana
     const dataRange = `${weeklyTab}!A1:Z150`; 
@@ -603,7 +585,7 @@ async function loadData() {
       });
     }
 
-    // 4. RENDERIZADO VISUAL
+    // Limpiar tablas
     const javiBody = document.querySelector("#table-javi tbody");
     const rickyBody = document.querySelector("#table-ricky tbody");
     javiBody.innerHTML = rickyBody.innerHTML = "";
@@ -611,7 +593,7 @@ async function loadData() {
     const javiArr = Array.from(mapJavi.values()).filter(a => a.total > 0 || a.cr > 0 || a.xf > 0);
     const rickyArr = Array.from(mapRicky.values()).filter(a => a.total > 0 || a.cr > 0 || a.xf > 0);
 
-    // Sincronizar partículas
+    // 4. Sincronizar personajes en el canvas (Actualizar tamaño y velocidad)
     const allAgents = [...javiArr, ...rickyArr];
     allAgents.forEach(agent => {
       let existingParticle = particles.find(p => p.id === agent.id);
@@ -623,6 +605,7 @@ async function loadData() {
       }
     });
 
+    // Ordenar y renderizar tablas
     javiArr.sort((a,b)=> b.total - a.total);
     rickyArr.sort((a,b)=> b.total - a.total);
 
@@ -661,21 +644,15 @@ async function loadData() {
     const rickyBox = document.getElementById("ricky-xfer-total");
     javiBox.textContent = jXf; rickyBox.textContent = rXf;
 
-    // Colores fijos a su facción
+    // Marcador central: Brillo y opacidad (Corrección de identidad de facción)
     javiBox.style.color = "var(--neon-green)";
     rickyBox.style.color = "var(--neon-orange)";
-
-    // Resaltar al ganador (brillo total) y atenuar al perdedor
     if (jXf > rXf) {
       javiBox.style.opacity = "1"; javiBox.style.textShadow = "0 0 15px var(--neon-green)";
       rickyBox.style.opacity = "0.5"; rickyBox.style.textShadow = "none";
     } else if (rXf > jXf) {
       rickyBox.style.opacity = "1"; rickyBox.style.textShadow = "0 0 15px var(--neon-orange)";
       javiBox.style.opacity = "0.5"; javiBox.style.textShadow = "none";
-    } else {
-      // En caso de empate, ambos brillan
-      javiBox.style.opacity = "1"; rickyBox.style.opacity = "1";
-      javiBox.style.textShadow = "none"; rickyBox.style.textShadow = "none";
     }
 
   } catch (err) {
@@ -683,7 +660,9 @@ async function loadData() {
   }
 }
 
+// Iniciar extracción de datos
 loadData();
+// Actualización automática cada minuto
 setInterval(loadData, 60000);
 </script>
 </body>
