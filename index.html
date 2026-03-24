@@ -436,83 +436,120 @@ async function getActiveWeeklyTabsForCurrentMonth() {
   return { tabs: monthTabs, mode: "month-sum", monthKeyNow };
 }
 
+
+
+
 async function loadData() {
   try {
-    const { tabs } = await getActiveWeeklyTabsForCurrentMonth();
-    
+    // 1. DICCIONARIO DE EQUIPOS: Extraer asignaciones de TeamLayout
+    const teamRange = `TeamLayout!A1:Z150`;
+    const teamData = (await fetchJSON(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(teamRange)}?key=${API_KEY}`)).values || [];
+
     const mapJavi = new Map();
     const mapRicky = new Map();
 
-    for (const weeklyTab of tabs) {
-      const dataRange = `${weeklyTab}!A1:Z150`; 
-      const dataValues = (await fetchJSON(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(dataRange)}?valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`)).values || [];
-      
-      if (dataValues.length < 3) continue;
+    if (teamData.length >= 2) {
+      const headers1 = teamData[0] || [];
+      const headers2 = teamData[1] || [];
 
-      const headers1 = dataValues[0] || [];
-      const headers2 = dataValues[1] || [];
-
-      let javiStartIndex = -1, rickyStartIndex = -1;
+      // Detección dinámica de zonas para esquivar columnas ocultas
+      let javiStart = -1, rickyStart = -1;
       headers1.forEach((h, i) => {
-        const txt = String(h).toUpperCase().trim();
-        if (txt.includes("JAVI")) javiStartIndex = i;
-        if (txt.includes("RICKY")) rickyStartIndex = i;
+        if (String(h).toUpperCase().includes("JAVI")) javiStart = i;
+        if (String(h).toUpperCase().includes("RICKY")) rickyStart = i;
       });
 
-      if (javiStartIndex === -1) javiStartIndex = 0;   
-      if (rickyStartIndex === -1) rickyStartIndex = 9; 
+      if (javiStart === -1) javiStart = 0;
+      if (rickyStart === -1) rickyStart = 9;
 
-      // Función auxiliar blindada contra errores humanos en los nombres de las columnas
-      function getCols(startIdx, endIdx) {
-        let cols = { name: -1, id: -1, cr: -1, xf: -1 };
-        for(let i = startIdx; i < endIdx; i++) {
-          const h = String(headers2[i] || "").toUpperCase().replace(/\s+/g, "");
-          if (h.includes("AGENTNAME") || h.includes("AGENT")) cols.name = i;
-          if (h === "ID") cols.id = i;
-          if (h.includes("CRPULL") || h === "CR") cols.cr = i;
-          if (h.includes("XFER") || h === "XF") cols.xf = i;
-        }
-        return cols;
+      let javiCols = { name: -1, id: -1 }, rickyCols = { name: -1, id: -1 };
+      const limitJavi = rickyStart > javiStart ? rickyStart : headers2.length;
+
+      for (let i = javiStart; i < limitJavi; i++) {
+        const h = String(headers2[i]).toUpperCase();
+        if (h.includes("NAME")) javiCols.name = i;
+        if (h === "ID") javiCols.id = i;
+      }
+      for (let i = rickyStart; i < headers2.length; i++) {
+        const h = String(headers2[i]).toUpperCase();
+        if (h.includes("NAME")) rickyCols.name = i;
+        if (h === "ID") rickyCols.id = i;
       }
 
-      const limitJavi = rickyStartIndex > javiStartIndex ? rickyStartIndex : headers2.length;
-      const javiCols = getCols(javiStartIndex, limitJavi);
-      const rickyCols = getCols(rickyStartIndex, headers2.length);
-
-      dataValues.slice(2).forEach(row => {
+      // Memorizar agentes
+      teamData.slice(2).forEach(row => {
         if (javiCols.id !== -1 && row[javiCols.id]) {
           const id = String(row[javiCols.id]).trim();
-          if (id) {
-            const name = String(row[javiCols.name] || "Unknown").trim();
-            const cr = num(row[javiCols.cr]);
-            const xf = num(row[javiCols.xf]);
-            const prev = mapJavi.get(id) || { name, id, team: "javi", cr: 0, xf: 0, total: 0 };
-            prev.cr += cr; prev.xf += xf; prev.total += (cr + xf);
-            mapJavi.set(id, prev);
-          }
+          if (id) mapJavi.set(id, { id, name: String(row[javiCols.name] || "Unknown").trim(), team: "javi", cr: 0, xf: 0, total: 0 });
         }
-
         if (rickyCols.id !== -1 && row[rickyCols.id]) {
           const id = String(row[rickyCols.id]).trim();
-          if (id) {
-            const name = String(row[rickyCols.name] || "Unknown").trim();
-            const cr = num(row[rickyCols.cr]);
-            const xf = num(row[rickyCols.xf]);
-            const prev = mapRicky.get(id) || { name, id, team: "ricky", cr: 0, xf: 0, total: 0 };
-            prev.cr += cr; prev.xf += xf; prev.total += (cr + xf);
-            mapRicky.set(id, prev);
-          }
+          if (id) mapRicky.set(id, { id, name: String(row[rickyCols.name] || "Unknown").trim(), team: "ricky", cr: 0, xf: 0, total: 0 });
         }
       });
     }
 
+    // 2. DETECCIÓN DE SEMANA: Buscar la pestaña correspondiente
+    const titles = await listSheetTitles();
+    const currentWeekNum = getCurrentWeekNumber();
+    let weeklyTab = `W${pad2(currentWeekNum)}`;
+
+    // Fallback: Si la hoja de la semana actual no está creada, usar la más reciente disponible
+    if (!titles.includes(weeklyTab)) {
+      const weekTabs = titles.map(extractW).filter(Boolean).sort((a,b) => b.n - a.n);
+      if (weekTabs.length > 0) {
+        weeklyTab = weekTabs[0].title;
+      } else {
+        throw new Error("No se encontraron pestañas semanales válidas.");
+      }
+    }
+
+    // Actualizar el título principal del Dashboard para transparencia
+    document.querySelector("h1").textContent = `Shoreline Monthly Competition - ${weeklyTab}`;
+
+    // 3. EXTRACCIÓN DE MÉTRICAS: Leer los datos diarios de la semana
+    const dataRange = `${weeklyTab}!A1:Z150`; 
+    const dataValues = (await fetchJSON(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(dataRange)}?valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`)).values || [];
+    
+    if (dataValues.length >= 3) {
+      // Fila 2 (índice 1) contiene los encabezados "CRPULL" y "XFER"
+      const headersWeek = dataValues[1] || [];
+      const crIndexes = [], xfIndexes = [];
+
+      headersWeek.forEach((h, i) => {
+        const txt = String(h).toUpperCase().replace(/\s+/g, "");
+        if (txt.includes("CRPULL") || txt === "CR") crIndexes.push(i);
+        if (txt.includes("XFER") || txt === "XF") xfIndexes.push(i);
+      });
+
+      // Sumar puntos cruzando IDs
+      dataValues.slice(2).forEach(row => {
+        const id = String(row[0] || "").trim(); // Columna A es "AGENT ID"
+        if (!id) return;
+
+        let crSum = 0, xfSum = 0;
+        crIndexes.forEach(idx => crSum += num(row[idx]));
+        xfIndexes.forEach(idx => xfSum += num(row[idx]));
+
+        if (mapJavi.has(id)) {
+          let agent = mapJavi.get(id);
+          agent.cr += crSum; agent.xf += xfSum; agent.total += (crSum + xfSum);
+        } else if (mapRicky.has(id)) {
+          let agent = mapRicky.get(id);
+          agent.cr += crSum; agent.xf += xfSum; agent.total += (crSum + xfSum);
+        }
+      });
+    }
+
+    // 4. RENDERIZADO VISUAL
     const javiBody = document.querySelector("#table-javi tbody");
     const rickyBody = document.querySelector("#table-ricky tbody");
     javiBody.innerHTML = rickyBody.innerHTML = "";
 
-    const javiArr = Array.from(mapJavi.values());
-    const rickyArr = Array.from(mapRicky.values());
+    const javiArr = Array.from(mapJavi.values()).filter(a => a.total > 0 || a.cr > 0 || a.xf > 0);
+    const rickyArr = Array.from(mapRicky.values()).filter(a => a.total > 0 || a.cr > 0 || a.xf > 0);
 
+    // Sincronizar partículas
     const allAgents = [...javiArr, ...rickyArr];
     allAgents.forEach(agent => {
       let existingParticle = particles.find(p => p.id === agent.id);
@@ -531,7 +568,6 @@ async function loadData() {
 
     javiArr.forEach((d, index) => {
       jCr += d.cr; jXf += d.xf; jTot += d.total;
-      // Lógica MVP: Asigna una corona al primer lugar (siempre que tenga más de 0 puntos)
       const mvpIcon = (index === 0 && d.total > 0) ? " 👑" : "";
       javiBody.insertAdjacentHTML("beforeend", `<tr><td>${d.name}${mvpIcon}</td><td>${d.id}</td><td>${d.cr}</td><td>${d.xf}</td><td>${d.total}</td></tr>`);
     });
@@ -542,6 +578,7 @@ async function loadData() {
       rickyBody.insertAdjacentHTML("beforeend", `<tr><td>${d.name}${mvpIcon}</td><td>${d.id}</td><td>${d.cr}</td><td>${d.xf}</td><td>${d.total}</td></tr>`);
     });
 
+    // Actualizar Totales UI
     document.getElementById("javi-cr").textContent = jCr; document.getElementById("javi-xf").textContent = jXf; document.getElementById("javi-total").textContent = jTot;
     document.getElementById("ricky-cr").textContent = rCr; document.getElementById("ricky-xf").textContent = rXf; document.getElementById("ricky-total").textContent = rTot;
 
