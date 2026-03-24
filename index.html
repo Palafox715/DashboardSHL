@@ -243,13 +243,15 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
+
+
 class Entity {
   constructor(id, name, team, xfer) {
     this.id = id;
     this.name = name;
     this.team = team;
-    this.updateStats(xfer);
     
+    // Nacer en posiciones aleatorias dentro de su territorio
     this.y = Math.random() * height;
     if (this.team === 'javi') {
       this.x = Math.random() * (width * (currentDominancePct/100));
@@ -257,26 +259,34 @@ class Entity {
       this.x = (width * (currentDominancePct/100)) + Math.random() * (width * ((100-currentDominancePct)/100));
     }
     
-    const angle = Math.random() * Math.PI * 2;
-    this.vx = Math.cos(angle) * this.maxSpeed;
-    this.vy = Math.sin(angle) * this.maxSpeed;
+    // Inicializar stats y vectores de velocidad
+    this.updateStats(xfer);
   }
 
   updateStats(xfer) {
     this.xfer = xfer;
-    this.radius = 3 + Math.min(xfer * 0.4, 15); 
-    this.maxSpeed = 0.5 + Math.min(xfer * 0.1, 3);
+    // Pragmatismo físico: El radio base sube a 14 para que el texto de 4 dígitos sea legible
+    this.radius = 14 + Math.min(xfer * 0.4, 20); 
+    // Velocidad reducida ligeramente para poder leer los IDs en movimiento
+    this.maxSpeed = 0.3 + Math.min(xfer * 0.05, 1.5);
+    
+    // Recalcular dirección con la nueva velocidad
+    const angle = Math.random() * Math.PI * 2;
+    this.vx = Math.cos(angle) * this.maxSpeed;
+    this.vy = Math.sin(angle) * this.maxSpeed;
   }
 
   update(wallX) {
     this.x += this.vx;
     this.y += this.vy;
 
+    // Rebote en el techo y el suelo
     if (this.y - this.radius <= 0 || this.y + this.radius >= height) {
       this.vy *= -1;
       this.y = Math.max(this.radius, Math.min(this.y, height - this.radius));
     }
 
+    // Lógica del muro de contención "Supremacy Wall"
     if (this.team === 'javi') {
       if (this.x - this.radius <= 0) { this.vx *= -1; this.x = this.radius; }
       if (this.x + this.radius >= wallX) { this.vx *= -1; this.x = wallX - this.radius; }
@@ -287,23 +297,32 @@ class Entity {
   }
 
   draw(ctx) {
+    // 1. Dibujar el fondo de la esfera
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
     
     if (this.team === 'javi') {
-      ctx.fillStyle = '#00ffcc';
+      ctx.fillStyle = 'rgba(0, 255, 204, 0.6)'; // Ligeramente más transparente para que el texto resalte
       ctx.shadowColor = '#00ffcc';
     } else {
-      ctx.fillStyle = '#ff4500';
+      ctx.fillStyle = 'rgba(255, 69, 0, 0.6)';
       ctx.shadowColor = '#ff4500';
     }
     
     ctx.shadowBlur = 10;
     ctx.fill();
     ctx.closePath();
-    ctx.shadowBlur = 0; 
+    
+    // 2. Dibujar el ID del agente en el centro
+    ctx.shadowBlur = 0; // Apagamos el resplandor para que el texto sea nítido
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 10px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(this.id, this.x, this.y);
   }
 }
+  
 
 function animate() {
   ctx.clearRect(0, 0, width, height);
@@ -332,15 +351,30 @@ function num(v) { const n = Number(String(v ?? "").replace(/,/g, "").trim()); re
 function pad2(n) { return String(n).padStart(2, "0"); }
 function nowTZ() { return new Date(new Date().toLocaleString("en-US", { timeZone: TIMEZONE })); }
 
+
+
 function getCurrentWeekNumber() {
   const now = nowTZ();
-  const firstJan = new Date(now.getFullYear(), 0, 1);
-  const days = Math.floor((now - firstJan) / 86400000);
-  let weekNum = Math.ceil((days + firstJan.getDay() + 1) / 7);
-  if (weekNum < 1) weekNum = 1;
-  if (weekNum > 53) weekNum = 53;
-  return weekNum; 
+  const currentYear = now.getFullYear();
+  
+  // Buscar el primer Jueves del año (Día 4 en getDay)
+  let firstThursday = new Date(currentYear, 0, 1);
+  while (firstThursday.getDay() !== 4) { 
+    firstThursday.setDate(firstThursday.getDate() + 1);
+  }
+  
+  // Si la fecha actual es anterior al primer jueves del año, pertenece a la última semana del año anterior
+  if (now < firstThursday) {
+    return 52; 
+  }
+  
+  // Calculamos los días transcurridos desde ese primer Jueves
+  const daysDiff = Math.floor((now - firstThursday) / 86400000);
+  
+  // Cada 7 días es una nueva semana. Sumamos 1 porque el primer jueves inicia la Semana 1.
+  return Math.floor(daysDiff / 7) + 1; 
 }
+  
 
 async function fetchJSON(url, { tries = 4, baseDelay = 700 } = {}) {
   let lastErr;
