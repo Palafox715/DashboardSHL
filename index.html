@@ -7,7 +7,7 @@
 <style>
   :root {
     --bg-dark: #0b0c10;
-    --panel-dark: rgba(31, 40, 51, 0.85);
+    --panel-dark: rgba(31, 40, 51, 0.85); 
     --text-main: #c5c6c7;
     --text-light: #ffffff;
     --neon-green: #00ffcc;
@@ -19,35 +19,61 @@
     font-family: "Inter", system-ui, sans-serif;
     background: var(--bg-dark);
     color: var(--text-main);
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-
-  /* ===== El Campo de Batalla (Canvas Background) ===== */
-  #battlefield {
-    position: fixed;
-    top: 0;
-    left: 0;
+    overflow: hidden; /* Evita barras de desplazamiento */
+    position: relative;
     width: 100vw;
     height: 100vh;
-    z-index: -1;
+  }
+
+  /* ===== El Campo de Batalla (Capas de Renderizado) ===== */
+  /* Capa 1: Fondo y Línea divisoria (Canvas) */
+  #battlefield {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 1; /* Al fondo */
     pointer-events: none;
   }
 
-  header {
-    text-align: center;
-    padding: 1rem 0 0.5rem 0;
-    position: relative;
-    z-index: 10;
+  /* Capa 2: Personajes Animados (DOM) */
+  #battlefield-entities {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 2; /* Sobre el canvas */
+    pointer-events: none; /* Permite clics a través del campo a la UI */
   }
 
-  h1 {
-    font-size: 2.4rem;
-    font-weight: 800;
-    margin-bottom: 0.3rem;
-    color: var(--text-light);
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+  /* Estilo base para los sprites de los agentes */
+  .agent-sprite {
+    position: absolute;
+    /* Optimización Pixel-Art: Mantiene los GIFs nítidos al escalar */
+    image-rendering: pixelated; 
+    image-rendering: crisp-edges;
+    transform-origin: center center; /* Rotación y escalado desde el centro */
+    
+    /* Efecto de resplandor de facción detrás del GIF */
+    border-radius: 50%; /* Ayuda a que el box-shadow sea circular */
+    transition: transform 0.1s linear, opacity 0.3s ease; /* Movimiento suave */
+    will-change: transform; /* Optimización de hardware */
   }
+
+  /* Resplandores específicos por facción */
+  .agent-sprite.javi {
+    box-shadow: 0 0 25px 10px rgba(0, 255, 204, 0.5);
+  }
+  .agent-sprite.ricky {
+    box-shadow: 0 0 25px 10px rgba(255, 69, 0, 0.5);
+  }
+
+  /* Capa 3: Interfaz de Usuario (Dashboard) */
+  header, .dashboard {
+    position: relative;
+    z-index: 10; /* Siempre al frente para interactuar */
+  }
+
+  header { text-align: center; padding: 1rem 0 0.5rem 0; }
+  h1 { font-size: 2.4rem; font-weight: 800; margin-bottom: 0.3rem; color: var(--text-light); text-shadow: 0 0 10px rgba(255, 255, 255, 0.2); }
 
   /* ===== Barra de Conquista ===== */
   .supremacy-wrapper {
@@ -85,8 +111,7 @@
 
   .clash-point {
     position: absolute;
-    top: -5px;
-    bottom: -5px;
+    top: -5px; bottom: -5px;
     width: 6px;
     background: #fff;
     box-shadow: 0 0 15px #fff, 0 0 30px #fff;
@@ -96,60 +121,15 @@
     left: 50%; 
   }
 
-  .bar-labels {
-    display: flex;
-    justify-content: space-between;
-    width: 80%;
-    margin: 0.5rem auto 1.5rem auto;
-    font-weight: 800;
-    font-size: 1.2rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
+  .bar-labels { display: flex; justify-content: space-between; width: 80%; margin: 0.5rem auto 1.5rem auto; font-weight: 800; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; }
   #javi-label { color: var(--neon-green); text-shadow: 0 0 8px rgba(0, 255, 204, 0.5); }
   #ricky-label { color: var(--neon-orange); text-shadow: 0 0 8px rgba(255, 69, 0, 0.5); }
 
   /* ===== Dashboard ===== */
-  .dashboard {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    width: 90%;
-    margin: 1rem auto 3rem auto;
-    gap: 19rem;
-    position: relative;
-    z-index: 10;
-  }
-
-  .team {
-    flex: 1;
-    background: var(--panel-dark);
-    backdrop-filter: blur(5px);
-    border-radius: 46px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    overflow: hidden;
-    min-width: 580px;
-    max-width: 840px;
-    border: 1px solid rgba(255,255,255,0.1);
-  }
-
-  h2 {
-    text-align: center;
-    color: var(--neon-green);
-    background: rgba(0, 255, 204, 0.1);
-    padding: 0.8rem;
-    font-size: 1.4rem;
-    font-weight: 800;
-    margin: 0;
-    text-shadow: 0 0 5px var(--neon-green);
-  }
-
-  h2.orange {
-    color: var(--neon-orange);
-    background: rgba(255, 69, 0, 0.1);
-    text-shadow: 0 0 5px var(--neon-orange);
-  }
+  .dashboard { display: flex; justify-content: center; align-items: flex-start; width: 90%; margin: 1rem auto 3rem auto; gap: 19rem; }
+  .team { flex: 1; background: var(--panel-dark); backdrop-filter: blur(5px); border-radius: 46px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); overflow: hidden; min-width: 580px; max-width: 840px; border: 1px solid rgba(255,255,255,0.1); }
+  h2 { text-align: center; color: var(--neon-green); background: rgba(0, 255, 204, 0.1); padding: 0.8rem; font-size: 1.4rem; font-weight: 800; margin: 0; text-shadow: 0 0 5px var(--neon-green); }
+  h2.orange { color: var(--neon-orange); background: rgba(255, 69, 0, 0.1); text-shadow: 0 0 5px var(--neon-orange); }
 
   table { width: 100%; border-collapse: collapse; text-align: center; font-size: 1.0rem; color: var(--text-main); }
   th, td { padding: 8px 10px; border-bottom: 1px solid #333; }
@@ -158,29 +138,16 @@
   tr:nth-child(even) td { background: rgba(255, 255, 255, 0.03); }
   .sum-row { background: #111; color: var(--text-light); font-weight: 700; }
 
-  .totals-center {
-    position: absolute;
-    top: 30%;
-    left: 50%;
-    transform: translate(-50%, -55%);
-    background: var(--panel-dark);
-    backdrop-filter: blur(5px);
-    border-radius: 65px;
-    padding: 1.3rem 2.3rem;
-    text-align: center;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.5);
-    border: 2px solid rgba(255,255,255,0.1);
-  }
-
+  .totals-center { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -55%); background: var(--panel-dark); backdrop-filter: blur(5px); border-radius: 65px; padding: 1.3rem 2.3rem; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.1); }
   .totals-center h3 { margin: 0; font-size: 1.3rem; color: var(--text-light); }
   .totals-center span { display: block; font-size: 2.7rem; font-weight: 800; margin: 0.3rem 0; transition: all 0.3s ease-in-out; }
-  .win { color: var(--neon-green); text-shadow: 0 0 10px var(--neon-green); }
-  .lose { color: var(--neon-orange); opacity: 0.8; }
 </style>
 </head>
 <body>
 
 <canvas id="battlefield"></canvas>
+
+<div id="battlefield-entities"></div>
 
 <header>
   <h1>Shoreline  Competition</h1>
@@ -221,53 +188,30 @@
 </div>
 
 <script>
-// ID DEL NUEVO ARCHIVO
+// ==========================================
+// CONFIGURACIÓN GLOBAL Y EXTRACCIÓN
+// ==========================================
 const SHEET_ID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
-// AQUI DEBE PEGAR SU API KEY REAL
 const API_KEY  = "AIzaSyCCBAapFj9Fd-8cOIfpDJxrOP__76zxAxM"; 
 const TIMEZONE = "America/Tijuana";
 
+// PRAGMATISMO: URLs Directas de los personajes (fáciles de cambiar a futuro)
 // Actualmente Javi y Ricky comparten el mismo personaje
-const URL_JAVI = "https://media.tenor.com/4dZZhXOYipYAAAAi/link-toon-link.gif";
-const URL_RICKY = "https://media.tenor.com/rMZog_dBWXwAAAAj/8-bit-brawl-stars.gif";
-
-// ==========================================
-// MOTOR DE PRECARGA ASÍNCRONA DE IMÁGENES
-// ==========================================
-let imagesLoaded = false;
-const imgJavi = new Image();
-const imgRicky = new Image();
-
-// Contador de precarga
-let loadedCount = 0;
-const totalImages = 2;
-
-function checkImagesLoaded() {
-  loadedCount++;
-  if (loadedCount === totalImages) {
-    imagesLoaded = true;
-    console.log("✅ Personajes de combate listos para la batalla.");
-  }
-}
-
-imgJavi.onload = checkImagesLoaded;
-imgRicky.onload = checkImagesLoaded;
-imgJavi.onerror = () => console.error("❌ Error cargando imagen Javi");
-imgRicky.onerror = () => console.error("❌ Error cargando imagen Ricky");
-
-// Iniciar carga de GIFs
-imgJavi.src = URL_JAVI;
-imgRicky.src = URL_RICKY;
+const URL_JAVI = "https://media.tenor.com/yD9nL9u8C-IAAAAC/glorp-bouncing-slime.gif";
+const URL_RICKY = "https://media.tenor.com/yD9nL9u8C-IAAAAC/glorp-bouncing-slime.gif";
 
 
 // ==========================================
-// MOTOR DE PARTÍCULAS / ENTIDADES (Personajes)
+// MOTOR DE FÍSICA Y RENDERIZADO HÍBRIDO
 // ==========================================
 const canvas = document.getElementById('battlefield');
 const ctx = canvas.getContext('2d');
+// Contenedor DOM donde inyectaremos los GIFs
+const entitiesContainer = document.getElementById('battlefield-entities'); 
+
 let width, height;
 let currentDominancePct = 50; 
-let particles = [];
+let particles = []; // Seguiremos usando el nombre 'particles' para la lógica
 
 function resizeCanvas() {
   width = canvas.width = window.innerWidth;
@@ -281,7 +225,16 @@ class Entity {
     this.id = id;
     this.name = name;
     this.team = team;
-    this.updateStats(xfer);
+    
+    // 1. Crear el elemento HTML (el GIF animado) para este agente
+    this.domElement = document.createElement('img');
+    this.domElement.src = (this.team === 'javi') ? URL_JAVI : URL_RICKY;
+    this.domElement.className = `agent-sprite ${this.team}`;
+    this.domElement.id = `agent-${id}`; // ID único en el DOM
+    this.domElement.alt = `Agent ${id}`;
+    
+    // Inyectar en el contenedor
+    entitiesContainer.appendChild(this.domElement);
     
     // Nacer en posiciones aleatorias dentro de su territorio
     this.y = Math.random() * height;
@@ -291,22 +244,30 @@ class Entity {
       this.x = (width * (currentDominancePct/100)) + Math.random() * (width * ((100-currentDominancePct)/100));
     }
     
-    // Dirección aleatoria
+    // Dirección inicial aleatoria
     const angle = Math.random() * Math.PI * 2;
-    this.vx = Math.cos(angle) * this.maxSpeed;
-    this.vy = Math.sin(angle) * this.maxSpeed;
+    // Inicializar vx, vy para que updateStats funcione
+    this.vx = Math.cos(angle); 
+    this.vy = Math.sin(angle);
+
+    this.updateStats(xfer);
   }
 
   updateStats(xfer) {
     this.xfer = xfer;
-    // Pragmatismo: El tamaño total del personaje crece con los XFER
-    // Base 40px, crece hasta max +40px (Total 80px)
+    // El tamaño del GIF crece con los XFER (Base 40px, max 80px)
     this.size = 40 + Math.min(xfer * 0.8, 40); 
-    // Radio de colisión para la física (mitad del tamaño del personaje)
+    // Radio de colisión para la física (mitad del tamaño)
     this.collideRadius = this.size / 2;
 
-    // Velocidad base 0.5, crece hasta +3 dependiendo de los xfers
+    // Velocidad crece hasta +3 dependiendo de los xfers
     this.maxSpeed = 0.5 + Math.min(xfer * 0.1, 3);
+    
+    // Actualizar tamaño en el DOM inmediatamente
+    if (this.domElement) {
+      this.domElement.style.width = `${this.size}px`;
+      this.domElement.style.height = `${this.size}px`;
+    }
   }
 
   update(wallX) {
@@ -328,7 +289,7 @@ class Entity {
     this.x += this.vx;
     this.y += this.vy;
 
-    // Rebote natural en el techo y el suelo (basado en collideRadius)
+    // Rebote natural en el techo y el suelo
     if (this.y - this.collideRadius <= 0 || this.y + this.collideRadius >= height) {
       this.vy *= -1;
       this.y = Math.max(this.collideRadius, Math.min(this.y, height - this.collideRadius));
@@ -337,12 +298,9 @@ class Entity {
     // 3. Táctica de Escaramuza (Choque y retirarse a retaguardia)
     if (this.team === 'javi') {
       // Borde izquierdo pantalla
-      if (this.x - this.collideRadius <= 0) { 
-        this.vx = Math.abs(this.vx); 
-        this.x = this.collideRadius; 
-      }
+      if (this.x - this.collideRadius <= 0) { this.vx = Math.abs(this.vx); this.x = this.collideRadius; }
       
-      // Choque contra el muro enemigo
+      // Choque contra el muro central
       if (this.x + this.collideRadius >= wallX) { 
         // Impulso fuerte de retroceso hacia retaguardia (negativo)
         this.vx = -(this.maxSpeed * (1.5 + Math.random())); 
@@ -351,12 +309,9 @@ class Entity {
       }
     } else {
       // Borde derecho pantalla
-      if (this.x + this.collideRadius >= width) { 
-        this.vx = -Math.abs(this.vx); 
-        this.x = width - this.collideRadius; 
-      }
+      if (this.x + this.collideRadius >= width) { this.vx = -Math.abs(this.vx); this.x = width - this.collideRadius; }
       
-      // Choque contra el muro enemigo
+      // Choque contra el muro central
       if (this.x - this.collideRadius <= wallX) { 
         // Impulso fuerte de retroceso hacia retaguardia (positivo)
         this.vx = this.maxSpeed * (1.5 + Math.random()); 
@@ -366,39 +321,19 @@ class Entity {
     }
   }
 
-  draw(ctx) {
-    // Seguridad: No dibujar si las imágenes no están precargadas
-    if (!imagesLoaded) return;
-
-    // Seleccionar imagen basada en equipo (Fácil expansión a futuro)
-    const activeImage = (this.team === 'javi') ? imgJavi : imgRicky;
-
-    // Resplandor de facción detrás del GIF (opcional, ayuda a identificarlos si comparten imagen)
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = (this.team === 'javi') ? '#00ffcc' : '#ff4500';
-
-    // Dibujar el GIF escalado y centrado
-    //drawImage requiere (imagen, x, y, ancho, alto)
-    // El Canvas dibuja desde arriba a la izquierda, por lo que restamos la mitad del tamaño
-    ctx.drawImage(
-      activeImage, 
-      this.x - this.collideRadius, 
-      this.y - this.collideRadius, 
-      this.size, 
-      this.size
-    );
-
-    // Resetear brillo para no afectar otros dibujos
-    ctx.shadowBlur = 0;
+  draw() {
+    // NUEVA LÓGICA DOM: En lugar de dibujar en Canvas, movemos el elemento HTML.
+    // Usamos translate(-50%, -50%) en CSS junto con top/left en JS para centrar perfectamente.
+    // translate3d(x,y,0) fuerza la aceleración por hardware en la mayoría de navegadores.
+    this.domElement.style.transform = `translate3d(${this.x - this.collideRadius}px, ${this.y - this.collideRadius}px, 0)`;
   }
 }
 
 function animate() {
+  // Limpiar solo el canvas de fondo (Capa 1)
   ctx.clearRect(0, 0, width, height);
-
-  // OPTIMIZACIÓN PIXEL-ART: Desactivar suavizado automático para mantener GIFs nítidos
-  ctx.imageSmoothingEnabled = false;
   
+  // Dibujar muro invisible sutil en el canvas
   const wallX = width * (currentDominancePct / 100);
   ctx.beginPath();
   ctx.moveTo(wallX, 0);
@@ -407,15 +342,15 @@ function animate() {
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // Actualizar y dibujar personajes
+  // Actualizar física y mover elementos HTML (Capa 2)
   particles.forEach(p => {
     p.update(wallX);
-    p.draw(ctx);
+    p.draw(); // Esto mueve el DOM
   });
 
   requestAnimationFrame(animate);
 }
-// Iniciar bucle de renderizado inmediatamente
+// Iniciar bucle de física
 animate(); 
 
 // ==========================================
@@ -428,22 +363,10 @@ function nowTZ() { return new Date(new Date().toLocaleString("en-US", { timeZone
 function getCurrentWeekNumber() {
   const now = nowTZ();
   const currentYear = now.getFullYear();
-  
-  // Buscar el primer Jueves del año (Día 4 en getDay)
   let firstThursday = new Date(currentYear, 0, 1);
-  while (firstThursday.getDay() !== 4) { 
-    firstThursday.setDate(firstThursday.getDate() + 1);
-  }
-  
-  // Si la fecha actual es anterior al primer jueves del año, pertenece a la última semana del año anterior
-  if (now < firstThursday) {
-    return 52; 
-  }
-  
-  // Calculamos los días transcurridos desde ese primer Jueves
+  while (firstThursday.getDay() !== 4) { firstThursday.setDate(firstThursday.getDate() + 1); }
+  if (now < firstThursday) { return 52; }
   const daysDiff = Math.floor((now - firstThursday) / 86400000);
-  
-  // Cada 7 días es una nueva semana. Sumamos 1 porque el primer jueves inicia la Semana 1.
   return Math.floor(daysDiff / 7) + 1; 
 }
 
@@ -485,7 +408,6 @@ function extractW(title) {
 
 async function loadData() {
   try {
-    // 1. DICCIONARIO DE EQUIPOS: Extraer asignaciones de TeamLayout
     const teamRange = `TeamLayout!A1:Z150`;
     const teamData = (await fetchJSON(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(teamRange)}?key=${API_KEY}`)).values || [];
 
@@ -495,20 +417,15 @@ async function loadData() {
     if (teamData.length >= 2) {
       const headers1 = teamData[0] || [];
       const headers2 = teamData[1] || [];
-
-      // Detección dinámica de zonas para esquivar columnas ocultas
       let javiStart = -1, rickyStart = -1;
       headers1.forEach((h, i) => {
         if (String(h).toUpperCase().includes("JAVI")) javiStart = i;
         if (String(h).toUpperCase().includes("RICKY")) rickyStart = i;
       });
-
       if (javiStart === -1) javiStart = 0;
       if (rickyStart === -1) rickyStart = 9;
-
       let javiCols = { name: -1, id: -1 }, rickyCols = { name: -1, id: -1 };
       const limitJavi = rickyStart > javiStart ? rickyStart : headers2.length;
-
       for (let i = javiStart; i < limitJavi; i++) {
         const h = String(headers2[i]).toUpperCase();
         if (h.includes("NAME")) javiCols.name = i;
@@ -519,8 +436,6 @@ async function loadData() {
         if (h.includes("NAME")) rickyCols.name = i;
         if (h === "ID") rickyCols.id = i;
       }
-
-      // Memorizar agentes
       teamData.slice(2).forEach(row => {
         if (javiCols.id !== -1 && row[javiCols.id]) {
           const id = String(row[javiCols.id]).trim();
@@ -533,137 +448,29 @@ async function loadData() {
       });
     }
 
-    // 2. DETECCIÓN DE SEMANA: Buscar la pestaña correspondiente
     const titles = await listSheetTitles();
     const currentWeekNum = getCurrentWeekNumber();
     let weeklyTab = `W${pad2(currentWeekNum)}`;
 
-    // Fallback: Si la hoja de la semana actual no está creada, usar la más reciente disponible
     if (!titles.includes(weeklyTab)) {
       const weekTabs = titles.map(extractW).filter(Boolean).sort((a,b) => b.n - a.n);
-      if (weekTabs.length > 0) {
-        weeklyTab = weekTabs[0].title;
-      } else {
-        throw new Error("No se encontraron pestañas semanales válidas.");
-      }
+      if (weekTabs.length > 0) { weeklyTab = weekTabs[0].title; } else { throw new Error("No se encontraron pestañas semanales válidas."); }
     }
+    document.querySelector("h1").textContent = `Shoreline  Competition - ${weeklyTab}`;
 
-    // Actualizar el título principal del Dashboard para transparencia
-    document.querySelector("h1").textContent = `Shoreline Monthly Competition - ${weeklyTab}`;
-
-    // 3. EXTRACCIÓN DE MÉTRICAS: Leer los datos diarios de la semana
     const dataRange = `${weeklyTab}!A1:Z150`; 
     const dataValues = (await fetchJSON(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(dataRange)}?valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`)).values || [];
     
     if (dataValues.length >= 3) {
-      // Fila 2 (índice 1) contiene los encabezados "CRPULL" y "XFER"
       const headersWeek = dataValues[1] || [];
       const crIndexes = [], xfIndexes = [];
-
       headersWeek.forEach((h, i) => {
         const txt = String(h).toUpperCase().replace(/\s+/g, "");
         if (txt.includes("CRPULL") || txt === "CR") crIndexes.push(i);
         if (txt.includes("XFER") || txt === "XF") xfIndexes.push(i);
       });
-
-      // Sumar puntos cruzando IDs
       dataValues.slice(2).forEach(row => {
-        const id = String(row[0] || "").trim(); // Columna A es "AGENT ID"
+        const id = String(row[0] || "").trim();
         if (!id) return;
-
         let crSum = 0, xfSum = 0;
-        crIndexes.forEach(idx => crSum += num(row[idx]));
-        xfIndexes.forEach(idx => xfSum += num(row[idx]));
-
-        if (mapJavi.has(id)) {
-          let agent = mapJavi.get(id);
-          agent.cr += crSum; agent.xf += xfSum; agent.total += (crSum + xfSum);
-        } else if (mapRicky.has(id)) {
-          let agent = mapRicky.get(id);
-          agent.cr += crSum; agent.xf += xfSum; agent.total += (crSum + xfSum);
-        }
-      });
-    }
-
-    // Limpiar tablas
-    const javiBody = document.querySelector("#table-javi tbody");
-    const rickyBody = document.querySelector("#table-ricky tbody");
-    javiBody.innerHTML = rickyBody.innerHTML = "";
-
-    const javiArr = Array.from(mapJavi.values()).filter(a => a.total > 0 || a.cr > 0 || a.xf > 0);
-    const rickyArr = Array.from(mapRicky.values()).filter(a => a.total > 0 || a.cr > 0 || a.xf > 0);
-
-    // 4. Sincronizar personajes en el canvas (Actualizar tamaño y velocidad)
-    const allAgents = [...javiArr, ...rickyArr];
-    allAgents.forEach(agent => {
-      let existingParticle = particles.find(p => p.id === agent.id);
-      if (existingParticle) {
-        existingParticle.team = agent.team; 
-        existingParticle.updateStats(agent.xf);
-      } else {
-        particles.push(new Entity(agent.id, agent.name, agent.team, agent.xf));
-      }
-    });
-
-    // Ordenar y renderizar tablas
-    javiArr.sort((a,b)=> b.total - a.total);
-    rickyArr.sort((a,b)=> b.total - a.total);
-
-    let jCr=0, jXf=0, jTot=0, rCr=0, rXf=0, rTot=0;
-
-    javiArr.forEach((d, index) => {
-      jCr += d.cr; jXf += d.xf; jTot += d.total;
-      const mvpIcon = (index === 0 && d.total > 0) ? " 👑" : "";
-      javiBody.insertAdjacentHTML("beforeend", `<tr><td>${d.name}${mvpIcon}</td><td>${d.id}</td><td>${d.cr}</td><td>${d.xf}</td><td>${d.total}</td></tr>`);
-    });
-
-    rickyArr.forEach((d, index) => {
-      rCr += d.cr; rXf += d.xf; rTot += d.total;
-      const mvpIcon = (index === 0 && d.total > 0) ? " 👑" : "";
-      rickyBody.insertAdjacentHTML("beforeend", `<tr><td>${d.name}${mvpIcon}</td><td>${d.id}</td><td>${d.cr}</td><td>${d.xf}</td><td>${d.total}</td></tr>`);
-    });
-
-    // Actualizar Totales UI
-    document.getElementById("javi-cr").textContent = jCr; document.getElementById("javi-xf").textContent = jXf; document.getElementById("javi-total").textContent = jTot;
-    document.getElementById("ricky-cr").textContent = rCr; document.getElementById("ricky-xf").textContent = rXf; document.getElementById("ricky-total").textContent = rTot;
-
-    const totalXfer = (jXf + rXf) > 0 ? (jXf + rXf) : 1; 
-    const javiDomination = (jXf / totalXfer) * 100;
-    const rickyDomination  = (rXf / totalXfer) * 100;
-    
-    currentDominancePct = javiDomination; 
-
-    document.getElementById("javi-bar").style.width = `${javiDomination}%`;
-    document.getElementById("ricky-bar").style.width = `${rickyDomination}%`;
-    document.getElementById("clash-indicator").style.left = `${javiDomination}%`;
-
-    document.getElementById("javi-label").textContent = `🟢 Facción Javi: ${javiDomination.toFixed(1)}% (${jXf} XFER)`;
-    document.getElementById("ricky-label").textContent = `🟠 Facción Ricky: ${rickyDomination.toFixed(1)}% (${rXf} XFER)`;
-
-    const javiBox = document.getElementById("javi-xfer-total");
-    const rickyBox = document.getElementById("ricky-xfer-total");
-    javiBox.textContent = jXf; rickyBox.textContent = rXf;
-
-    // Marcador central: Brillo y opacidad (Corrección de identidad de facción)
-    javiBox.style.color = "var(--neon-green)";
-    rickyBox.style.color = "var(--neon-orange)";
-    if (jXf > rXf) {
-      javiBox.style.opacity = "1"; javiBox.style.textShadow = "0 0 15px var(--neon-green)";
-      rickyBox.style.opacity = "0.5"; rickyBox.style.textShadow = "none";
-    } else if (rXf > jXf) {
-      rickyBox.style.opacity = "1"; rickyBox.style.textShadow = "0 0 15px var(--neon-orange)";
-      javiBox.style.opacity = "0.5"; javiBox.style.textShadow = "none";
-    }
-
-  } catch (err) {
-    console.error("❌ Error al cargar los datos:", err);
-  }
-}
-
-// Iniciar extracción de datos
-loadData();
-// Actualización automática cada minuto
-setInterval(loadData, 60000);
-</script>
-</body>
-</html>
+        crIndexes.
