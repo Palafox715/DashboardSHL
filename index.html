@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shoreline —  Dashboard</title>
+<title>Shoreline — Monthly Dashboard</title>
 <style>
   :root {
     --bg-dark: #0b0c10;
@@ -150,7 +150,7 @@
 <div id="battlefield-entities"></div>
 
 <header>
-  <h1>Shoreline  Competition</h1>
+  <h1>Shoreline Monthly Competition</h1>
   <div class="supremacy-wrapper">
     <div id="javi-bar" class="supremacy-side team-javi-bar"></div>
     <div id="ricky-bar" class="supremacy-side team-ricky-bar"></div>
@@ -456,7 +456,7 @@ async function loadData() {
       const weekTabs = titles.map(extractW).filter(Boolean).sort((a,b) => b.n - a.n);
       if (weekTabs.length > 0) { weeklyTab = weekTabs[0].title; } else { throw new Error("No se encontraron pestañas semanales válidas."); }
     }
-    document.querySelector("h1").textContent = `Shoreline  Competition - ${weeklyTab}`;
+    document.querySelector("h1").textContent = `Shoreline Monthly Competition - ${weeklyTab}`;
 
     const dataRange = `${weeklyTab}!A1:Z150`; 
     const dataValues = (await fetchJSON(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(dataRange)}?valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`)).values || [];
@@ -473,4 +473,74 @@ async function loadData() {
         const id = String(row[0] || "").trim();
         if (!id) return;
         let crSum = 0, xfSum = 0;
-        crIndexes.
+        crIndexes.forEach(idx => crSum += num(row[idx]));
+        xfIndexes.forEach(idx => xfSum += num(row[idx]));
+        if (mapJavi.has(id)) { let agent = mapJavi.get(id); agent.cr += crSum; agent.xf += xfSum; agent.total += (crSum + xfSum); } 
+        else if (mapRicky.has(id)) { let agent = mapRicky.get(id); agent.cr += crSum; agent.xf += xfSum; agent.total += (crSum + xfSum); }
+      });
+    }
+
+    const javiBody = document.querySelector("#table-javi tbody");
+    const rickyBody = document.querySelector("#table-ricky tbody");
+    javiBody.innerHTML = rickyBody.innerHTML = "";
+    const javiArr = Array.from(mapJavi.values()).filter(a => a.total > 0 || a.cr > 0 || a.xf > 0);
+    const rickyArr = Array.from(mapRicky.values()).filter(a => a.total > 0 || a.cr > 0 || a.xf > 0);
+
+    // Sincronizar personajes en el DOM (Actualizar tamaño, velocidad, o crearlos)
+    const allAgents = [...javiArr, ...rickyArr];
+    allAgents.forEach(agent => {
+      let existingParticle = particles.find(p => p.id === agent.id);
+      if (existingParticle) {
+        existingParticle.team = agent.team; 
+        existingParticle.updateStats(agent.xf);
+      } else {
+        // Al crear la Entity, el constructor inyectará el elemento HTML
+        particles.push(new Entity(agent.id, agent.name, agent.team, agent.xf));
+      }
+    });
+
+    // Limpieza: Eliminar del DOM agentes que ya no están activos (ej. si cambian de mes y su total es 0)
+    particles = particles.filter(p => {
+      const isActive = allAgents.some(a => a.id === p.id);
+      if (!isActive && p.domElement) {
+        p.domElement.remove(); // Elimina elemento HTML
+      }
+      return isActive;
+    });
+
+    // Ordenar y renderizar tablas
+    javiArr.sort((a,b)=> b.total - a.total);
+    rickyArr.sort((a,b)=> b.total - a.total);
+    let jCr=0, jXf=0, jTot=0, rCr=0, rXf=0, rTot=0;
+    javiArr.forEach((d, index) => { jCr += d.cr; jXf += d.xf; jTot += d.total; const mvpIcon = (index === 0 && d.total > 0) ? " 👑" : ""; javiBody.insertAdjacentHTML("beforeend", `<tr><td>${d.name}${mvpIcon}</td><td>${d.id}</td><td>${d.cr}</td><td>${d.xf}</td><td>${d.total}</td></tr>`); });
+    rickyArr.forEach((d, index) => { rCr += d.cr; rXf += d.xf; rTot += d.total; const mvpIcon = (index === 0 && d.total > 0) ? " 👑" : ""; rickyBody.insertAdjacentHTML("beforeend", `<tr><td>${d.name}${mvpIcon}</td><td>${d.id}</td><td>${d.cr}</td><td>${d.xf}</td><td>${d.total}</td></tr>`); });
+
+    // Actualizar Totales UI
+    document.getElementById("javi-cr").textContent = jCr; document.getElementById("javi-xf").textContent = jXf; document.getElementById("javi-total").textContent = jTot;
+    document.getElementById("ricky-cr").textContent = rCr; document.getElementById("ricky-xf").textContent = rXf; document.getElementById("ricky-total").textContent = rTot;
+    const totalXfer = (jXf + rXf) > 0 ? (jXf + rXf) : 1; 
+    const javiDomination = (jXf / totalXfer) * 100;
+    const rickyDomination  = (rXf / totalXfer) * 100;
+    currentDominancePct = javiDomination; 
+    document.getElementById("javi-bar").style.width = `${javiDomination}%`; document.getElementById("ricky-bar").style.width = `${rickyDomination}%`; document.getElementById("clash-indicator").style.left = `${javiDomination}%`;
+    document.getElementById("javi-label").textContent = `🟢 Facción Javi: ${javiDomination.toFixed(1)}% (${jXf} XFER)`; document.getElementById("ricky-label").textContent = `🟠 Facción Ricky: ${rickyDomination.toFixed(1)}% (${rXf} XFER)`;
+
+    const javiBox = document.getElementById("javi-xfer-total");
+    const rickyBox = document.getElementById("ricky-xfer-total");
+    javiBox.textContent = jXf; rickyBox.textContent = rXf;
+    javiBox.style.color = "var(--neon-green)"; rickyBox.style.color = "var(--neon-orange)";
+    if (jXf > rXf) { javiBox.style.opacity = "1"; javiBox.style.textShadow = "0 0 15px var(--neon-green)"; rickyBox.style.opacity = "0.5"; rickyBox.style.textShadow = "none"; } 
+    else if (rXf > jXf) { rickyBox.style.opacity = "1"; rickyBox.style.textShadow = "0 0 15px var(--neon-orange)"; javiBox.style.opacity = "0.5"; javiBox.style.textShadow = "none"; }
+
+  } catch (err) {
+    console.error("❌ Error al cargar los datos:", err);
+  }
+}
+
+// Iniciar extracción de datos
+loadData();
+// Actualización automática cada minuto
+setInterval(loadData, 60000);
+</script>
+</body>
+</html>
