@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shoreline — Monthly Dashboard</title>
+<title>Shoreline — Dashboard</title>
 <style>
   :root {
     --bg-dark: #0b0c10;
@@ -150,7 +150,7 @@
 <div id="battlefield-entities"></div>
 
 <header>
-  <h1>Shoreline Monthly Competition</h1>
+  <h1>Shoreline Competition</h1>
   <div class="supremacy-wrapper">
     <div id="javi-bar" class="supremacy-side team-javi-bar"></div>
     <div id="ricky-bar" class="supremacy-side team-ricky-bar"></div>
@@ -197,8 +197,8 @@ const TIMEZONE = "America/Tijuana";
 
 // PRAGMATISMO: URLs Directas de los personajes (fáciles de cambiar a futuro)
 // Actualmente Javi y Ricky comparten el mismo personaje
-const URL_JAVI = "https://media.tenor.com/yD9nL9u8C-IAAAAC/glorp-bouncing-slime.gif";
-const URL_RICKY = "https://media.tenor.com/yD9nL9u8C-IAAAAC/glorp-bouncing-slime.gif";
+const URL_JAVI = "https://media.tenor.com/4dZZhXOYipYAAAAi/link-toon-link.gif";
+const URL_RICKY = "https://media.tenor.com/rMZog_dBWXwAAAAj/8-bit-brawl-stars.gif";
 
 
 // ==========================================
@@ -456,7 +456,7 @@ async function loadData() {
       const weekTabs = titles.map(extractW).filter(Boolean).sort((a,b) => b.n - a.n);
       if (weekTabs.length > 0) { weeklyTab = weekTabs[0].title; } else { throw new Error("No se encontraron pestañas semanales válidas."); }
     }
-    document.querySelector("h1").textContent = `Shoreline Monthly Competition - ${weeklyTab}`;
+    document.querySelector("h1").textContent = `Shoreline Competition - ${weeklyTab}`;
 
     const dataRange = `${weeklyTab}!A1:Z150`; 
     const dataValues = (await fetchJSON(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(dataRange)}?valueRenderOption=UNFORMATTED_VALUE&key=${API_KEY}`)).values || [];
