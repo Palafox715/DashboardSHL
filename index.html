@@ -26,50 +26,72 @@
   }
 
   /* ===== El Campo de Batalla (Capas de Renderizado) ===== */
-  /* Capa 1: Fondo y Línea divisoria (Canvas) */
   #battlefield {
     position: absolute;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    z-index: 1; /* Al fondo */
+    z-index: 1; 
     pointer-events: none;
   }
 
-  /* Capa 2: Personajes Animados (DOM) */
   #battlefield-entities {
     position: absolute;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    z-index: 2; /* Sobre el canvas */
-    pointer-events: none; /* Permite clics a través del campo a la UI */
+    z-index: 2; 
+    pointer-events: none; 
   }
 
-  /* Estilo base para los sprites de los agentes */
-  .agent-sprite {
+  /* === NUEVA ESTRUCTURA DOM: CONTENEDOR Y SPRITE === */
+  .agent-container {
     position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s linear, opacity 0.3s ease;
+    will-change: transform;
+  }
+
+  .agent-sprite {
+    width: 100%; height: auto;
+    object-fit: contain;
     /* Optimización Pixel-Art: Mantiene los GIFs nítidos al escalar */
     image-rendering: pixelated; 
     image-rendering: crisp-edges;
-    transform-origin: center center; /* Rotación y escalado desde el centro */
-    
-    /* Efecto de resplandor de facción detrás del GIF */
-    border-radius: 50%; /* Ayuda a que el box-shadow sea circular */
-    transition: transform 0.1s linear, opacity 0.3s ease; /* Movimiento suave */
-    will-change: transform; /* Optimización de hardware */
+    /* Eliminamos el border-radius y box-shadow de la versión anterior */
   }
 
-  /* Resplandores específicos por facción */
-  .agent-sprite.javi {
-    box-shadow: 0 0 25px 10px rgba(0, 255, 204, 0.5);
+  /* PRAGMATISMO CSS: drop-shadow perfila la silueta ignorando la transparencia */
+  .agent-container.javi .agent-sprite {
+    filter: drop-shadow(0 0 5px rgba(0, 255, 204, 0.9)) drop-shadow(0 0 15px rgba(0, 255, 204, 0.6));
   }
-  .agent-sprite.ricky {
-    box-shadow: 0 0 25px 10px rgba(255, 69, 0, 0.5);
+  .agent-container.ricky .agent-sprite {
+    filter: drop-shadow(0 0 5px rgba(255, 69, 0, 0.9)) drop-shadow(0 0 15px rgba(255, 69, 0, 0.6));
+  }
+
+  /* === ETIQUETA DE NOMBRE === */
+  .agent-name-label {
+    margin-top: -5px; /* Sube el texto para acercarlo al personaje */
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    white-space: nowrap; 
+    pointer-events: none;
+    text-align: center;
+    /* Blindaje visual para que sea legible en cualquier fondo */
+    text-shadow: 
+      -1px -1px 0 #000,  
+       1px -1px 0 #000,
+      -1px  1px 0 #000,
+       1px  1px 0 #000;
   }
 
   /* Capa 3: Interfaz de Usuario (Dashboard) */
   header, .dashboard {
     position: relative;
-    z-index: 10; /* Siempre al frente para interactuar */
+    z-index: 10; 
   }
 
   header { text-align: center; padding: 1rem 0 0.5rem 0; }
@@ -89,36 +111,14 @@
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.8) inset, 0 5px 15px rgba(0,0,0,0.5);
   }
 
-  .supremacy-side {
-    height: 100%;
-    transition: width 0.8s cubic-bezier(0.25, 1, 0.5, 1);
-    display: flex;
-    align-items: center;
-    position: relative;
-  }
-
-  .team-javi-bar {
-    width: 50%;
-    background: linear-gradient(90deg, rgba(0,255,204,0.2) 0%, rgba(0,255,204,0.8) 100%);
-    box-shadow: inset -5px 0 15px var(--neon-green);
-  }
-
-  .team-ricky-bar {
-    width: 50%;
-    background: linear-gradient(270deg, rgba(255,69,0,0.2) 0%, rgba(255,69,0,0.8) 100%);
-    box-shadow: inset 5px 0 15px var(--neon-orange);
-  }
+  .supremacy-side { height: 100%; transition: width 0.8s cubic-bezier(0.25, 1, 0.5, 1); display: flex; align-items: center; position: relative; }
+  .team-javi-bar { width: 50%; background: linear-gradient(90deg, rgba(0,255,204,0.2) 0%, rgba(0,255,204,0.8) 100%); box-shadow: inset -5px 0 15px var(--neon-green); }
+  .team-ricky-bar { width: 50%; background: linear-gradient(270deg, rgba(255,69,0,0.2) 0%, rgba(255,69,0,0.8) 100%); box-shadow: inset 5px 0 15px var(--neon-orange); }
 
   .clash-point {
-    position: absolute;
-    top: -5px; bottom: -5px;
-    width: 6px;
-    background: #fff;
-    box-shadow: 0 0 15px #fff, 0 0 30px #fff;
-    transform: translateX(-50%);
-    z-index: 10;
-    transition: left 0.8s cubic-bezier(0.25, 1, 0.5, 1);
-    left: 50%; 
+    position: absolute; top: -5px; bottom: -5px; width: 6px; background: #fff;
+    box-shadow: 0 0 15px #fff, 0 0 30px #fff; transform: translateX(-50%); z-index: 10;
+    transition: left 0.8s cubic-bezier(0.25, 1, 0.5, 1); left: 50%; 
   }
 
   .bar-labels { display: flex; justify-content: space-between; width: 80%; margin: 0.5rem auto 1.5rem auto; font-weight: 800; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; }
@@ -195,8 +195,6 @@ const SHEET_ID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
 const API_KEY  = "AIzaSyCCBAapFj9Fd-8cOIfpDJxrOP__76zxAxM"; 
 const TIMEZONE = "America/Tijuana";
 
-// PRAGMATISMO: URLs Directas de los personajes (fáciles de cambiar a futuro)
-// Actualmente Javi y Ricky comparten el mismo personaje
 const URL_JAVI = "https://media.tenor.com/4dZZhXOYipYAAAAi/link-toon-link.gif";
 const URL_RICKY = "https://media.tenor.com/jVspFHPHuSMAAAAi/walk-mario.gif";
 
@@ -206,12 +204,11 @@ const URL_RICKY = "https://media.tenor.com/jVspFHPHuSMAAAAi/walk-mario.gif";
 // ==========================================
 const canvas = document.getElementById('battlefield');
 const ctx = canvas.getContext('2d');
-// Contenedor DOM donde inyectaremos los GIFs
 const entitiesContainer = document.getElementById('battlefield-entities'); 
 
 let width, height;
 let currentDominancePct = 50; 
-let particles = []; // Seguiremos usando el nombre 'particles' para la lógica
+let particles = []; 
 
 function resizeCanvas() {
   width = canvas.width = window.innerWidth;
@@ -226,17 +223,25 @@ class Entity {
     this.name = name;
     this.team = team;
     
-    // 1. Crear el elemento HTML (el GIF animado) para este agente
-    this.domElement = document.createElement('img');
-    this.domElement.src = (this.team === 'javi') ? URL_JAVI : URL_RICKY;
-    this.domElement.className = `agent-sprite ${this.team}`;
-    this.domElement.id = `agent-${id}`; // ID único en el DOM
-    this.domElement.alt = `Agent ${id}`;
+    // 1. Crear el contenedor principal
+    this.domElement = document.createElement('div');
+    this.domElement.className = `agent-container ${this.team}`;
+    this.domElement.id = `agent-${id}`; 
     
-    // Inyectar en el contenedor
+    // 2. Inyectar el GIF animado
+    const img = document.createElement('img');
+    img.src = (this.team === 'javi') ? URL_JAVI : URL_RICKY;
+    img.className = 'agent-sprite';
+    this.domElement.appendChild(img);
+    
+    // 3. Inyectar la Etiqueta de Nombre
+    const nameLabel = document.createElement('span');
+    nameLabel.className = 'agent-name-label';
+    nameLabel.textContent = this.name.split(' ')[0]; // Pragmatismo: Solo primer nombre
+    this.domElement.appendChild(nameLabel);
+
     entitiesContainer.appendChild(this.domElement);
     
-    // Nacer en posiciones aleatorias dentro de su territorio
     this.y = Math.random() * height;
     if (this.team === 'javi') {
       this.x = Math.random() * (width * (currentDominancePct/100));
@@ -244,9 +249,7 @@ class Entity {
       this.x = (width * (currentDominancePct/100)) + Math.random() * (width * ((100-currentDominancePct)/100));
     }
     
-    // Dirección inicial aleatoria
     const angle = Math.random() * Math.PI * 2;
-    // Inicializar vx, vy para que updateStats funcione
     this.vx = Math.cos(angle); 
     this.vy = Math.sin(angle);
 
@@ -255,15 +258,13 @@ class Entity {
 
   updateStats(xfer) {
     this.xfer = xfer;
-    // El tamaño del GIF crece con los XFER (Base 40px, max 80px)
-    this.size = 40 + Math.min(xfer * 0.8, 40); 
-    // Radio de colisión para la física (mitad del tamaño)
+    // Distinción agresiva de tamaño según sus XFER
+    this.size = 50 + Math.min(xfer * 2.0, 100); 
     this.collideRadius = this.size / 2;
 
-    // Velocidad crece hasta +3 dependiendo de los xfers
-    this.maxSpeed = 0.5 + Math.min(xfer * 0.1, 3);
+    // Distinción de velocidad (frenesí)
+    this.maxSpeed = 1.0 + Math.min(xfer * 0.15, 5.0);
     
-    // Actualizar tamaño en el DOM inmediatamente
     if (this.domElement) {
       this.domElement.style.width = `${this.size}px`;
       this.domElement.style.height = `${this.size}px`;
@@ -271,15 +272,9 @@ class Entity {
   }
 
   update(wallX) {
-    // 1. Atracción Táctica (Gravedad constante hacia la frontera)
     const attractionForce = 0.015;
-    if (this.team === 'javi') {
-      this.vx += attractionForce;
-    } else {
-      this.vx -= attractionForce;
-    }
+    if (this.team === 'javi') { this.vx += attractionForce; } else { this.vx -= attractionForce; }
 
-    // 2. Control de Velocidad (Fuerza de carga vs límite terminal)
     const currentSpeed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
     if (currentSpeed > this.maxSpeed) {
       this.vx = (this.vx / currentSpeed) * this.maxSpeed;
@@ -289,51 +284,36 @@ class Entity {
     this.x += this.vx;
     this.y += this.vy;
 
-    // Rebote natural en el techo y el suelo
     if (this.y - this.collideRadius <= 0 || this.y + this.collideRadius >= height) {
       this.vy *= -1;
       this.y = Math.max(this.collideRadius, Math.min(this.y, height - this.collideRadius));
     }
 
-    // 3. Táctica de Escaramuza (Choque y retirarse a retaguardia)
     if (this.team === 'javi') {
-      // Borde izquierdo pantalla
       if (this.x - this.collideRadius <= 0) { this.vx = Math.abs(this.vx); this.x = this.collideRadius; }
-      
-      // Choque contra el muro central
       if (this.x + this.collideRadius >= wallX) { 
-        // Impulso fuerte de retroceso hacia retaguardia (negativo)
         this.vx = -(this.maxSpeed * (1.5 + Math.random())); 
-        this.vy += (Math.random() - 0.5) * 2; // Ligero caos vertical para dispersarlos
+        this.vy += (Math.random() - 0.5) * 2; 
         this.x = wallX - this.collideRadius; 
       }
     } else {
-      // Borde derecho pantalla
       if (this.x + this.collideRadius >= width) { this.vx = -Math.abs(this.vx); this.x = width - this.collideRadius; }
-      
-      // Choque contra el muro central
       if (this.x - this.collideRadius <= wallX) { 
-        // Impulso fuerte de retroceso hacia retaguardia (positivo)
         this.vx = this.maxSpeed * (1.5 + Math.random()); 
-        this.vy += (Math.random() - 0.5) * 2; // Ligero caos vertical para dispersarlos
+        this.vy += (Math.random() - 0.5) * 2; 
         this.x = wallX + this.collideRadius; 
       }
     }
   }
 
   draw() {
-    // NUEVA LÓGICA DOM: En lugar de dibujar en Canvas, movemos el elemento HTML.
-    // Usamos translate(-50%, -50%) en CSS junto con top/left en JS para centrar perfectamente.
-    // translate3d(x,y,0) fuerza la aceleración por hardware en la mayoría de navegadores.
     this.domElement.style.transform = `translate3d(${this.x - this.collideRadius}px, ${this.y - this.collideRadius}px, 0)`;
   }
 }
 
 function animate() {
-  // Limpiar solo el canvas de fondo (Capa 1)
   ctx.clearRect(0, 0, width, height);
   
-  // Dibujar muro invisible sutil en el canvas
   const wallX = width * (currentDominancePct / 100);
   ctx.beginPath();
   ctx.moveTo(wallX, 0);
@@ -342,15 +322,13 @@ function animate() {
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // Actualizar física y mover elementos HTML (Capa 2)
   particles.forEach(p => {
     p.update(wallX);
-    p.draw(); // Esto mueve el DOM
+    p.draw(); 
   });
 
   requestAnimationFrame(animate);
 }
-// Iniciar bucle de física
 animate(); 
 
 // ==========================================
@@ -486,7 +464,6 @@ async function loadData() {
     const javiArr = Array.from(mapJavi.values()).filter(a => a.total > 0 || a.cr > 0 || a.xf > 0);
     const rickyArr = Array.from(mapRicky.values()).filter(a => a.total > 0 || a.cr > 0 || a.xf > 0);
 
-    // Sincronizar personajes en el DOM (Actualizar tamaño, velocidad, o crearlos)
     const allAgents = [...javiArr, ...rickyArr];
     allAgents.forEach(agent => {
       let existingParticle = particles.find(p => p.id === agent.id);
@@ -494,28 +471,22 @@ async function loadData() {
         existingParticle.team = agent.team; 
         existingParticle.updateStats(agent.xf);
       } else {
-        // Al crear la Entity, el constructor inyectará el elemento HTML
         particles.push(new Entity(agent.id, agent.name, agent.team, agent.xf));
       }
     });
 
-    // Limpieza: Eliminar del DOM agentes que ya no están activos (ej. si cambian de mes y su total es 0)
     particles = particles.filter(p => {
       const isActive = allAgents.some(a => a.id === p.id);
-      if (!isActive && p.domElement) {
-        p.domElement.remove(); // Elimina elemento HTML
-      }
+      if (!isActive && p.domElement) { p.domElement.remove(); }
       return isActive;
     });
 
-    // Ordenar y renderizar tablas
     javiArr.sort((a,b)=> b.total - a.total);
     rickyArr.sort((a,b)=> b.total - a.total);
     let jCr=0, jXf=0, jTot=0, rCr=0, rXf=0, rTot=0;
     javiArr.forEach((d, index) => { jCr += d.cr; jXf += d.xf; jTot += d.total; const mvpIcon = (index === 0 && d.total > 0) ? " 👑" : ""; javiBody.insertAdjacentHTML("beforeend", `<tr><td>${d.name}${mvpIcon}</td><td>${d.id}</td><td>${d.cr}</td><td>${d.xf}</td><td>${d.total}</td></tr>`); });
     rickyArr.forEach((d, index) => { rCr += d.cr; rXf += d.xf; rTot += d.total; const mvpIcon = (index === 0 && d.total > 0) ? " 👑" : ""; rickyBody.insertAdjacentHTML("beforeend", `<tr><td>${d.name}${mvpIcon}</td><td>${d.id}</td><td>${d.cr}</td><td>${d.xf}</td><td>${d.total}</td></tr>`); });
 
-    // Actualizar Totales UI
     document.getElementById("javi-cr").textContent = jCr; document.getElementById("javi-xf").textContent = jXf; document.getElementById("javi-total").textContent = jTot;
     document.getElementById("ricky-cr").textContent = rCr; document.getElementById("ricky-xf").textContent = rXf; document.getElementById("ricky-total").textContent = rTot;
     const totalXfer = (jXf + rXf) > 0 ? (jXf + rXf) : 1; 
@@ -537,9 +508,7 @@ async function loadData() {
   }
 }
 
-// Iniciar extracción de datos
 loadData();
-// Actualización automática cada minuto
 setInterval(loadData, 60000);
 </script>
 </body>
