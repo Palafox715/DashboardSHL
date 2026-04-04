@@ -266,10 +266,19 @@ class Entity {
     const cardTooltip = document.createElement('div');
     cardTooltip.className = 'agent-card-tooltip';
     const cardImg = document.createElement('img');
+    
+    // Intentamos cargar la carta específica del agente usando su ID
     cardImg.src = `./cartas/${id}.png`;
     
-    // Blindaje: Ocultar el globo si no existe carta PNG para este ID
-    cardImg.onerror = function() { cardTooltip.style.display = 'none'; };
+    // === NUEVO BLINDAJE TÁCTICO ===
+    // Si la imagen [id].png no existe, se dispara este error y cargamos la carta por defecto.
+    cardImg.onerror = function() { 
+      this.src = "./cartas/Default.png"; 
+      
+      // Doble blindaje: Si por algún motivo "Default.png" también es borrado o no carga,
+      // ocultamos el globo limpiamente para no mostrar el ícono de "imagen rota".
+      this.onerror = function() { cardTooltip.style.display = 'none'; };
+    };
     
     cardTooltip.appendChild(cardImg);
     this.domElement.appendChild(cardTooltip);
