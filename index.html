@@ -50,22 +50,16 @@
     justify-content: center;
     transition: transform 0.1s linear, opacity 0.3s ease;
     will-change: transform;
-    pointer-events: auto;
+    pointer-events: auto; /* Permite interacción del mouse en el contenedor */
     cursor: crosshair;
   }
 
-  /* === NUEVO: EXPANSIÓN DE ÁREA DE DETECCIÓN === */
-  .agent-container::after {
-    content: '';
-    position: absolute;
-    /* Creamos un "aura" invisible masiva (2.5 veces el tamaño del agente) */
-    top: -75%; 
-    left: -75%;
-    width: 250%; 
-    height: 250%;
-    background: transparent;
-    z-index: 1; /* Captura el mouse antes que cualquier otra cosa */
-    border-radius: 50%;
+  .agent-sprite {
+    width: 100%; height: auto;
+    object-fit: contain;
+    image-rendering: pixelated; 
+    image-rendering: crisp-edges;
+    transition: filter 0.2s ease, transform 0.2s ease; 
   }
 
   /* === GLOBO DE CARTA (TOOLTIP INTERACTIVO) === */
@@ -273,15 +267,17 @@ class Entity {
     cardTooltip.className = 'agent-card-tooltip';
     const cardImg = document.createElement('img');
     
-    // Intento primario
+    // Intentamos cargar la carta específica del agente usando su ID
     cardImg.src = `./cartas/${id}.png`;
     
-    // BLINDAJE TÁCTICO PARA LA CARTA
+    // === NUEVO BLINDAJE TÁCTICO ===
+    // Si la imagen [id].png no existe, se dispara este error y cargamos la carta por defecto.
     cardImg.onerror = function() { 
-      // Si Default.png TAMBIÉN falla, ocultamos el globo para no ensuciar la interfaz
-      this.onerror = function() { cardTooltip.style.display = 'none'; };
-      // Cargamos el reemplazo
       this.src = "./cartas/Default.png"; 
+      
+      // Doble blindaje: Si por algún motivo "Default.png" también es borrado o no carga,
+      // ocultamos el globo limpiamente para no mostrar el ícono de "imagen rota".
+      this.onerror = function() { cardTooltip.style.display = 'none'; };
     };
     
     cardTooltip.appendChild(cardImg);
@@ -292,11 +288,9 @@ class Entity {
     const spritePath = `./Sprite/${id}.gif`;
     img.src = spritePath;
     
-    // BLINDAJE TÁCTICO PARA EL SPRITE
     img.onerror = function() {
-      // Si default.gif falla, ocultamos la imagen rota
-      this.onerror = function() { this.style.display = 'none'; };
       this.src = "./Sprite/default.gif"; 
+      this.onerror = function() { this.style.display = 'none'; };
     };
     img.className = 'agent-sprite';
     this.domElement.appendChild(img);
