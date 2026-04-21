@@ -188,6 +188,87 @@
   .totals-center { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -55%); background: var(--panel-dark); backdrop-filter: blur(5px); border-radius: 65px; padding: 1.3rem 2.3rem; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.1); }
   .totals-center h3 { margin: 0; font-size: 1.3rem; color: var(--text-light); }
   .totals-center span { display: block; font-size: 2.7rem; font-weight: 800; margin: 0.3rem 0; transition: all 0.3s ease-in-out; }
+
+  /* === INICIO MÓDULO SOLITARIO === */
+  #btn-solitario {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: rgba(31, 40, 51, 0.95);
+    color: #fff;
+    border: 2px solid #c300ff; /* Color morado para no chocar con Ricky o Gio */
+    padding: 12px 24px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    border-radius: 8px;
+    cursor: pointer;
+    z-index: 1000;
+    box-shadow: 0 0 15px rgba(195, 0, 255, 0.4);
+    transition: all 0.3s ease;
+    font-family: inherit;
+    text-transform: uppercase;
+  }
+  
+  #btn-solitario:hover {
+    background: #c300ff;
+    box-shadow: 0 0 25px rgba(195, 0, 255, 0.8);
+    transform: translateY(-3px);
+  }
+
+  #modal-solitario {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(11, 12, 16, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 1;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+  
+  #modal-solitario.modal-oculto {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .modal-contenido {
+    position: relative;
+    width: 90%;
+    height: 90%;
+    background: var(--panel-dark);
+    border-radius: 15px;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+  }
+
+  .cerrar-btn {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    background: #ff4500;
+    color: white;
+    border: none;
+    width: 45px; height: 45px;
+    border-radius: 50%;
+    font-size: 1.8rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(255,69,0,0.5);
+    z-index: 10;
+  }
+  
+  #frame-solitario {
+    width: 100%;
+    height: 100%;
+    border-radius: 15px;
+    background: transparent;
+  }
+  /* === FIN MÓDULO SOLITARIO === */
+
 </style>
 </head>
 <body>
@@ -230,6 +311,15 @@
       <tbody></tbody>
       <tfoot><tr class="sum-row"><td colspan="2">TOTAL</td><td id="ricky-cr">0</td><td id="ricky-xf">0</td><td id="ricky-total">0</td></tr></tfoot>
     </table>
+  </div>
+</div>
+
+<button id="btn-solitario">🃏 Solitario</button>
+
+<div id="modal-solitario" class="modal-oculto">
+  <div class="modal-contenido">
+    <button id="btn-cerrar-solitario" class="cerrar-btn">&times;</button>
+    <iframe id="frame-solitario" src="" frameborder="0"></iframe>
   </div>
 </div>
 
@@ -594,6 +684,45 @@ async function loadData() {
   }
 }
 
+// === INICIO LÓGICA SOLITARIO ===
+const btnSolitario = document.getElementById('btn-solitario');
+const modalSolitario = document.getElementById('modal-solitario');
+const btnCerrar = document.getElementById('btn-cerrar-solitario');
+const iframeSolitario = document.getElementById('frame-solitario');
+
+// OJO AQUÍ: Dejé esto en blanco por ahora. 
+// Aquí debes poner la URL de tu juego de solitario, NO la del dashboard.
+const ENLACE_GITHUB_PAGES = "./solitario.html"; 
+
+btnSolitario.addEventListener('click', () => {
+  modalSolitario.classList.remove('modal-oculto');
+  if(ENLACE_GITHUB_PAGES && !iframeSolitario.src.includes(ENLACE_GITHUB_PAGES)) {
+     iframeSolitario.src = ENLACE_GITHUB_PAGES;
+  }
+});
+
+btnCerrar.addEventListener('click', () => {
+  modalSolitario.classList.add('modal-oculto');
+});
+
+function obtenerRutasNaipes() {
+  const palos = ['Corazones', 'Diamantes', 'Treboles', 'Picas'];
+  const rangos = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+  const mazo = [];
+
+  for (const palo of palos) {
+    for (const rango of rangos) {
+      mazo.push(`./Naipes/${rango}_${palo}.png`);
+    }
+  }
+  mazo.push(`./Naipes/1_Joker.png`);
+  mazo.push(`./Naipes/2_Joker.png`);
+  return mazo;
+}
+
+console.log("Deck cargado desde /Naipes/:", obtenerRutasNaipes());
+// === FIN LÓGICA SOLITARIO ===
+  
 loadData();
 setInterval(loadData, 60000); 
 </script>
