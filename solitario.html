@@ -6,7 +6,7 @@
 <title>Solitario Personalizado</title>
 <style>
   :root {
-    --mesa-bg: #0f5132; /* Verde clásico de casino */
+    --mesa-bg: #0f5132;
     --carta-w: 80px;
     --carta-h: 115px;
     --borde-radio: 6px;
@@ -24,7 +24,6 @@
     overflow: hidden;
   }
 
-  /* --- ZONA SUPERIOR (Mazo y Fundaciones) --- */
   .top-board {
     display: flex;
     justify-content: space-between;
@@ -34,12 +33,8 @@
     margin-right: auto;
   }
 
-  .deck-area, .foundation-area {
-    display: flex;
-    gap: 15px;
-  }
+  .deck-area, .foundation-area { display: flex; gap: 15px; }
 
-  /* --- ZONA INFERIOR (Columnas de juego) --- */
   .bottom-board {
     display: flex;
     justify-content: center;
@@ -53,15 +48,16 @@
     min-height: var(--carta-h);
     position: relative;
     border-radius: var(--borde-radio);
+    padding-bottom: 150px; /* Espacio extra para soltar cartas fácilmente */
   }
 
-  /* --- ESTILOS DE CARTAS --- */
   .carta-slot {
     width: var(--carta-w);
     height: var(--carta-h);
     border: 2px dashed rgba(255, 255, 255, 0.3);
     border-radius: var(--borde-radio);
     box-sizing: border-box;
+    position: relative;
   }
 
   .carta {
@@ -74,18 +70,16 @@
     background-position: center;
     cursor: grab;
     position: absolute;
-    transition: transform 0.2s ease;
+    transition: transform 0.1s ease;
   }
 
   .carta:active { cursor: grabbing; }
 
   .carta.boca-abajo {
-    /* Si tienes una imagen de reverso, cámbiala aquí. Por defecto es un color con trama */
     background-image: repeating-linear-gradient(45deg, #b30000 0, #b30000 5px, #800000 5px, #800000 10px);
     cursor: default;
   }
 
-  /* Controles superiores */
   .btn-reiniciar {
     position: absolute;
     top: 20px; right: 20px;
@@ -97,6 +91,7 @@
     cursor: pointer;
     font-weight: bold;
     box-shadow: 0 0 10px rgba(255,69,0,0.5);
+    z-index: 1000;
   }
 </style>
 </head>
@@ -107,54 +102,40 @@
 <div class="top-board">
   <div class="deck-area">
     <div id="deck" class="carta-slot" onclick="robarCarta()"></div>
-    <div id="waste" class="carta-slot"></div>
+    <div id="waste" class="carta-slot drop-zone" data-tipo="waste"></div>
   </div>
   <div class="foundation-area">
-    <div id="found-0" class="carta-slot drop-zone" data-tipo="fundacion"></div>
-    <div id="found-1" class="carta-slot drop-zone" data-tipo="fundacion"></div>
-    <div id="found-2" class="carta-slot drop-zone" data-tipo="fundacion"></div>
-    <div id="found-3" class="carta-slot drop-zone" data-tipo="fundacion"></div>
+    <div id="found-0" class="carta-slot drop-zone" data-tipo="fundacion" data-idx="0"></div>
+    <div id="found-1" class="carta-slot drop-zone" data-tipo="fundacion" data-idx="1"></div>
+    <div id="found-2" class="carta-slot drop-zone" data-tipo="fundacion" data-idx="2"></div>
+    <div id="found-3" class="carta-slot drop-zone" data-tipo="fundacion" data-idx="3"></div>
   </div>
 </div>
 
 <div class="bottom-board">
-  <div id="col-0" class="columna drop-zone" data-tipo="columna"></div>
-  <div id="col-1" class="columna drop-zone" data-tipo="columna"></div>
-  <div id="col-2" class="columna drop-zone" data-tipo="columna"></div>
-  <div id="col-3" class="columna drop-zone" data-tipo="columna"></div>
-  <div id="col-4" class="columna drop-zone" data-tipo="columna"></div>
-  <div id="col-5" class="columna drop-zone" data-tipo="columna"></div>
-  <div id="col-6" class="columna drop-zone" data-tipo="columna"></div>
+  <div id="col-0" class="columna drop-zone" data-tipo="columna" data-idx="0"></div>
+  <div id="col-1" class="columna drop-zone" data-tipo="columna" data-idx="1"></div>
+  <div id="col-2" class="columna drop-zone" data-tipo="columna" data-idx="2"></div>
+  <div id="col-3" class="columna drop-zone" data-tipo="columna" data-idx="3"></div>
+  <div id="col-4" class="columna drop-zone" data-tipo="columna" data-idx="4"></div>
+  <div id="col-5" class="columna drop-zone" data-tipo="columna" data-idx="5"></div>
+  <div id="col-6" class="columna drop-zone" data-tipo="columna" data-idx="6"></div>
 </div>
 
 <script>
-// --- CONFIGURACIÓN DEL MAZO ---
 const palos = ['Corazones', 'Diamantes', 'Treboles', 'Picas'];
 const rangos = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 const valores = { 'A':1, '2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, '10':10, 'J':11, 'Q':12, 'K':13 };
 
 let mazoCompleto = [];
-let estadoJuego = {
-  deck: [], waste: [],
-  fundaciones: [[], [], [], []],
-  columnas: [[], [], [], [], [], [], []]
-};
+let estadoJuego = {};
 
-// --- INICIALIZACIÓN ---
 function crearMazo() {
   mazoCompleto = [];
   for (let palo of palos) {
     let color = (palo === 'Corazones' || palo === 'Diamantes') ? 'rojo' : 'negro';
     for (let rango of rangos) {
-      mazoCompleto.push({
-        id: `${rango}_${palo}`,
-        rango: rango,
-        palo: palo,
-        valor: valores[rango],
-        color: color,
-        imgVisible: `./Naipes/${rango}_${palo}.png`,
-        visible: false
-      });
+      mazoCompleto.push({ id: `${rango}_${palo}`, rango, palo, valor: valores[rango], color, imgVisible: `./Naipes/${rango}_${palo}.png`, visible: false });
     }
   }
 }
@@ -167,79 +148,23 @@ function barajar(array) {
 }
 
 function iniciarJuego() {
-  crearMazo();
-  barajar(mazoCompleto);
-  
+  crearMazo(); barajar(mazoCompleto);
   estadoJuego = { deck: [], waste: [], fundaciones: [[],[],[],[]], columnas: [[],[],[],[],[],[],[]] };
   
-  // Repartir a las 7 columnas (Klondike clásico)
   let cartaIndex = 0;
   for (let col = 0; col < 7; col++) {
     for (let fila = 0; fila <= col; fila++) {
       let carta = mazoCompleto[cartaIndex++];
-      carta.visible = (fila === col); // Solo la última es visible
+      carta.visible = (fila === col);
       estadoJuego.columnas[col].push(carta);
     }
   }
-  
-  // El resto al mazo principal
   while(cartaIndex < mazoCompleto.length) {
     let carta = mazoCompleto[cartaIndex++];
     carta.visible = false;
     estadoJuego.deck.push(carta);
   }
-  
   renderizarMesa();
-}
-
-// --- LÓGICA GRÁFICA ---
-function crearElementoCarta(carta, index, isColumna) {
-  let div = document.createElement('div');
-  div.className = 'carta ' + (carta.visible ? '' : 'boca-abajo');
-  div.id = carta.id;
-  
-  if (carta.visible) {
-    div.style.backgroundImage = `url('${carta.imgVisible}')`;
-    // Solo se pueden arrastrar las cartas visibles
-    div.draggable = true; 
-    div.addEventListener('dragstart', dragStart);
-  }
-
-  if (isColumna) {
-    div.style.top = `${index * 25}px`; // Efecto de cascada
-  }
-  
-  return div;
-}
-
-function renderizarMesa() {
-  // Mazo (Deck)
-  const deckDiv = document.getElementById('deck');
-  deckDiv.innerHTML = '';
-  if(estadoJuego.deck.length > 0) {
-    let cartaFalsa = document.createElement('div');
-    cartaFalsa.className = 'carta boca-abajo';
-    deckDiv.appendChild(cartaFalsa);
-  }
-
-  // Waste (Cartas robadas)
-  const wasteDiv = document.getElementById('waste');
-  wasteDiv.innerHTML = '';
-  if(estadoJuego.waste.length > 0) {
-    let topWaste = estadoJuego.waste[estadoJuego.waste.length - 1];
-    wasteDiv.appendChild(crearElementoCarta(topWaste, 0, false));
-  }
-
-  // Columnas
-  for (let i = 0; i < 7; i++) {
-    let colDiv = document.getElementById(`col-${i}`);
-    colDiv.innerHTML = '';
-    estadoJuego.columnas[i].forEach((carta, index) => {
-      colDiv.appendChild(crearElementoCarta(carta, index, true));
-    });
-  }
-  
-  // A futuro aquí puedes renderizar las fundaciones (found-0 a found-3)
 }
 
 function robarCarta() {
@@ -248,33 +173,126 @@ function robarCarta() {
     carta.visible = true;
     estadoJuego.waste.push(carta);
   } else if (estadoJuego.waste.length > 0) {
-    // Si se acaba el mazo, voltear el waste
     estadoJuego.deck = estadoJuego.waste.reverse().map(c => { c.visible = false; return c; });
     estadoJuego.waste = [];
   }
   renderizarMesa();
 }
 
-// --- DRAG AND DROP BÁSICO ---
-let cartaArrastradaId = null;
+function renderizarMesa() {
+  const deckDiv = document.getElementById('deck'); deckDiv.innerHTML = '';
+  if(estadoJuego.deck.length > 0) deckDiv.appendChild(crearDivCarta({ visible: false }));
 
-function dragStart(e) {
-  cartaArrastradaId = e.target.id;
-  e.dataTransfer.setData('text/plain', cartaArrastradaId);
+  const wasteDiv = document.getElementById('waste'); wasteDiv.innerHTML = '';
+  if(estadoJuego.waste.length > 0) wasteDiv.appendChild(crearDivCarta(estadoJuego.waste[estadoJuego.waste.length - 1], 0, false));
+
+  for (let i = 0; i < 4; i++) {
+    let foundDiv = document.getElementById(`found-${i}`); foundDiv.innerHTML = '';
+    if(estadoJuego.fundaciones[i].length > 0) foundDiv.appendChild(crearDivCarta(estadoJuego.fundaciones[i][estadoJuego.fundaciones[i].length - 1], 0, false));
+  }
+
+  for (let i = 0; i < 7; i++) {
+    let colDiv = document.getElementById(`col-${i}`); colDiv.innerHTML = '';
+    estadoJuego.columnas[i].forEach((carta, index) => {
+      colDiv.appendChild(crearDivCarta(carta, index, true));
+    });
+  }
 }
 
-// Permitir soltar
+function crearDivCarta(carta, index, isColumna) {
+  let div = document.createElement('div');
+  div.className = 'carta ' + (carta.visible ? '' : 'boca-abajo');
+  if (carta.id) div.id = carta.id;
+  
+  if (carta.visible) {
+    div.style.backgroundImage = `url('${carta.imgVisible}')`;
+    div.draggable = true;
+    div.addEventListener('dragstart', dragStart);
+  }
+  if (isColumna) div.style.top = `${index * 25}px`;
+  return div;
+}
+
+// === MOTOR DE REGLAS Y ARRASTRE ===
+let origenDrag = null;
+
+function buscarCarta(id) {
+  if (estadoJuego.waste.length > 0 && estadoJuego.waste[estadoJuego.waste.length-1].id === id) 
+    return { tipo: 'waste', cartas: [estadoJuego.waste[estadoJuego.waste.length-1]] };
+  
+  for(let c=0; c<7; c++) {
+    let idx = estadoJuego.columnas[c].findIndex(carta => carta.id === id);
+    if (idx !== -1) return { tipo: 'columna', idx: c, cartas: estadoJuego.columnas[c].slice(idx), cant: estadoJuego.columnas[c].length - idx };
+  }
+  return null; // No permitimos arrastrar de fundaciones para simplificar
+}
+
+function dragStart(e) {
+  origenDrag = buscarCarta(e.target.id);
+  e.dataTransfer.setData('text/plain', e.target.id);
+}
+
 document.querySelectorAll('.drop-zone').forEach(zone => {
   zone.addEventListener('dragover', e => e.preventDefault());
-  zone.addEventListener('drop', e => {
-    e.preventDefault();
-    console.log(`Intentando mover la carta ${cartaArrastradaId} a la zona`, e.currentTarget.id);
-    // Aquí es donde programarás la lógica de validación (Rojo sobre negro, etc.)
-    // ¡Es el siguiente paso divertido de la lógica del juego!
-  });
+  zone.addEventListener('drop', handleDrop);
 });
 
-// Arrancar el juego al cargar la página
+function handleDrop(e) {
+  e.preventDefault();
+  if (!origenDrag) return;
+
+  const dropZone = e.currentTarget;
+  const tipoDestino = dropZone.getAttribute('data-tipo');
+  const idxDestino = parseInt(dropZone.getAttribute('data-idx'));
+  const cartaBase = origenDrag.cartas[0]; // La carta que estamos sosteniendo
+
+  let movimientoValido = false;
+
+  // REGLA: Mover a una columna
+  if (tipoDestino === 'columna') {
+    let colDestino = estadoJuego.columnas[idxDestino];
+    if (colDestino.length === 0) {
+      if (cartaBase.valor === 13) movimientoValido = true; // Solo el Rey (K) a espacios vacíos
+    } else {
+      let ultimaCarta = colDestino[colDestino.length - 1];
+      // Color opuesto y valor exactamente menor por 1
+      if (cartaBase.color !== ultimaCarta.color && cartaBase.valor === ultimaCarta.valor - 1) movimientoValido = true;
+    }
+  }
+
+  // REGLA: Mover a las Fundaciones (arriba a la derecha)
+  if (tipoDestino === 'fundacion' && origenDrag.cartas.length === 1) { // Solo 1 carta a la vez
+    let fundDestino = estadoJuego.fundaciones[idxDestino];
+    if (fundDestino.length === 0) {
+      if (cartaBase.valor === 1) movimientoValido = true; // Solo Ases (A) a fundaciones vacías
+    } else {
+      let ultimaCarta = fundDestino[fundDestino.length - 1];
+      // Mismo palo y valor exactamente mayor por 1
+      if (cartaBase.palo === ultimaCarta.palo && cartaBase.valor === ultimaCarta.valor + 1) movimientoValido = true;
+    }
+  }
+
+  // EJECUTAR EL MOVIMIENTO
+  if (movimientoValido) {
+    // 1. Añadir al destino
+    if (tipoDestino === 'columna') estadoJuego.columnas[idxDestino].push(...origenDrag.cartas);
+    if (tipoDestino === 'fundacion') estadoJuego.fundaciones[idxDestino].push(cartaBase);
+
+    // 2. Quitar del origen
+    if (origenDrag.tipo === 'waste') estadoJuego.waste.pop();
+    if (origenDrag.tipo === 'columna') {
+      let colOrigen = estadoJuego.columnas[origenDrag.idx];
+      colOrigen.splice(colOrigen.length - origenDrag.cant, origenDrag.cant);
+      // Voltear la nueva carta superior de la columna si estaba boca abajo
+      if (colOrigen.length > 0 && !colOrigen[colOrigen.length - 1].visible) {
+        colOrigen[colOrigen.length - 1].visible = true;
+      }
+    }
+    renderizarMesa();
+  }
+  origenDrag = null;
+}
+
 window.onload = iniciarJuego;
 </script>
 </body>
