@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solitario Personalizado</title>
+<style>
+  :root {
+    --mesa-bg: #0f5132; /* Verde clásico de casino */
+    --carta-w: 80px;
+    --carta-h: 115px;
+    --borde-radio: 6px;
+  }
+
+  body {
+    margin: 0;
+    padding: 20px;
+    background-color: var(--mesa-bg);
+    background-image: radial-gradient(circle, #146c43 0%, #0a3622 100%);
+    font-family: 'Inter', sans-serif;
+    color: white;
+    height: 100vh;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  /* --- ZONA SUPERIOR (Mazo y Fundaciones) --- */
+  .top-board {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .deck-area, .foundation-area {
+    display: flex;
+    gap: 15px;
+  }
+
+  /* --- ZONA INFERIOR (Columnas de juego) --- */
+  .bottom-board {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .columna {
+    width: var(--carta-w);
+    min-height: var(--carta-h);
+    position: relative;
+    border-radius: var(--borde-radio);
+  }
+
+  /* --- ESTILOS DE CARTAS --- */
+  .carta-slot {
+    width: var(--carta-w);
+    height: var(--carta-h);
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border-radius: var(--borde-radio);
+    box-sizing: border-box;
+  }
+
+  .carta {
+    width: var(--carta-w);
+    height: var(--carta-h);
+    background-color: white;
+    border-radius: var(--borde-radio);
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.4);
+    background-size: cover;
+    background-position: center;
+    cursor: grab;
+    position: absolute;
+    transition: transform 0.2s ease;
+  }
+
+  .carta:active { cursor: grabbing; }
+
+  .carta.boca-abajo {
+    /* Si tienes una imagen de reverso, cámbiala aquí. Por defecto es un color con trama */
+    background-image: repeating-linear-gradient(45deg, #b30000 0, #b30000 5px, #800000 5px, #800000 10px);
+    cursor: default;
+  }
+
+  /* Controles superiores */
+  .btn-reiniciar {
+    position: absolute;
+    top: 20px; right: 20px;
+    background: #ff4500;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(255,69,0,0.5);
+  }
+</style>
+</head>
+<body>
+
+<button class="btn-reiniciar" onclick="iniciarJuego()">↻ Reiniciar Juego</button>
+
+<div class="top-board">
+  <div class="deck-area">
+    <div id="deck" class="carta-slot" onclick="robarCarta()"></div>
+    <div id="waste" class="carta-slot"></div>
+  </div>
+  <div class="foundation-area">
+    <div id="found-0" class="carta-slot drop-zone" data-tipo="fundacion"></div>
+    <div id="found-1" class="carta-slot drop-zone" data-tipo="fundacion"></div>
+    <div id="found-2" class="carta-slot drop-zone" data-tipo="fundacion"></div>
+    <div id="found-3" class="carta-slot drop-zone" data-tipo="fundacion"></div>
+  </div>
+</div>
+
+<div class="bottom-board">
+  <div id="col-0" class="columna drop-zone" data-tipo="columna"></div>
+  <div id="col-1" class="columna drop-zone" data-tipo="columna"></div>
+  <div id="col-2" class="columna drop-zone" data-tipo="columna"></div>
+  <div id="col-3" class="columna drop-zone" data-tipo="columna"></div>
+  <div id="col-4" class="columna drop-zone" data-tipo="columna"></div>
+  <div id="col-5" class="columna drop-zone" data-tipo="columna"></div>
+  <div id="col-6" class="columna drop-zone" data-tipo="columna"></div>
+</div>
+
+<script>
+// --- CONFIGURACIÓN DEL MAZO ---
+const palos = ['Corazones', 'Diamantes', 'Treboles', 'Picas'];
+const rangos = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+const valores = { 'A':1, '2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, '10':10, 'J':11, 'Q':12, 'K':13 };
+
+let mazoCompleto = [];
+let estadoJuego = {
+  deck: [], waste: [],
+  fundaciones: [[], [], [], []],
+  columnas: [[], [], [], [], [], [], []]
+};
+
+// --- INICIALIZACIÓN ---
+function crearMazo() {
+  mazoCompleto = [];
+  for (let palo of palos) {
+    let color = (palo === 'Corazones' || palo === 'Diamantes') ? 'rojo' : 'negro';
+    for (let rango of rangos) {
+      mazoCompleto.push({
+        id: `${rango}_${palo}`,
+        rango: rango,
+        palo: palo,
+        valor: valores[rango],
+        color: color,
+        imgVisible: `./Naipes/${rango}_${palo}.png`,
+        visible: false
+      });
+    }
+  }
+}
+
+function barajar(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+function iniciarJuego() {
+  crearMazo();
+  barajar(mazoCompleto);
+  
+  estadoJuego = { deck: [], waste: [], fundaciones: [[],[],[],[]], columnas: [[],[],[],[],[],[],[]] };
+  
+  // Repartir a las 7 columnas (Klondike clásico)
+  let cartaIndex = 0;
+  for (let col = 0; col < 7; col++) {
+    for (let fila = 0; fila <= col; fila++) {
+      let carta = mazoCompleto[cartaIndex++];
+      carta.visible = (fila === col); // Solo la última es visible
+      estadoJuego.columnas[col].push(carta);
+    }
+  }
+  
+  // El resto al mazo principal
+  while(cartaIndex < mazoCompleto.length) {
+    let carta = mazoCompleto[cartaIndex++];
+    carta.visible = false;
+    estadoJuego.deck.push(carta);
+  }
+  
+  renderizarMesa();
+}
+
+// --- LÓGICA GRÁFICA ---
+function crearElementoCarta(carta, index, isColumna) {
+  let div = document.createElement('div');
+  div.className = 'carta ' + (carta.visible ? '' : 'boca-abajo');
+  div.id = carta.id;
+  
+  if (carta.visible) {
+    div.style.backgroundImage = `url('${carta.imgVisible}')`;
+    // Solo se pueden arrastrar las cartas visibles
+    div.draggable = true; 
+    div.addEventListener('dragstart', dragStart);
+  }
+
+  if (isColumna) {
+    div.style.top = `${index * 25}px`; // Efecto de cascada
+  }
+  
+  return div;
+}
+
+function renderizarMesa() {
+  // Mazo (Deck)
+  const deckDiv = document.getElementById('deck');
+  deckDiv.innerHTML = '';
+  if(estadoJuego.deck.length > 0) {
+    let cartaFalsa = document.createElement('div');
+    cartaFalsa.className = 'carta boca-abajo';
+    deckDiv.appendChild(cartaFalsa);
+  }
+
+  // Waste (Cartas robadas)
+  const wasteDiv = document.getElementById('waste');
+  wasteDiv.innerHTML = '';
+  if(estadoJuego.waste.length > 0) {
+    let topWaste = estadoJuego.waste[estadoJuego.waste.length - 1];
+    wasteDiv.appendChild(crearElementoCarta(topWaste, 0, false));
+  }
+
+  // Columnas
+  for (let i = 0; i < 7; i++) {
+    let colDiv = document.getElementById(`col-${i}`);
+    colDiv.innerHTML = '';
+    estadoJuego.columnas[i].forEach((carta, index) => {
+      colDiv.appendChild(crearElementoCarta(carta, index, true));
+    });
+  }
+  
+  // A futuro aquí puedes renderizar las fundaciones (found-0 a found-3)
+}
+
+function robarCarta() {
+  if (estadoJuego.deck.length > 0) {
+    let carta = estadoJuego.deck.pop();
+    carta.visible = true;
+    estadoJuego.waste.push(carta);
+  } else if (estadoJuego.waste.length > 0) {
+    // Si se acaba el mazo, voltear el waste
+    estadoJuego.deck = estadoJuego.waste.reverse().map(c => { c.visible = false; return c; });
+    estadoJuego.waste = [];
+  }
+  renderizarMesa();
+}
+
+// --- DRAG AND DROP BÁSICO ---
+let cartaArrastradaId = null;
+
+function dragStart(e) {
+  cartaArrastradaId = e.target.id;
+  e.dataTransfer.setData('text/plain', cartaArrastradaId);
+}
+
+// Permitir soltar
+document.querySelectorAll('.drop-zone').forEach(zone => {
+  zone.addEventListener('dragover', e => e.preventDefault());
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    console.log(`Intentando mover la carta ${cartaArrastradaId} a la zona`, e.currentTarget.id);
+    // Aquí es donde programarás la lógica de validación (Rojo sobre negro, etc.)
+    // ¡Es el siguiente paso divertido de la lógica del juego!
+  });
+});
+
+// Arrancar el juego al cargar la página
+window.onload = iniciarJuego;
+</script>
+</body>
+</html>
