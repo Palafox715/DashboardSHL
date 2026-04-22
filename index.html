@@ -314,7 +314,10 @@
   </div>
 </div>
 
-<button id="btn-solitario">🃏 Solitario</button>
+<div style="position: fixed; bottom: 30px; right: 30px; display: flex; gap: 10px; z-index: 1000;">
+  <button id="btn-solitario" class="btn-juego">🃏 Solitario</button>
+  <button id="btn-blackjack" class="btn-juego" style="border-color: #00ffcc; box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);">🎲 Blackjack</button>
+</div>
 
 <div id="modal-solitario" class="modal-oculto">
   <div class="modal-contenido">
@@ -323,6 +326,7 @@
   </div>
 </div>
 
+  
 <script>
 const SHEET_ID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
 const API_KEY  = "AIzaSyCCBAapFj9Fd-8cOIfpDJxrOP__76zxAxM"; 
@@ -684,44 +688,31 @@ async function loadData() {
   }
 }
 
-// === INICIO LÓGICA SOLITARIO ===
+
+// === INICIO LÓGICA BOTONES DE JUEGOS ===
 const btnSolitario = document.getElementById('btn-solitario');
+const btnBlackjack = document.getElementById('btn-blackjack');
 const modalSolitario = document.getElementById('modal-solitario');
 const btnCerrar = document.getElementById('btn-cerrar-solitario');
 const iframeSolitario = document.getElementById('frame-solitario');
 
-// OJO AQUÍ: Dejé esto en blanco por ahora. 
-// Aquí debes poner la URL de tu juego de solitario, NO la del dashboard.
-const ENLACE_GITHUB_PAGES = "./solitario.html"; 
-
 btnSolitario.addEventListener('click', () => {
   modalSolitario.classList.remove('modal-oculto');
-  if(ENLACE_GITHUB_PAGES && !iframeSolitario.src.includes(ENLACE_GITHUB_PAGES)) {
-     iframeSolitario.src = ENLACE_GITHUB_PAGES;
-  }
+  iframeSolitario.src = "./solitario.html"; // Carga el solitario
+});
+
+btnBlackjack.addEventListener('click', () => {
+  modalSolitario.classList.remove('modal-oculto');
+  iframeSolitario.src = "./blackjack.html"; // Carga el blackjack en la MISMA ventana
 });
 
 btnCerrar.addEventListener('click', () => {
   modalSolitario.classList.add('modal-oculto');
+  iframeSolitario.src = ""; // Apaga el juego para que no consuma memoria de fondo
 });
+// === FIN LÓGICA BOTONES ===
 
-function obtenerRutasNaipes() {
-  const palos = ['Corazones', 'Diamantes', 'Treboles', 'Picas'];
-  const rangos = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-  const mazo = [];
 
-  for (const palo of palos) {
-    for (const rango of rangos) {
-      mazo.push(`./Naipes/${rango}_${palo}.png`);
-    }
-  }
-  mazo.push(`./Naipes/1_Joker.png`);
-  mazo.push(`./Naipes/2_Joker.png`);
-  return mazo;
-}
-
-console.log("Deck cargado desde /Naipes/:", obtenerRutasNaipes());
-// === FIN LÓGICA SOLITARIO ===
   
 loadData();
 setInterval(loadData, 60000); 
