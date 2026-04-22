@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blackjack Shoreline</title>
+<style>
+  :root {
+    --mesa-bg: #0f5132;
+    --carta-w: 100px;
+    --carta-h: 140px;
+    --borde-radio: 8px;
+    --neon-orange: #ff4500;
+    --neon-green: #00ffcc;
+  }
+
+  body {
+    margin: 0;
+    padding: 20px;
+    background-color: var(--mesa-bg);
+    background-image: radial-gradient(circle, #146c43 0%, #0a3622 100%);
+    font-family: 'Inter', sans-serif;
+    color: white;
+    height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+  }
+
+  .zona-juego {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+  }
+
+  .mano-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .cartas-area {
+    display: flex;
+    gap: -40px; /* Las cartas se encimarán ligeramente */
+    min-height: var(--carta-h);
+  }
+
+  .carta {
+    width: var(--carta-w);
+    height: var(--carta-h);
+    background-color: white;
+    border-radius: var(--borde-radio);
+    box-shadow: -2px 5px 10px rgba(0,0,0,0.5);
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.3s ease, margin 0.3s ease;
+    margin-left: -50px; /* Efecto abanico */
+  }
+  
+  .carta:first-child { margin-left: 0; }
+  .carta:hover { transform: translateY(-10px); }
+
+  .carta.boca-abajo {
+    background-image: repeating-linear-gradient(45deg, #b30000 0, #b30000 5px, #800000 5px, #800000 10px);
+  }
+
+  .carta.joker-glow {
+    box-shadow: 0 0 20px #c300ff, 0 0 40px #c300ff;
+  }
+
+  .marcador {
+    background: rgba(0,0,0,0.6);
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 1.2rem;
+  }
+
+  .controles {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding-bottom: 20px;
+  }
+
+  button {
+    background: rgba(31, 40, 51, 0.95);
+    color: #fff;
+    border: 2px solid #fff;
+    padding: 12px 24px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+  }
+
+  button:hover:not(:disabled) { transform: scale(1.05); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; border-color: #555; }
+
+  #btn-pedir { border-color: var(--neon-green); text-shadow: 0 0 5px var(--neon-green); }
+  #btn-plantarse { border-color: var(--neon-orange); text-shadow: 0 0 5px var(--neon-orange); }
+  #btn-repartir { border-color: #0088ff; text-shadow: 0 0 5px #0088ff; }
+
+  #mensaje-estado {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 4rem;
+    font-weight: 900;
+    text-shadow: 0 5px 15px rgba(0,0,0,0.8);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    z-index: 100;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1 id="mensaje-estado">¡Ganas!</h1>
+
+<div class="zona-juego">
+  <div class="mano-container">
+    <div class="marcador" id="puntos-dealer">Dealer: ?</div>
+    <div class="cartas-area" id="cartas-dealer"></div>
+  </div>
+
+  <div class="mano-container">
+    <div class="cartas-area" id="cartas-jugador"></div>
+    <div class="marcador" id="puntos-jugador">Tú: 0</div>
+  </div>
+</div>
+
+<div class="controles">
+  <button id="btn-pedir" onclick="pedirCarta()" disabled>Carta ☝️</button>
+  <button id="btn-plantarse" onclick="plantarse()" disabled>Plantarse ✋</button>
+  <button id="btn-repartir" onclick="iniciarJuego()">Repartir 🎲</button>
+</div>
+
+<script>
+const palos = ['Corazones', 'Diamantes', 'Treboles', 'Picas'];
+const rangos = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+
+let mazo = [];
+let manoJugador = [];
+let manoDealer = [];
+let juegoTerminado = true;
+
+function crearMazo() {
+  mazo = [];
+  // 52 cartas clásicas
+  for (let palo of palos) {
+    for (let rango of rangos) {
+      let valor = parseInt(rango);
+      if (['J', 'Q', 'K'].includes(rango)) valor = 10;
+      if (rango === 'A') valor = 11;
+      mazo.push({ id: `${rango}_${palo}`, img: `./Naipes/${rango}_${palo}.png`, valor: valor, esJoker: false });
+    }
+  }
+  // Los 2 Jokers (Valen 10 puntos en esta versión)
+  mazo.push({ id: `1_Joker`, img: `./Naipes/1_Joker.png`, valor: 10, esJoker: true });
+  mazo.push({ id: `2_Joker`, img: `./Naipes/2_Joker.png`, valor: 10, esJoker: true });
+
+  // Barajar
+  for (let i = mazo.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [mazo[i], mazo[j]] = [mazo[j], mazo[i]];
+  }
+}
+
+function calcularPuntos(mano) {
+  let total = 0;
+  let ases = 0;
+  for (let carta of mano) {
+    total += carta.valor;
+    if (carta.valor === 11) ases += 1;
+  }
+  // Ajustar Ases si nos pasamos de 21
+  while (total > 21 && ases > 0) {
+    total -= 10; // El As pasa de valer 11 a valer 1
+    ases -= 1;
+  }
+  return total;
+}
+
+function renderizarCartas() {
+  const divJugador = document.getElementById('cartas-jugador');
+  const divDealer = document.getElementById('cartas-dealer');
+  
+  divJugador.innerHTML = '';
+  divDealer.innerHTML = '';
+
+  // Dibujar Jugador
+  manoJugador.forEach(carta => {
+    let div = document.createElement('div');
+    div.className = 'carta' + (carta.esJoker ? ' joker-glow' : '');
+    div.style.backgroundImage = `url('${carta.img}')`;
+    divJugador.appendChild(div);
+  });
+
+  // Dibujar Dealer
+  manoDealer.forEach((carta, index) => {
+    let div = document.createElement('div');
+    div.className = 'carta' + (carta.esJoker && juegoTerminado ? ' joker-glow' : '');
+    
+    // Ocultar la primera carta del dealer si el juego sigue
+    if (index === 0 && !juegoTerminado) {
+      div.classList.add('boca-abajo');
+    } else {
+      div.style.backgroundImage = `url('${carta.img}')`;
+    }
+    divDealer.appendChild(div);
+  });
+
+  // Actualizar marcadores
+  document.getElementById('puntos-jugador').innerText = `Tú: ${calcularPuntos(manoJugador)}`;
+  
+  if (juegoTerminado) {
+    document.getElementById('puntos-dealer').innerText = `Dealer: ${calcularPuntos(manoDealer)}`;
+  } else {
+    // Si no ha terminado, solo mostramos el valor de su carta visible
+    document.getElementById('puntos-dealer').innerText = `Dealer: ?`; 
+  }
+}
+
+function mostrarMensaje(texto, color) {
+  const msg = document.getElementById('mensaje-estado');
+  msg.innerText = texto;
+  msg.style.color = color;
+  msg.style.opacity = 1;
+}
+
+function alternarBotones(jugando) {
+  document.getElementById('btn-pedir').disabled = !jugando;
+  document.getElementById('btn-plantarse').disabled = !jugando;
+  document.getElementById('btn-repartir').disabled = jugando;
+}
+
+function iniciarJuego() {
+  crearMazo();
+  manoJugador = [mazo.pop(), mazo.pop()];
+  manoDealer = [mazo.pop(), mazo.pop()];
+  juegoTerminado = false;
+  
+  document.getElementById('mensaje-estado').style.opacity = 0;
+  alternarBotones(true);
+  renderizarCartas();
+
+  // Revisar si hubo Blackjack natural (21 en las dos primeras cartas)
+  if (calcularPuntos(manoJugador) === 21) {
+    plantarse();
+  }
+}
+
+function pedirCarta() {
+  if (juegoTerminado) return;
+  
+  manoJugador.push(mazo.pop());
+  renderizarCartas();
+
+  if (calcularPuntos(manoJugador) > 21) {
+    terminarJuego("¡Te pasaste! 💥", "#ff4500");
+  } else if (calcularPuntos(manoJugador) === 21) {
+    plantarse();
+  }
+}
+
+function plantarse() {
+  if (juegoTerminado) return;
+  juegoTerminado = true;
+  alternarBotones(false);
+  
+  // Turno automático del Dealer (Pide carta hasta tener 17 o más)
+  let puntosDealer = calcularPuntos(manoDealer);
+  while (puntosDealer < 17) {
+    manoDealer.push(mazo.pop());
+    puntosDealer = calcularPuntos(manoDealer);
+  }
+
+  renderizarCartas();
+  determinarGanador();
+}
+
+function determinarGanador() {
+  let puntosJugador = calcularPuntos(manoJugador);
+  let puntosDealer = calcularPuntos(manoDealer);
+
+  if (puntosDealer > 21) {
+    terminarJuego("¡Dealer se pasó! GANAS 🎉", "#00ffcc");
+  } else if (puntosJugador > puntosDealer) {
+    terminarJuego("¡GANAS! 🏆", "#00ffcc");
+  } else if (puntosJugador < puntosDealer) {
+    terminarJuego("Dealer gana 💀", "#ff4500");
+  } else {
+    terminarJuego("Empate 🤝", "#ffff00");
+  }
+}
+
+function terminarJuego(mensaje, color) {
+  juegoTerminado = true;
+  alternarBotones(false);
+  renderizarCartas();
+  mostrarMensaje(mensaje, color);
+}
+</script>
+</body>
+</html>
