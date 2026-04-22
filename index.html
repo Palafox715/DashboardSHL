@@ -205,6 +205,18 @@
     text-transform: uppercase;
   }
 
+/* Efecto exclusivo para Póker (Azul Neón) */
+  #btn-poker {
+    border: 2px solid #0088ff;
+    box-shadow: 0 0 15px rgba(0, 136, 255, 0.4);
+  }
+  #btn-poker:hover {
+    background: #0088ff;
+    color: #fff;
+    box-shadow: 0 0 25px rgba(0, 136, 255, 0.8);
+    transform: translateY(-3px);
+  }
+  
   /* Efecto exclusivo para Solitario (Morado) */
   #btn-solitario {
     border: 2px solid #c300ff;
@@ -327,9 +339,10 @@
   </div>
 </div>
 
-<div style="position: fixed; bottom: 30px; right: 30px; display: flex; gap: 10px; z-index: 1000;">
+<div style="position: fixed; bottom: 30px; right: 30px; display: flex; gap: 15px; z-index: 1000;">
   <button id="btn-solitario" class="btn-juego">🃏 Solitario</button>
-  <button id="btn-blackjack" class="btn-juego" style="border-color: #00ffcc; box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);">🎲 Blackjack</button>
+  <button id="btn-blackjack" class="btn-juego">🎲 Blackjack</button>
+  <button id="btn-poker" class="btn-juego">🤠 Póker</button>
 </div>
 
 <div id="modal-solitario" class="modal-oculto">
@@ -705,26 +718,32 @@ async function loadData() {
 // === INICIO LÓGICA BOTONES DE JUEGOS ===
 const btnSolitario = document.getElementById('btn-solitario');
 const btnBlackjack = document.getElementById('btn-blackjack');
+const btnPoker = document.getElementById('btn-poker'); // <-- Nuevo botón
 const modalSolitario = document.getElementById('modal-solitario');
 const btnCerrar = document.getElementById('btn-cerrar-solitario');
 const iframeSolitario = document.getElementById('frame-solitario');
 
 btnSolitario.addEventListener('click', () => {
   modalSolitario.classList.remove('modal-oculto');
-  iframeSolitario.src = "./solitario.html"; // Carga el solitario
+  iframeSolitario.src = "./solitario.html"; 
 });
 
 btnBlackjack.addEventListener('click', () => {
   modalSolitario.classList.remove('modal-oculto');
-  iframeSolitario.src = "./blackjack.html"; // Carga el blackjack en la MISMA ventana
+  iframeSolitario.src = "./blackjack.html"; 
+});
+
+// Lógica del Póker
+btnPoker.addEventListener('click', () => {
+  modalSolitario.classList.remove('modal-oculto');
+  iframeSolitario.src = "./poker.html"; 
 });
 
 btnCerrar.addEventListener('click', () => {
   modalSolitario.classList.add('modal-oculto');
-  iframeSolitario.src = ""; // Apaga el juego para que no consuma memoria de fondo
+  iframeSolitario.src = ""; 
 });
 // === FIN LÓGICA BOTONES ===
-
 
   
 loadData();
