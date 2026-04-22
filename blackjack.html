@@ -27,6 +27,7 @@
     flex-direction: column;
     justify-content: space-between;
     overflow: hidden;
+    position: relative;
   }
 
   .zona-juego {
@@ -45,9 +46,33 @@
     gap: 10px;
   }
 
+  /* === NUEVO: ESTILOS DEL DEALER (SPRITE) === */
+  .dealer-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .dealer-sprite {
+    height: 100px; /* Tamaño del personaje */
+    width: auto;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    filter: drop-shadow(0 0 10px rgba(0, 255, 204, 0.4));
+    transition: all 0.5s ease;
+  }
+
+  /* Efecto cuando el dealer pierde */
+  .dealer-derrotado {
+    filter: grayscale(100%) opacity(0.6) drop-shadow(0 0 0px transparent);
+    transform: scale(0.9) translateY(10px);
+  }
+  /* ======================================= */
+
   .cartas-area {
     display: flex;
-    gap: -40px; /* Las cartas se encimarán ligeramente */
+    gap: -40px;
     min-height: var(--carta-h);
   }
 
@@ -60,7 +85,7 @@
     background-size: cover;
     background-position: center;
     transition: transform 0.3s ease, margin 0.3s ease;
-    margin-left: -50px; /* Efecto abanico */
+    margin-left: -50px;
   }
   
   .carta:first-child { margin-left: 0; }
@@ -70,9 +95,7 @@
     background-image: repeating-linear-gradient(45deg, #b30000 0, #b30000 5px, #800000 5px, #800000 10px);
   }
 
-  .carta.joker-glow {
-    box-shadow: 0 0 20px #c300ff, 0 0 40px #c300ff;
-  }
+  .carta.joker-glow { box-shadow: 0 0 20px #c300ff, 0 0 40px #c300ff; }
 
   .marcador {
     background: rgba(0,0,0,0.6);
@@ -80,6 +103,7 @@
     border-radius: 20px;
     font-weight: bold;
     font-size: 1.2rem;
+    z-index: 10;
   }
 
   .controles {
@@ -87,6 +111,7 @@
     justify-content: center;
     gap: 20px;
     padding-bottom: 20px;
+    z-index: 10;
   }
 
   button {
@@ -123,6 +148,23 @@
     z-index: 100;
     text-align: center;
   }
+
+  /* === NUEVO: ANIMACIÓN CONFETI === */
+  .confeti {
+    position: absolute;
+    top: -20px;
+    width: 10px;
+    height: 20px;
+    background-color: var(--neon-green);
+    z-index: 50;
+    animation: caer linear forwards;
+  }
+
+  @keyframes caer {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+  /* ================================ */
 </style>
 </head>
 <body>
@@ -131,7 +173,10 @@
 
 <div class="zona-juego">
   <div class="mano-container">
-    <div class="marcador" id="puntos-dealer">Dealer: ?</div>
+    <div class="dealer-info">
+      <img id="dealer-sprite" class="dealer-sprite" src="" style="display:none;" alt="Dealer">
+      <div class="marcador" id="puntos-dealer">Dealer: ?</div>
+    </div>
     <div class="cartas-area" id="cartas-dealer"></div>
   </div>
 
@@ -151,14 +196,50 @@
 const palos = ['Corazones', 'Diamantes', 'Treboles', 'Picas'];
 const rangos = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 
+// Array con los nombres de tus Gifs (basado en tu captura)
+const listaSprites = ['5674', '5699', '5729', '5798', '5845', '5857', '5944', '5946', '5959', '5994', '6001', '6073', '6089', '6102', '6103', '6173', '6645'];
+
 let mazo = [];
 let manoJugador = [];
 let manoDealer = [];
 let juegoTerminado = true;
 
+// === NUEVO: FUNCIONES VISUALES (DEALER Y CONFETI) ===
+function elegirDealerAlAzar() {
+  const imgDealer = document.getElementById('dealer-sprite');
+  const idAleatorio = listaSprites[Math.floor(Math.random() * listaSprites.length)];
+  
+  imgDealer.src = `./Sprite/${idAleatorio}.gif`;
+  imgDealer.style.display = 'block';
+  imgDealer.classList.remove('dealer-derrotado'); // Quitar efecto de derrota si lo tenía
+  
+  // Si no encuentra la imagen, la oculta para que no se vea feo
+  imgDealer.onerror = function() { this.style.display = 'none'; };
+}
+
+function lanzarConfeti() {
+  const colores = ['#00ffcc', '#ff4500', '#c300ff', '#ffff00', '#ffffff'];
+  
+  for (let i = 0; i < 60; i++) {
+    let confeti = document.createElement('div');
+    confeti.className = 'confeti';
+    
+    // Posición, color y velocidad aleatoria
+    confeti.style.left = Math.random() * 100 + 'vw';
+    confeti.style.backgroundColor = colores[Math.floor(Math.random() * colores.length)];
+    confeti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+    confeti.style.animationDelay = (Math.random() * 0.5) + 's';
+    
+    document.body.appendChild(confeti);
+    
+    // Limpiar el DOM después de que caigan
+    setTimeout(() => confeti.remove(), 4000);
+  }
+}
+// ====================================================
+
 function crearMazo() {
   mazo = [];
-  // 52 cartas clásicas
   for (let palo of palos) {
     for (let rango of rangos) {
       let valor = parseInt(rango);
@@ -167,11 +248,9 @@ function crearMazo() {
       mazo.push({ id: `${rango}_${palo}`, img: `./Naipes/${rango}_${palo}.png`, valor: valor, esJoker: false });
     }
   }
-  // Los 2 Jokers (Valen 10 puntos en esta versión)
   mazo.push({ id: `1_Joker`, img: `./Naipes/1_Joker.png`, valor: 10, esJoker: true });
   mazo.push({ id: `2_Joker`, img: `./Naipes/2_Joker.png`, valor: 10, esJoker: true });
 
-  // Barajar
   for (let i = mazo.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [mazo[i], mazo[j]] = [mazo[j], mazo[i]];
@@ -185,9 +264,8 @@ function calcularPuntos(mano) {
     total += carta.valor;
     if (carta.valor === 11) ases += 1;
   }
-  // Ajustar Ases si nos pasamos de 21
   while (total > 21 && ases > 0) {
-    total -= 10; // El As pasa de valer 11 a valer 1
+    total -= 10;
     ases -= 1;
   }
   return total;
@@ -200,7 +278,6 @@ function renderizarCartas() {
   divJugador.innerHTML = '';
   divDealer.innerHTML = '';
 
-  // Dibujar Jugador
   manoJugador.forEach(carta => {
     let div = document.createElement('div');
     div.className = 'carta' + (carta.esJoker ? ' joker-glow' : '');
@@ -208,12 +285,10 @@ function renderizarCartas() {
     divJugador.appendChild(div);
   });
 
-  // Dibujar Dealer
   manoDealer.forEach((carta, index) => {
     let div = document.createElement('div');
     div.className = 'carta' + (carta.esJoker && juegoTerminado ? ' joker-glow' : '');
     
-    // Ocultar la primera carta del dealer si el juego sigue
     if (index === 0 && !juegoTerminado) {
       div.classList.add('boca-abajo');
     } else {
@@ -222,13 +297,11 @@ function renderizarCartas() {
     divDealer.appendChild(div);
   });
 
-  // Actualizar marcadores
   document.getElementById('puntos-jugador').innerText = `Tú: ${calcularPuntos(manoJugador)}`;
   
   if (juegoTerminado) {
     document.getElementById('puntos-dealer').innerText = `Dealer: ${calcularPuntos(manoDealer)}`;
   } else {
-    // Si no ha terminado, solo mostramos el valor de su carta visible
     document.getElementById('puntos-dealer').innerText = `Dealer: ?`; 
   }
 }
@@ -248,6 +321,8 @@ function alternarBotones(jugando) {
 
 function iniciarJuego() {
   crearMazo();
+  elegirDealerAlAzar(); // <--- Llamamos al dealer al iniciar
+  
   manoJugador = [mazo.pop(), mazo.pop()];
   manoDealer = [mazo.pop(), mazo.pop()];
   juegoTerminado = false;
@@ -256,7 +331,6 @@ function iniciarJuego() {
   alternarBotones(true);
   renderizarCartas();
 
-  // Revisar si hubo Blackjack natural (21 en las dos primeras cartas)
   if (calcularPuntos(manoJugador) === 21) {
     plantarse();
   }
@@ -269,7 +343,7 @@ function pedirCarta() {
   renderizarCartas();
 
   if (calcularPuntos(manoJugador) > 21) {
-    terminarJuego("¡Te pasaste! 💥", "#ff4500");
+    terminarJuego("¡Te pasaste! 💥", "#ff4500", false);
   } else if (calcularPuntos(manoJugador) === 21) {
     plantarse();
   }
@@ -280,7 +354,6 @@ function plantarse() {
   juegoTerminado = true;
   alternarBotones(false);
   
-  // Turno automático del Dealer (Pide carta hasta tener 17 o más)
   let puntosDealer = calcularPuntos(manoDealer);
   while (puntosDealer < 17) {
     manoDealer.push(mazo.pop());
@@ -296,22 +369,32 @@ function determinarGanador() {
   let puntosDealer = calcularPuntos(manoDealer);
 
   if (puntosDealer > 21) {
-    terminarJuego("¡Dealer se pasó! GANAS 🎉", "#00ffcc");
+    terminarJuego("¡Dealer se pasó! GANAS 🎉", "#00ffcc", true);
   } else if (puntosJugador > puntosDealer) {
-    terminarJuego("¡GANAS! 🏆", "#00ffcc");
+    terminarJuego("¡GANAS! 🏆", "#00ffcc", true);
   } else if (puntosJugador < puntosDealer) {
-    terminarJuego("Dealer gana 💀", "#ff4500");
+    terminarJuego("Dealer gana 💀", "#ff4500", false);
   } else {
-    terminarJuego("Empate 🤝", "#ffff00");
+    terminarJuego("Empate 🤝", "#ffff00", false);
   }
 }
 
-function terminarJuego(mensaje, color) {
+// Actualizamos esta función para que reciba si ganaste o no
+function terminarJuego(mensaje, color, esVictoria) {
   juegoTerminado = true;
   alternarBotones(false);
   renderizarCartas();
   mostrarMensaje(mensaje, color);
+  
+  // Lógica de victoria/derrota
+  if (esVictoria) {
+    lanzarConfeti();
+    document.getElementById('dealer-sprite').classList.add('dealer-derrotado');
+  }
 }
+
+// Iniciar automáticamente al cargar la página por primera vez
+window.onload = iniciarJuego;
 </script>
 </body>
 </html>
