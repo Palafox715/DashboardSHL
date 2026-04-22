@@ -30,45 +30,35 @@
     position: relative;
   }
 
+  /* Animación de sacudida cuando pierdes */
+  .mesa-temblando {
+    animation: sacudir 0.4s ease-in-out;
+  }
+
+  @keyframes sacudir {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(-15px) rotate(-1deg); }
+    40% { transform: translateX(15px) rotate(1deg); }
+    60% { transform: translateX(-15px) rotate(-1deg); }
+    80% { transform: translateX(15px) rotate(1deg); }
+    100% { transform: translateX(0); }
+  }
+
   .zona-juego {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 40px;
+    gap: 50px;
   }
 
   .mano-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 15px;
   }
-
-  /* === NUEVO: ESTILOS DEL DEALER (SPRITE) === */
-  .dealer-info {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-  }
-
-  .dealer-sprite {
-    height: 100px; /* Tamaño del personaje */
-    width: auto;
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
-    filter: drop-shadow(0 0 10px rgba(0, 255, 204, 0.4));
-    transition: all 0.5s ease;
-  }
-
-  /* Efecto cuando el dealer pierde */
-  .dealer-derrotado {
-    filter: grayscale(100%) opacity(0.6) drop-shadow(0 0 0px transparent);
-    transform: scale(0.9) translateY(10px);
-  }
-  /* ======================================= */
 
   .cartas-area {
     display: flex;
@@ -76,7 +66,14 @@
     min-height: var(--carta-h);
   }
 
+  /* Animación de reparto de cartas */
+  @keyframes aparecer-carta {
+    0% { top: -60px; opacity: 0; transform: scale(0.8) rotate(10deg); }
+    100% { top: 0; opacity: 1; transform: scale(1) rotate(0deg); }
+  }
+
   .carta {
+    position: relative;
     width: var(--carta-w);
     height: var(--carta-h);
     background-color: white;
@@ -86,10 +83,11 @@
     background-position: center;
     transition: transform 0.3s ease, margin 0.3s ease;
     margin-left: -50px;
+    animation: aparecer-carta 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
   }
   
   .carta:first-child { margin-left: 0; }
-  .carta:hover { transform: translateY(-10px); }
+  .carta:hover { transform: translateY(-15px) !important; z-index: 20; }
 
   .carta.boca-abajo {
     background-image: repeating-linear-gradient(45deg, #b30000 0, #b30000 5px, #800000 5px, #800000 10px);
@@ -104,6 +102,7 @@
     font-weight: bold;
     font-size: 1.2rem;
     z-index: 10;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
   }
 
   .controles {
@@ -129,11 +128,22 @@
   }
 
   button:hover:not(:disabled) { transform: scale(1.05); }
-  button:disabled { opacity: 0.5; cursor: not-allowed; border-color: #555; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; border-color: #555 !important; box-shadow: none !important; }
 
   #btn-pedir { border-color: var(--neon-green); text-shadow: 0 0 5px var(--neon-green); }
   #btn-plantarse { border-color: var(--neon-orange); text-shadow: 0 0 5px var(--neon-orange); }
   #btn-repartir { border-color: #0088ff; text-shadow: 0 0 5px #0088ff; }
+
+  /* Pulso para invitar a jugar */
+  @keyframes pulso-btn {
+    0% { box-shadow: 0 0 10px #0088ff; transform: scale(1); }
+    50% { box-shadow: 0 0 25px #0088ff, 0 0 10px #0088ff inset; transform: scale(1.05); }
+    100% { box-shadow: 0 0 10px #0088ff; transform: scale(1); }
+  }
+
+  .btn-animado {
+    animation: pulso-btn 1.5s infinite;
+  }
 
   #mensaje-estado {
     position: absolute;
@@ -141,15 +151,19 @@
     transform: translate(-50%, -50%);
     font-size: 4rem;
     font-weight: 900;
-    text-shadow: 0 5px 15px rgba(0,0,0,0.8);
+    text-shadow: 0 5px 15px rgba(0,0,0,0.9);
     pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.5s ease;
+    opacity: 1; /* Ahora es visible desde el inicio */
+    transition: opacity 0.3s ease, transform 0.3s ease;
     z-index: 100;
     text-align: center;
+    background: rgba(0,0,0,0.4);
+    padding: 20px 40px;
+    border-radius: 20px;
+    backdrop-filter: blur(5px);
   }
 
-  /* === NUEVO: ANIMACIÓN CONFETI === */
+  /* Animación Confeti */
   .confeti {
     position: absolute;
     top: -20px;
@@ -164,19 +178,15 @@
     0% { transform: translateY(0) rotate(0deg); opacity: 1; }
     100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
   }
-  /* ================================ */
 </style>
 </head>
 <body>
 
-<h1 id="mensaje-estado">¡Ganas!</h1>
+<h1 id="mensaje-estado">Blackjack 21</h1>
 
-<div class="zona-juego">
+<div class="zona-juego" id="mesa-juego">
   <div class="mano-container">
-    <div class="dealer-info">
-      <img id="dealer-sprite" class="dealer-sprite" src="" style="display:none;" alt="Dealer">
-      <div class="marcador" id="puntos-dealer">Dealer: ?</div>
-    </div>
+    <div class="marcador" id="puntos-dealer">Dealer: ?</div>
     <div class="cartas-area" id="cartas-dealer"></div>
   </div>
 
@@ -189,54 +199,31 @@
 <div class="controles">
   <button id="btn-pedir" onclick="pedirCarta()" disabled>Carta ☝️</button>
   <button id="btn-plantarse" onclick="plantarse()" disabled>Plantarse ✋</button>
-  <button id="btn-repartir" onclick="iniciarJuego()">Repartir 🎲</button>
+  <button id="btn-repartir" class="btn-animado" onclick="iniciarJuego()">Repartir 🎲</button>
 </div>
 
 <script>
 const palos = ['Corazones', 'Diamantes', 'Treboles', 'Picas'];
 const rangos = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 
-// Array con los nombres de tus Gifs (basado en tu captura)
-const listaSprites = ['5674', '5699', '5729', '5798', '5845', '5857', '5944', '5946', '5959', '5994', '6001', '6073', '6089', '6102', '6103', '6173', '6645'];
-
 let mazo = [];
 let manoJugador = [];
 let manoDealer = [];
 let juegoTerminado = true;
 
-// === NUEVO: FUNCIONES VISUALES (DEALER Y CONFETI) ===
-function elegirDealerAlAzar() {
-  const imgDealer = document.getElementById('dealer-sprite');
-  const idAleatorio = listaSprites[Math.floor(Math.random() * listaSprites.length)];
-  
-  imgDealer.src = `./Sprite/${idAleatorio}.gif`;
-  imgDealer.style.display = 'block';
-  imgDealer.classList.remove('dealer-derrotado'); // Quitar efecto de derrota si lo tenía
-  
-  // Si no encuentra la imagen, la oculta para que no se vea feo
-  imgDealer.onerror = function() { this.style.display = 'none'; };
-}
-
 function lanzarConfeti() {
   const colores = ['#00ffcc', '#ff4500', '#c300ff', '#ffff00', '#ffffff'];
-  
   for (let i = 0; i < 60; i++) {
     let confeti = document.createElement('div');
     confeti.className = 'confeti';
-    
-    // Posición, color y velocidad aleatoria
     confeti.style.left = Math.random() * 100 + 'vw';
     confeti.style.backgroundColor = colores[Math.floor(Math.random() * colores.length)];
     confeti.style.animationDuration = (Math.random() * 2 + 2) + 's';
     confeti.style.animationDelay = (Math.random() * 0.5) + 's';
-    
     document.body.appendChild(confeti);
-    
-    // Limpiar el DOM después de que caigan
     setTimeout(() => confeti.remove(), 4000);
   }
 }
-// ====================================================
 
 function crearMazo() {
   mazo = [];
@@ -278,10 +265,12 @@ function renderizarCartas() {
   divJugador.innerHTML = '';
   divDealer.innerHTML = '';
 
-  manoJugador.forEach(carta => {
+  manoJugador.forEach((carta, index) => {
     let div = document.createElement('div');
     div.className = 'carta' + (carta.esJoker ? ' joker-glow' : '');
     div.style.backgroundImage = `url('${carta.img}')`;
+    // Añadir un pequeño retraso a cada carta para efecto de reparto en cascada
+    div.style.animationDelay = `${index * 0.15}s`;
     divJugador.appendChild(div);
   });
 
@@ -294,6 +283,7 @@ function renderizarCartas() {
     } else {
       div.style.backgroundImage = `url('${carta.img}')`;
     }
+    div.style.animationDelay = `${index * 0.15}s`;
     divDealer.appendChild(div);
   });
 
@@ -311,29 +301,48 @@ function mostrarMensaje(texto, color) {
   msg.innerText = texto;
   msg.style.color = color;
   msg.style.opacity = 1;
+  msg.style.transform = "translate(-50%, -50%) scale(1)";
+}
+
+function ocultarMensaje() {
+  const msg = document.getElementById('mensaje-estado');
+  msg.style.opacity = 0;
+  msg.style.transform = "translate(-50%, -50%) scale(0.8)";
 }
 
 function alternarBotones(jugando) {
   document.getElementById('btn-pedir').disabled = !jugando;
   document.getElementById('btn-plantarse').disabled = !jugando;
   document.getElementById('btn-repartir').disabled = jugando;
+  
+  const btnRepartir = document.getElementById('btn-repartir');
+  if (jugando) {
+    btnRepartir.classList.remove('btn-animado');
+  } else {
+    btnRepartir.classList.add('btn-animado');
+  }
 }
 
 function iniciarJuego() {
+  // Limpiar mesa temblando si existía
+  document.getElementById('mesa-juego').classList.remove('mesa-temblando');
+  
   crearMazo();
-  elegirDealerAlAzar(); // <--- Llamamos al dealer al iniciar
+  ocultarMensaje();
   
   manoJugador = [mazo.pop(), mazo.pop()];
   manoDealer = [mazo.pop(), mazo.pop()];
   juegoTerminado = false;
   
-  document.getElementById('mensaje-estado').style.opacity = 0;
   alternarBotones(true);
   renderizarCartas();
 
-  if (calcularPuntos(manoJugador) === 21) {
-    plantarse();
-  }
+  // Darle tiempo a la animación de reparto antes de avisar si ganó instantáneamente
+  setTimeout(() => {
+    if (calcularPuntos(manoJugador) === 21) {
+      plantarse();
+    }
+  }, 600);
 }
 
 function pedirCarta() {
@@ -342,11 +351,13 @@ function pedirCarta() {
   manoJugador.push(mazo.pop());
   renderizarCartas();
 
-  if (calcularPuntos(manoJugador) > 21) {
-    terminarJuego("¡Te pasaste! 💥", "#ff4500", false);
-  } else if (calcularPuntos(manoJugador) === 21) {
-    plantarse();
-  }
+  setTimeout(() => {
+    if (calcularPuntos(manoJugador) > 21) {
+      terminarJuego("¡Te pasaste! 💥", "#ff4500", false);
+    } else if (calcularPuntos(manoJugador) === 21) {
+      plantarse();
+    }
+  }, 300); // Pequeño delay para que la carta termine de entrar
 }
 
 function plantarse() {
@@ -361,7 +372,10 @@ function plantarse() {
   }
 
   renderizarCartas();
-  determinarGanador();
+  
+  setTimeout(() => {
+    determinarGanador();
+  }, 500); // Dar tiempo a que voltee su carta boca abajo
 }
 
 function determinarGanador() {
@@ -375,26 +389,33 @@ function determinarGanador() {
   } else if (puntosJugador < puntosDealer) {
     terminarJuego("Dealer gana 💀", "#ff4500", false);
   } else {
-    terminarJuego("Empate 🤝", "#ffff00", false);
+    terminarJuego("Empate 🤝", "#ffffff", null); // null para que no tiemble ni tire confeti
   }
 }
 
-// Actualizamos esta función para que reciba si ganaste o no
 function terminarJuego(mensaje, color, esVictoria) {
   juegoTerminado = true;
   alternarBotones(false);
   renderizarCartas();
   mostrarMensaje(mensaje, color);
   
-  // Lógica de victoria/derrota
-  if (esVictoria) {
+  if (esVictoria === true) {
     lanzarConfeti();
-    document.getElementById('dealer-sprite').classList.add('dealer-derrotado');
+  } else if (esVictoria === false) {
+    // Añadimos el temblor a la mesa si pierde
+    const mesa = document.getElementById('mesa-juego');
+    mesa.classList.add('mesa-temblando');
   }
 }
 
-// Iniciar automáticamente al cargar la página por primera vez
-window.onload = iniciarJuego;
+// === ESTADO INICIAL AL ABRIR EL JUEGO ===
+window.onload = () => {
+  alternarBotones(false);
+  document.getElementById('btn-repartir').disabled = false; // Solo botón repartir encendido
+  mostrarMensaje("¿Listo para jugar?", "#ffffff");
+  document.getElementById('cartas-jugador').innerHTML = '';
+  document.getElementById('cartas-dealer').innerHTML = '';
+};
 </script>
 </body>
 </html>
