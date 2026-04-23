@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shoreline Bluff</title>
+<style>
+  :root {
+    --mesa-bg: #0f5132;
+    --carta-w: 80px;
+    --carta-h: 115px;
+    --borde-radio: 6px;
+    --neon-orange: #ff4500;
+    --neon-green: #00ffcc;
+    --neon-blue: #0088ff;
+    --neon-purple: #c300ff;
+  }
+
+  body {
+    margin: 0;
+    padding: 20px;
+    background-color: var(--mesa-bg);
+    background-image: radial-gradient(circle, #146c43 0%, #0a3622 100%);
+    font-family: 'Inter', sans-serif;
+    color: white;
+    height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+  }
+
+  .zona-bot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .cartas-area {
+    display: flex;
+    gap: -40px; /* Cartas superpuestas */
+    min-height: var(--carta-h);
+    justify-content: center;
+  }
+
+  .carta {
+    width: var(--carta-w);
+    height: var(--carta-h);
+    background-color: white;
+    border-radius: var(--borde-radio);
+    box-shadow: -2px 5px 10px rgba(0,0,0,0.5);
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.2s ease, margin 0.2s ease;
+    margin-left: -50px;
+  }
+  
+  .carta:first-child { margin-left: 0; }
+  
+  .carta.boca-abajo {
+    background-image: repeating-linear-gradient(45deg, #b30000 0, #b30000 5px, #800000 5px, #800000 10px);
+  }
+
+  /* Efectos para la mano del jugador */
+  #mano-jugador .carta { cursor: pointer; }
+  #mano-jugador .carta:hover { transform: translateY(-10px); }
+  #mano-jugador .carta.seleccionada {
+    transform: translateY(-20px);
+    box-shadow: 0 0 15px var(--neon-green);
+    border: 2px solid var(--neon-green);
+    z-index: 10;
+  }
+
+  .zona-central {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .pila-mesa {
+    width: var(--carta-w);
+    height: var(--carta-h);
+    border: 2px dashed rgba(255,255,255,0.3);
+    border-radius: var(--borde-radio);
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .pila-mesa .carta { position: absolute; margin: 0; }
+
+  .indicador-rango {
+    margin-top: 20px;
+    font-size: 1.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: var(--neon-blue);
+    text-shadow: 0 0 10px rgba(0, 136, 255, 0.5);
+  }
+
+  .mensaje-accion {
+    margin-top: 10px;
+    font-size: 1.2rem;
+    color: #ffd700;
+    text-align: center;
+    min-height: 1.5em;
+  }
+
+  .controles {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    padding-bottom: 20px;
+    z-index: 10;
+    min-height: 50px; /* Evita saltos de layout */
+  }
+
+  button {
+    background: rgba(31, 40, 51, 0.95);
+    color: #fff;
+    border: 2px solid #fff;
+    padding: 10px 20px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+  }
+
+  button:hover:not(:disabled) { transform: scale(1.05); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  #btn-jugar { border-color: var(--neon-blue); box-shadow: 0 0 10px rgba(0, 136, 255, 0.4); }
+  #btn-acusar { border-color: var(--neon-orange); box-shadow: 0 0 10px rgba(255, 69, 0, 0.4); }
+  #btn-pasar { border-color: #888; }
+
+  .marcador {
+    background: rgba(0,0,0,0.6);
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 1rem;
+  }
+
+  #overlay-resultado {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 3rem;
+    font-weight: 900;
+    text-shadow: 0 5px 15px rgba(0,0,0,0.9);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 100;
+    text-align: center;
+    background: rgba(0,0,0,0.8);
+    padding: 20px 40px;
+    border-radius: 15px;
+    backdrop-filter: blur(5px);
+  }
+</style>
+</head>
+<body>
+
+<h1 id="overlay-resultado"></h1>
+
+<div class="zona-bot">
+  <div class="marcador" id="info-bot">Agente: 0 cartas</div>
+  <div class="cartas-area" id="mano-bot"></div>
+</div>
+
+<div class="zona-central">
+  <div class="pila-mesa" id="pila-centro"></div>
+  <div class="indicador-rango" id="rango-actual">Se exige: ?</div>
+  <div class="mensaje-accion" id="mensaje-juego">¡Repartiendo!</div>
+</div>
+
+<div class="controles" id="panel-controles">
+  </div>
+
+<div class="zona-bot">
+  <div class="cartas-area" id="mano-jugador"></div>
+  <div class="marcador" id="info-jugador">Tú: 0 cartas</div>
+</div>
+
+<script>
+const palos = ['Corazones', 'Diamantes', 'Treboles', 'Picas'];
+const rangos = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+
+let mazo = [];
+let manoJugador = [];
+let manoBot = [];
+let pilaMesa = []; // Cartas en el centro
+let ultimoTiro = []; // Cartas jugadas en el turno inmediatamente anterior
+let rangoExigidoIndice = 0; // Índice en el array 'rangos'
+let turno = 'jugador'; // 'jugador' o 'bot'
+let cartasSeleccionadas = [];
+let juegoTerminado = false;
+
+function crearMazo() {
+  mazo = [];
+  for (let palo of palos) {
+    for (let rango of rangos) {
+      mazo.push({ id: `${rango}_${palo}`, rango: rango, palo: palo, img: `./Naipes/${rango}_${palo}.png` });
+    }
+  }
+  for (let i = mazo.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [mazo[i], mazo[j]] = [mazo[j], mazo[i]];
+  }
+}
+
+function repartirInicial() {
+  crearMazo();
+  manoJugador = [];
+  manoBot = [];
+  pilaMesa = [];
+  ultimoTiro = [];
+  juegoTerminado = false;
+  rangoExigidoIndice = 0; // Empezamos en As (A)
+  turno = 'jugador';
+
+  // Repartir 10 cartas a cada uno para que sea rápido (no 26)
+  for(let i=0; i<10; i++){
+    manoJugador.push(mazo.pop());
+    manoBot.push(mazo.pop());
+  }
+
+  ordenarMano(manoJugador);
+  actualizarUI();
+  prepararTurnoJugador();
+}
+
+function ordenarMano(mano) {
+  // Ordena por índice del rango para agrupar cartas iguales
+  mano.sort((a, b) => rangos.indexOf(a.rango) - rangos.indexOf(b.rango));
+}
+
+function actualizarUI() {
+  // --- Jugador ---
+  const divJugador = document.getElementById('mano-jugador');
+  divJugador.innerHTML = '';
+  manoJugador.forEach((carta, index) => {
+    let div = document.createElement('div');
+    div.className = 'carta';
+    div.style.backgroundImage = `url('${carta.img}')`;
+    if(cartasSeleccionadas.includes(index)) div.classList.add('seleccionada');
+    
+    // Si es su turno, permite seleccionar
+    if(turno === 'jugador') {
+        div.onclick = () => alternarSeleccion(index);
+    }
+    divJugador.appendChild(div);
+  });
+  document.getElementById('info-jugador').innerText = `Tú: ${manoJugador.length} cartas`;
+
+  // --- Bot ---
+  const divBot = document.getElementById('mano-bot');
+  divBot.innerHTML = '';
+  manoBot.forEach(() => {
+    let div = document.createElement('div');
+    div.className = 'carta boca-abajo';
+    divBot.appendChild(div);
+  });
+  document.getElementById('info-bot').innerText = `Agente: ${manoBot.length} cartas`;
+
+  // --- Centro ---
+  const divPila = document.getElementById('pila-centro');
+  divPila.innerHTML = '';
+  if (pilaMesa.length > 0) {
+    // Solo mostramos la carta superior boca abajo para simular el montón
+    let div = document.createElement('div');
+    div.className = 'carta boca-abajo';
+    
+    // Si estamos resolviendo una acusación, mostramos las cartas tiradas
+    if(ultimoTiro.length > 0 && turno === 'resolucion') {
+       divPila.innerHTML = ''; // Limpiamos para mostrar las reales
+       ultimoTiro.forEach((c, i) => {
+           let cd = document.createElement('div');
+           cd.className = 'carta';
+           cd.style.backgroundImage = `url('${c.img}')`;
+           // Ligeramente rotadas para verlas
+           cd.style.transform = `rotate(${(i - ultimoTiro.length/2) * 10}deg)`;
+           divPila.appendChild(cd);
+       });
+    } else {
+       // Pila normal (una carta boca abajo indicando que hay montón)
+       div.innerText = pilaMesa.length; // Texto feo pero útil, mejor poner contador
+       div.style.display = 'flex'; div.style.alignItems = 'center'; div.style.justifyContent = 'center';
+       div.style.fontSize = '2rem'; div.style.color = '#fff';
+       divPila.appendChild(div);
+    }
+  }
+
+  document.getElementById('rango-actual').innerText = `Se exigen: ${rangos[rangoExigidoIndice]}s`;
+}
+
+function alternarSeleccion(index) {
+  if (cartasSeleccionadas.includes(index)) {
+    cartasSeleccionadas = cartasSeleccionadas.filter(i => i !== index);
+  } else {
+    if (cartasSeleccionadas.length < 4) cartasSeleccionadas.push(index);
+  }
+  actualizarUI();
+  document.getElementById('btn-jugar').disabled = cartasSeleccionadas.length === 0;
+}
+
+function avanzarRango() {
+  rangoExigidoIndice = (rangoExigidoIndice + 1) % rangos.length;
+}
+
+function mostrarMensajeCentro(texto) {
+  document.getElementById('mensaje-juego').innerText = texto;
+}
+
+function mostrarOverlay(texto, color) {
+  const msg = document.getElementById('overlay-resultado');
+  msg.innerText = texto;
+  msg.style.color = color;
+  msg.style.opacity = 1;
+  setTimeout(() => msg.style.opacity = 0, 2000);
+}
+
+// === FASES DEL JUEGO ===
+
+function prepararTurnoJugador() {
+  turno = 'jugador';
+  cartasSeleccionadas = [];
+  mostrarMensajeCentro("Tu turno. Selecciona cartas.");
+  
+  const panel = document.getElementById('panel-controles');
+  panel.innerHTML = `<button id="btn-jugar" onclick="jugadorTira()" disabled>Tirar Cartas</button>`;
+  actualizarUI();
+}
+
+function jugadorTira() {
+  if (cartasSeleccionadas.length === 0) return;
+
+  ultimoTiro = [];
+  // Ordenar descendentemente para splice seguro
+  cartasSeleccionadas.sort((a,b) => b - a); 
+  
+  cartasSeleccionadas.forEach(idx => {
+    let carta = manoJugador.splice(idx, 1)[0];
+    ultimoTiro.push(carta);
+    pilaMesa.push(carta);
+  });
+
+  cartasSeleccionadas = [];
+  actualizarUI();
+  
+  mostrarMensajeCentro(`Tiraste ${ultimoTiro.length} cartas como ${rangos[rangoExigidoIndice]}s.`);
+  document.getElementById('panel-controles').innerHTML = ''; // Limpiar botones
+
+  // Lógica del Bot (Sospecha)
+  setTimeout(botDecideAcusar, 1500);
+}
+
+function botDecideAcusar() {
+  const rangoRequerido = rangos[rangoExigidoIndice];
+  
+  // Lógica de sospecha simple
+  let sospecha = 15; // Probabilidad base %
+  
+  // Si el bot tiene los cuatro de ese rango en su mano, y tú tiras uno... ¡Sabe que mientes!
+  let cantidadEnManoBot = manoBot.filter(c => c.rango === rangoRequerido).length;
+  if (ultimoTiro.length + cantidadEnManoBot > 4) {
+      sospecha = 100; // Imposible matemáticamente
+  } else if (ultimoTiro.length >= 3) {
+      sospecha += 40; // Tirar 3 o 4 es muy sospechoso
+  }
+
+  if (Math.random() * 100 < sospecha) {
+     resolverAcusacion('bot');
+  } else {
+     avanzarRango();
+     verificarVictoria();
+     if(!juegoTerminado) prepararTurnoBot();
+  }
+}
+
+function prepararTurnoBot() {
+  turno = 'bot';
+  mostrarMensajeCentro("El Agente está pensando...");
+  
+  setTimeout(() => {
+    const rangoRequerido = rangos[rangoExigidoIndice];
+    let cartasValidas = manoBot.filter(c => c.rango === rangoRequerido);
+    
+    ultimoTiro = [];
+    
+    // Si tiene la carta, la tira (dice la verdad)
+    if (cartasValidas.length > 0) {
+      // Tira todas las válidas que tenga
+      cartasValidas.forEach(c => {
+        let idx = manoBot.indexOf(c);
+        manoBot.splice(idx, 1);
+        ultimoTiro.push(c);
+        pilaMesa.push(c);
+      });
+    } else {
+      // No tiene, DEBE mentir. Tira 1 o 2 cartas al azar.
+      let cantidadMentira = Math.random() > 0.8 ? 2 : 1;
+      cantidadMentira = Math.min(cantidadMentira, manoBot.length);
+      for(let i=0; i<cantidadMentira; i++) {
+         let cartaAzar = manoBot.splice(Math.floor(Math.random() * manoBot.length), 1)[0];
+         ultimoTiro.push(cartaAzar);
+         pilaMesa.push(cartaAzar);
+      }
+    }
+
+    actualizarUI();
+    mostrarMensajeCentro(`El Agente tira ${ultimoTiro.length} cartas como ${rangoRequerido}s.`);
+    
+    const panel = document.getElementById('panel-controles');
+    panel.innerHTML = `
+      <button id="btn-pasar" onclick="jugadorPasa()">Creerle</button>
+      <button id="btn-acusar" onclick="resolverAcusacion('jugador')">¡MENTIROSO!</button>
+    `;
+  }, 1000);
+}
+
+function jugadorPasa() {
+  document.getElementById('panel-controles').innerHTML = '';
+  avanzarRango();
+  verificarVictoria();
+  if(!juegoTerminado) prepararTurnoJugador();
+}
+
+function resolverAcusacion(acusador) {
+  turno = 'resolucion';
+  document.getElementById('panel-controles').innerHTML = '';
+  actualizarUI(); // Para mostrar las cartas volteadas
+
+  const rangoRequerido = rangos[rangoExigidoIndice];
+  // ¿Mintió el que tiró?
+  const mintio = ultimoTiro.some(c => c.rango !== rangoRequerido);
+
+  let perdedor;
+  if (acusador === 'bot') {
+     if (mintio) {
+        perdedor = 'jugador';
+        mostrarOverlay("¡Te atraparon!\nTe llevas la pila.", "#ff4500");
+     } else {
+        perdedor = 'bot';
+        mostrarOverlay("¡Dijiste la verdad!\nEl Agente se lleva la pila.", "#00ffcc");
+     }
+  } else {
+     // Jugador acusa al bot
+     if (mintio) {
+        perdedor = 'bot';
+        mostrarOverlay("¡Lo atrapaste!\nEl Agente mintió.", "#00ffcc");
+     } else {
+        perdedor = 'jugador';
+        mostrarOverlay("Dijo la verdad...\nTe llevas la pila.", "#ff4500");
+     }
+  }
+
+  setTimeout(() => {
+    // Dar cartas al perdedor
+    if (perdedor === 'jugador') {
+      manoJugador.push(...pilaMesa);
+      ordenarMano(manoJugador);
+    } else {
+      manoBot.push(...pilaMesa);
+      // El bot no necesita ordenar, pero por limpieza:
+      ordenarMano(manoBot);
+    }
+    
+    pilaMesa = [];
+    avanzarRango();
+    verificarVictoria();
+    
+    if(!juegoTerminado) {
+       // El siguiente turno es del que NO perdió el desafío (el que se llevó las cartas pierde turno usualmente)
+       if(perdedor === 'jugador') prepararTurnoBot();
+       else prepararTurnoJugador();
+    }
+  }, 2500);
+}
+
+function verificarVictoria() {
+  if (manoJugador.length === 0) {
+    juegoTerminado = true;
+    mostrarMensajeCentro("");
+    document.getElementById('panel-controles').innerHTML = '<button onclick="repartirInicial()">Volver a Jugar</button>';
+    mostrarOverlay("¡GANASTE!", "#00ffcc");
+  } else if (manoBot.length === 0) {
+    juegoTerminado = true;
+    mostrarMensajeCentro("");
+    document.getElementById('panel-controles').innerHTML = '<button onclick="repartirInicial()">Volver a Jugar</button>';
+    mostrarOverlay("DERROTA", "#ff4500");
+  }
+}
+
+window.onload = repartirInicial;
+</script>
+</body>
+</html>
