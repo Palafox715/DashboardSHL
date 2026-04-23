@@ -989,8 +989,12 @@ function canjearCodigo() {
   // Base de datos de códigos válidos
   const baseDeCodigos = {
     "SHORELINE": { recompensa: 1, mensaje: "¡Código válido! Ganaste 1 Moneda." },
-    // "BETA_TESTER": { recompensa: 10, mensaje: "¡Bonus de Beta! Ganaste 10 Monedas." } -> Ejemplo futuro
+    "BIENVENIDA2026": { recompensa: 5, mensaje: "¡Bienvenido al sistema! Toma 5 monedas." },
+    "GIO_BOSS": { recompensa: 10, mensaje: "¡Encontraste un código de facción! +10 Monedas." },
+    "RICKY_WINS": { recompensa: 10, mensaje: "¡Recompensa de facción! +10 Monedas." },
+    "JACKPOT": { recompensa: 100, mensaje: "¡BINGO! Ganaste el premio mayor. 100 Monedas." }
   };
+  
 
   if (baseDeCodigos[input]) {
     // Éxito
