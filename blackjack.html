@@ -3,17 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shoreline Bluff</title>
+<title>Blackjack Shoreline (Casino)</title>
 <style>
   :root {
     --mesa-bg: #0f5132;
-    --carta-w: 80px;
-    --carta-h: 115px;
-    --borde-radio: 6px;
+    --carta-w: 100px;
+    --carta-h: 140px;
+    --borde-radio: 8px;
     --neon-orange: #ff4500;
     --neon-green: #00ffcc;
-    --neon-blue: #0088ff;
-    --neon-purple: #c300ff;
     --neon-gold: #ffd700;
   }
 
@@ -30,23 +28,54 @@
     flex-direction: column;
     justify-content: space-between;
     overflow: hidden;
+    position: relative;
   }
 
-  .zona-bot {
+  /* Animaciones */
+  .mesa-temblando { animation: sacudir 0.4s ease-in-out; }
+  @keyframes sacudir {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(-15px) rotate(-1deg); }
+    40% { transform: translateX(15px) rotate(1deg); }
+    60% { transform: translateX(-15px) rotate(-1deg); }
+    80% { transform: translateX(15px) rotate(1deg); }
+    100% { transform: translateX(0); }
+  }
+
+  @keyframes aparecer-carta {
+    0% { top: -60px; opacity: 0; transform: scale(0.8) rotate(10deg); }
+    100% { top: 0; opacity: 1; transform: scale(1) rotate(0deg); }
+  }
+
+  @keyframes flotar-monedas {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-50px) scale(1.5); opacity: 0; }
+  }
+
+  .zona-juego {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
+    gap: 50px;
+  }
+
+  .mano-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
   }
 
   .cartas-area {
     display: flex;
-    gap: -40px; /* Cartas superpuestas */
+    gap: -40px;
     min-height: var(--carta-h);
-    justify-content: center;
   }
 
   .carta {
+    position: relative;
     width: var(--carta-w);
     height: var(--carta-h);
     background-color: white;
@@ -54,79 +83,64 @@
     box-shadow: -2px 5px 10px rgba(0,0,0,0.5);
     background-size: cover;
     background-position: center;
-    transition: transform 0.2s ease, margin 0.2s ease;
+    transition: transform 0.3s ease, margin 0.3s ease;
     margin-left: -50px;
+    animation: aparecer-carta 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
   }
   
   .carta:first-child { margin-left: 0; }
-  
+  .carta:hover { transform: translateY(-15px) !important; z-index: 20; }
+
   .carta.boca-abajo {
     background-image: repeating-linear-gradient(45deg, #b30000 0, #b30000 5px, #800000 5px, #800000 10px);
   }
+  .carta.joker-glow { box-shadow: 0 0 20px #c300ff, 0 0 40px #c300ff; }
 
-  /* Efectos para la mano del jugador */
-  #mano-jugador .carta { cursor: pointer; }
-  #mano-jugador .carta:hover { transform: translateY(-10px); }
-  #mano-jugador .carta.seleccionada {
-    transform: translateY(-20px);
-    box-shadow: 0 0 15px var(--neon-green);
-    border: 2px solid var(--neon-green);
+  .marcador {
+    background: rgba(0,0,0,0.6);
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 1.2rem;
     z-index: 10;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
   }
 
-  .zona-central {
-    flex: 1;
+  /* --- ZONA DE APUESTAS --- */
+  .zona-apuesta {
+    background: rgba(0,0,0,0.7);
+    padding: 15px;
+    border-radius: 15px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    position: relative;
+    gap: 10px;
+    border: 1px solid var(--neon-gold);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+    margin-bottom: 20px;
   }
-
-  .pila-mesa {
-    width: var(--carta-w);
-    height: var(--carta-h);
-    border: 2px dashed rgba(255,255,255,0.3);
-    border-radius: var(--borde-radio);
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  
+  .chips-container { display: flex; gap: 10px; }
+  
+  .chip {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: #333; border: 3px dashed var(--neon-gold);
+    color: var(--neon-gold); font-weight: bold;
+    display: flex; justify-content: center; align-items: center;
+    cursor: pointer; transition: all 0.2s;
   }
+  .chip:hover { transform: scale(1.1); background: var(--neon-gold); color: #000; }
+  
+  .apuesta-display { font-size: 1.5rem; color: var(--neon-gold); font-weight: 900; }
 
-  .pila-mesa .carta { position: absolute; margin: 0; }
-
-  .indicador-rango {
-    margin-top: 20px;
-    font-size: 1.5rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    color: var(--neon-blue);
-    text-shadow: 0 0 10px rgba(0, 136, 255, 0.5);
-  }
-
-  .mensaje-accion {
-    margin-top: 10px;
-    font-size: 1.2rem;
-    color: var(--neon-gold);
-    text-align: center;
-    min-height: 1.5em;
-  }
-
-  .controles {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    padding-bottom: 20px;
-    z-index: 10;
-    min-height: 50px;
-  }
+  .controles { display: flex; justify-content: center; gap: 20px; padding-bottom: 20px; z-index: 10; }
 
   button {
     background: rgba(31, 40, 51, 0.95);
     color: #fff;
     border: 2px solid #fff;
-    padding: 10px 20px;
+    padding: 12px 24px;
     font-size: 1.1rem;
     font-weight: 800;
     border-radius: 8px;
@@ -137,21 +151,22 @@
   }
 
   button:hover:not(:disabled) { transform: scale(1.05); }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; border-color: #555 !important; box-shadow: none !important; }
 
-  #btn-jugar { border-color: var(--neon-blue); box-shadow: 0 0 10px rgba(0, 136, 255, 0.4); }
-  #btn-acusar { border-color: var(--neon-orange); box-shadow: 0 0 10px rgba(255, 69, 0, 0.4); }
-  #btn-pasar { border-color: #888; }
+  #btn-pedir { border-color: var(--neon-green); text-shadow: 0 0 5px var(--neon-green); }
+  #btn-plantarse { border-color: var(--neon-orange); text-shadow: 0 0 5px var(--neon-orange); }
+  #btn-repartir { border-color: var(--neon-gold); text-shadow: 0 0 5px var(--neon-gold); }
 
-  .marcador {
-    background: rgba(0,0,0,0.6);
-    padding: 5px 15px;
-    border-radius: 20px;
-    font-weight: bold;
-    font-size: 1rem;
+  .btn-animado {
+    animation: pulso-btn 1.5s infinite;
+  }
+  @keyframes pulso-btn {
+    0% { box-shadow: 0 0 10px var(--neon-gold); transform: scale(1); }
+    50% { box-shadow: 0 0 25px var(--neon-gold), 0 0 10px var(--neon-gold) inset; transform: scale(1.05); }
+    100% { box-shadow: 0 0 10px var(--neon-gold); transform: scale(1); }
   }
 
-  #overlay-resultado {
+  #mensaje-estado {
     position: absolute;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
@@ -159,26 +174,19 @@
     font-weight: 900;
     text-shadow: 0 5px 15px rgba(0,0,0,0.9);
     pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    opacity: 1;
+    transition: opacity 0.3s ease, transform 0.3s ease;
     z-index: 100;
     text-align: center;
-    background: rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.6);
     padding: 20px 40px;
-    border-radius: 15px;
+    border-radius: 20px;
     backdrop-filter: blur(5px);
-  }
-
-  /* Animaciones de Economía (iguales a Blackjack) */
-  @keyframes flotar-monedas {
-    0% { transform: translateY(0) scale(1); opacity: 1; }
-    100% { transform: translateY(-50px) scale(1.5); opacity: 0; }
   }
 
   .flotante-dinero {
     position: absolute;
     top: 40%; left: 50%;
-    transform: translateX(-50%);
     font-size: 4rem;
     font-weight: 900;
     pointer-events: none;
@@ -196,25 +204,34 @@
 </head>
 <body>
 
-<h1 id="overlay-resultado"></h1>
+<h1 id="mensaje-estado">Blackjack 21</h1>
 
-<div class="zona-bot">
-  <div class="marcador" id="info-bot">Agente: 0 cartas</div>
-  <div class="cartas-area" id="mano-bot"></div>
-</div>
-
-<div class="zona-central">
-  <div class="pila-mesa" id="pila-centro"></div>
-  <div class="indicador-rango" id="rango-actual">Misión Actual: ?</div>
-  <div class="mensaje-accion" id="mensaje-juego">¡Repartiendo!</div>
-</div>
-
-<div class="controles" id="panel-controles">
+<div class="zona-juego" id="mesa-juego">
+  <div class="mano-container">
+    <div class="marcador" id="puntos-dealer">Dealer: ?</div>
+    <div class="cartas-area" id="cartas-dealer"></div>
   </div>
 
-<div class="zona-bot">
-  <div class="cartas-area" id="mano-jugador"></div>
-  <div class="marcador" id="info-jugador">Tú: 0 cartas</div>
+  <div class="mano-container">
+    <div class="cartas-area" id="cartas-jugador"></div>
+    <div class="marcador" id="puntos-jugador">Tú: 0</div>
+  </div>
+</div>
+
+<div class="zona-apuesta" id="panel-apuesta">
+  <div class="apuesta-display">Apuesta: <span id="valor-apuesta">1</span> 🪙</div>
+  <div class="chips-container">
+    <div class="chip" onclick="ajustarApuesta(1)">+1</div>
+    <div class="chip" onclick="ajustarApuesta(5)">+5</div>
+    <div class="chip" onclick="ajustarApuesta(10)">+10</div>
+    <div class="chip" style="border-color: #ff4500; color: #ff4500;" onclick="resetApuesta()">C</div>
+  </div>
+</div>
+
+<div class="controles">
+  <button id="btn-pedir" onclick="pedirCarta()" style="display:none;">Carta ☝️</button>
+  <button id="btn-plantarse" onclick="plantarse()" style="display:none;">Plantarse ✋</button>
+  <button id="btn-repartir" class="btn-animado" onclick="iniciarJuego()">Apostar y Repartir 🎲</button>
 </div>
 
 <script>
@@ -223,15 +240,30 @@ const rangos = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'
 
 let mazo = [];
 let manoJugador = [];
-let manoBot = [];
-let pilaMesa = []; 
-let ultimoTiro = []; 
-let rangoExigidoIndice = 0; 
-let turno = 'jugador'; 
-let cartasSeleccionadas = [];
-let juegoTerminado = false;
+let manoDealer = [];
+let juegoTerminado = true;
+let apuestaActual = 1;
 
-// --- EFECTOS VISUALES ---
+// === LÓGICA DE APUESTAS ===
+function ajustarApuesta(cantidad) {
+  apuestaActual += cantidad;
+  document.getElementById('valor-apuesta').innerText = apuestaActual;
+}
+
+function resetApuesta() {
+  apuestaActual = 1;
+  document.getElementById('valor-apuesta').innerText = apuestaActual;
+}
+
+function lanzarAnimacionDinero(texto, color) {
+  let div = document.createElement('div');
+  div.className = 'flotante-dinero';
+  div.innerText = texto;
+  div.style.color = color;
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 2000);
+}
+
 function lanzarConfeti() {
   const colores = ['#00ffcc', '#ff4500', '#c300ff', '#ffd700', '#ffffff'];
   for (let i = 0; i < 80; i++) {
@@ -246,306 +278,208 @@ function lanzarConfeti() {
   }
 }
 
-function lanzarAnimacionDinero(texto, color) {
-  let div = document.createElement('div');
-  div.className = 'flotante-dinero';
-  div.innerText = texto;
-  div.style.color = color;
-  document.body.appendChild(div);
-  setTimeout(() => div.remove(), 2000);
-}
-// ------------------------
-
+// === MOTOR DEL JUEGO ===
 function crearMazo() {
   mazo = [];
   for (let palo of palos) {
     for (let rango of rangos) {
-      mazo.push({ id: `${rango}_${palo}`, rango: rango, palo: palo, img: `./Naipes/${rango}_${palo}.png` });
+      let valor = parseInt(rango);
+      if (['J', 'Q', 'K'].includes(rango)) valor = 10;
+      if (rango === 'A') valor = 11;
+      mazo.push({ id: `${rango}_${palo}`, img: `./Naipes/${rango}_${palo}.png`, valor: valor, esJoker: false });
     }
   }
+  mazo.push({ id: `1_Joker`, img: `./Naipes/1_Joker.png`, valor: 10, esJoker: true });
+  mazo.push({ id: `2_Joker`, img: `./Naipes/2_Joker.png`, valor: 10, esJoker: true });
+
   for (let i = mazo.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [mazo[i], mazo[j]] = [mazo[j], mazo[i]];
   }
 }
 
-// CORRECCIÓN DEL TESTER: Rango Aleatorio
-function avanzarRango() {
-  rangoExigidoIndice = Math.floor(Math.random() * rangos.length);
-}
-
-function repartirInicial() {
-  crearMazo();
-  manoJugador = [];
-  manoBot = [];
-  pilaMesa = [];
-  ultimoTiro = [];
-  juegoTerminado = false;
-  
-  // Asignar misión aleatoria desde el turno 1
-  avanzarRango(); 
-  turno = 'jugador';
-
-  // Repartir 10 cartas a cada uno para agilizar el juego
-  for(let i=0; i<10; i++){
-    manoJugador.push(mazo.pop());
-    manoBot.push(mazo.pop());
+function calcularPuntos(mano) {
+  let total = 0;
+  let ases = 0;
+  for (let carta of mano) {
+    total += carta.valor;
+    if (carta.valor === 11) ases += 1;
   }
-
-  ordenarMano(manoJugador);
-  actualizarUI();
-  prepararTurnoJugador();
+  while (total > 21 && ases > 0) {
+    total -= 10;
+    ases -= 1;
+  }
+  return total;
 }
 
-function ordenarMano(mano) {
-  mano.sort((a, b) => rangos.indexOf(a.rango) - rangos.indexOf(b.rango));
-}
-
-function actualizarUI() {
-  // --- Jugador ---
-  const divJugador = document.getElementById('mano-jugador');
+function renderizarCartas() {
+  const divJugador = document.getElementById('cartas-jugador');
+  const divDealer = document.getElementById('cartas-dealer');
+  
   divJugador.innerHTML = '';
+  divDealer.innerHTML = '';
+
   manoJugador.forEach((carta, index) => {
     let div = document.createElement('div');
-    div.className = 'carta';
+    div.className = 'carta' + (carta.esJoker ? ' joker-glow' : '');
     div.style.backgroundImage = `url('${carta.img}')`;
-    if(cartasSeleccionadas.includes(index)) div.classList.add('seleccionada');
-    
-    if(turno === 'jugador') {
-        div.onclick = () => alternarSeleccion(index);
-    }
+    div.style.animationDelay = `${index * 0.15}s`;
     divJugador.appendChild(div);
   });
-  document.getElementById('info-jugador').innerText = `Tú: ${manoJugador.length} cartas`;
 
-  // --- Bot ---
-  const divBot = document.getElementById('mano-bot');
-  divBot.innerHTML = '';
-  manoBot.forEach(() => {
+  manoDealer.forEach((carta, index) => {
     let div = document.createElement('div');
-    div.className = 'carta boca-abajo';
-    divBot.appendChild(div);
-  });
-  document.getElementById('info-bot').innerText = `Agente: ${manoBot.length} cartas`;
-
-  // --- Centro ---
-  const divPila = document.getElementById('pila-centro');
-  divPila.innerHTML = '';
-  if (pilaMesa.length > 0) {
-    let div = document.createElement('div');
-    div.className = 'carta boca-abajo';
+    div.className = 'carta' + (carta.esJoker && juegoTerminado ? ' joker-glow' : '');
     
-    if(ultimoTiro.length > 0 && turno === 'resolucion') {
-       divPila.innerHTML = ''; 
-       ultimoTiro.forEach((c, i) => {
-           let cd = document.createElement('div');
-           cd.className = 'carta';
-           cd.style.backgroundImage = `url('${c.img}')`;
-           cd.style.transform = `rotate(${(i - ultimoTiro.length/2) * 10}deg)`;
-           divPila.appendChild(cd);
-       });
+    if (index === 0 && !juegoTerminado) {
+      div.classList.add('boca-abajo');
     } else {
-       div.innerText = pilaMesa.length; 
-       div.style.display = 'flex'; div.style.alignItems = 'center'; div.style.justifyContent = 'center';
-       div.style.fontSize = '2rem'; div.style.color = '#fff';
-       divPila.appendChild(div);
+      div.style.backgroundImage = `url('${carta.img}')`;
     }
-  }
+    div.style.animationDelay = `${index * 0.15}s`;
+    divDealer.appendChild(div);
+  });
 
-  // CORRECCIÓN DEL TESTER: Texto actualizado
-  document.getElementById('rango-actual').innerText = `Misión Actual: ${rangos[rangoExigidoIndice]}s`;
-}
-
-function alternarSeleccion(index) {
-  if (cartasSeleccionadas.includes(index)) {
-    cartasSeleccionadas = cartasSeleccionadas.filter(i => i !== index);
+  document.getElementById('puntos-jugador').innerText = `Tú: ${calcularPuntos(manoJugador)}`;
+  if (juegoTerminado) {
+    document.getElementById('puntos-dealer').innerText = `Dealer: ${calcularPuntos(manoDealer)}`;
   } else {
-    if (cartasSeleccionadas.length < 4) cartasSeleccionadas.push(index);
+    document.getElementById('puntos-dealer').innerText = `Dealer: ?`; 
   }
-  actualizarUI();
-  document.getElementById('btn-jugar').disabled = cartasSeleccionadas.length === 0;
 }
 
-function mostrarMensajeCentro(texto) {
-  document.getElementById('mensaje-juego').innerText = texto;
-}
-
-function mostrarOverlay(texto, color) {
-  const msg = document.getElementById('overlay-resultado');
+function mostrarMensaje(texto, color) {
+  const msg = document.getElementById('mensaje-estado');
   msg.innerText = texto;
   msg.style.color = color;
   msg.style.opacity = 1;
-  setTimeout(() => msg.style.opacity = 0, 2000);
+  msg.style.transform = "translate(-50%, -50%) scale(1)";
 }
 
-// === FASES DEL JUEGO ===
-
-function prepararTurnoJugador() {
-  turno = 'jugador';
-  cartasSeleccionadas = [];
-  mostrarMensajeCentro("Tu turno. Selecciona cartas.");
-  
-  const panel = document.getElementById('panel-controles');
-  panel.innerHTML = `<button id="btn-jugar" onclick="jugadorTira()" disabled>Tirar Cartas</button>`;
-  actualizarUI();
-}
-
-function jugadorTira() {
-  if (cartasSeleccionadas.length === 0) return;
-
-  ultimoTiro = [];
-  cartasSeleccionadas.sort((a,b) => b - a); 
-  
-  cartasSeleccionadas.forEach(idx => {
-    let carta = manoJugador.splice(idx, 1)[0];
-    ultimoTiro.push(carta);
-    pilaMesa.push(carta);
-  });
-
-  cartasSeleccionadas = [];
-  actualizarUI();
-  
-  mostrarMensajeCentro(`Tiraste ${ultimoTiro.length} cartas como ${rangos[rangoExigidoIndice]}s.`);
-  document.getElementById('panel-controles').innerHTML = ''; 
-
-  setTimeout(botDecideAcusar, 1500);
-}
-
-function botDecideAcusar() {
-  const rangoRequerido = rangos[rangoExigidoIndice];
-  let sospecha = 15; 
-  
-  let cantidadEnManoBot = manoBot.filter(c => c.rango === rangoRequerido).length;
-  if (ultimoTiro.length + cantidadEnManoBot > 4) {
-      sospecha = 100; 
-  } else if (ultimoTiro.length >= 3) {
-      sospecha += 40; 
-  }
-
-  if (Math.random() * 100 < sospecha) {
-     resolverAcusacion('bot');
-  } else {
-     avanzarRango();
-     verificarVictoria();
-     if(!juegoTerminado) prepararTurnoBot();
-  }
-}
-
-function prepararTurnoBot() {
-  turno = 'bot';
-  mostrarMensajeCentro("El Agente está pensando...");
-  
-  setTimeout(() => {
-    const rangoRequerido = rangos[rangoExigidoIndice];
-    let cartasValidas = manoBot.filter(c => c.rango === rangoRequerido);
-    
-    ultimoTiro = [];
-    
-    if (cartasValidas.length > 0) {
-      cartasValidas.forEach(c => {
-        let idx = manoBot.indexOf(c);
-        manoBot.splice(idx, 1);
-        ultimoTiro.push(c);
-        pilaMesa.push(c);
-      });
-    } else {
-      let cantidadMentira = Math.random() > 0.8 ? 2 : 1;
-      cantidadMentira = Math.min(cantidadMentira, manoBot.length);
-      for(let i=0; i<cantidadMentira; i++) {
-         let cartaAzar = manoBot.splice(Math.floor(Math.random() * manoBot.length), 1)[0];
-         ultimoTiro.push(cartaAzar);
-         pilaMesa.push(cartaAzar);
+function iniciarJuego() {
+  // 1. Cobrar la apuesta usando el Banco Central del index.html
+  if (window.parent && window.parent.restarMonedas) {
+      if (!window.parent.restarMonedas(apuestaActual)) {
+          alert("¡Fondos insuficientes! Consigue más monedas en el Dashboard.");
+          return;
       }
-    }
-
-    actualizarUI();
-    mostrarMensajeCentro(`El Agente tira ${ultimoTiro.length} cartas como ${rangoRequerido}s.`);
-    
-    const panel = document.getElementById('panel-controles');
-    panel.innerHTML = `
-      <button id="btn-pasar" onclick="jugadorPasa()">Creerle</button>
-      <button id="btn-acusar" onclick="resolverAcusacion('jugador')">¡MENTIROSO!</button>
-    `;
-  }, 1000);
-}
-
-function jugadorPasa() {
-  document.getElementById('panel-controles').innerHTML = '';
-  avanzarRango();
-  verificarVictoria();
-  if(!juegoTerminado) prepararTurnoJugador();
-}
-
-function resolverAcusacion(acusador) {
-  turno = 'resolucion';
-  document.getElementById('panel-controles').innerHTML = '';
-  actualizarUI(); 
-
-  const rangoRequerido = rangos[rangoExigidoIndice];
-  const mintio = ultimoTiro.some(c => c.rango !== rangoRequerido);
-
-  let perdedor;
-  if (acusador === 'bot') {
-     if (mintio) {
-        perdedor = 'jugador';
-        mostrarOverlay("¡Te atraparon!\nTe llevas la pila.", "#ff4500");
-     } else {
-        perdedor = 'bot';
-        mostrarOverlay("¡Dijiste la verdad!\nEl Agente se lleva la pila.", "#00ffcc");
-     }
-  } else {
-     if (mintio) {
-        perdedor = 'bot';
-        mostrarOverlay("¡Lo atrapaste!\nEl Agente mintió.", "#00ffcc");
-     } else {
-        perdedor = 'jugador';
-        mostrarOverlay("Dijo la verdad...\nTe llevas la pila.", "#ff4500");
-     }
   }
+
+  // 2. Preparar la mesa
+  document.getElementById('mesa-juego').classList.remove('mesa-temblando');
+  document.getElementById('panel-apuesta').style.display = 'none'; // Ocultar apuestas
+  
+  const msg = document.getElementById('mensaje-estado');
+  msg.style.opacity = 0;
+  msg.style.transform = "translate(-50%, -50%) scale(0.8)";
+  
+  crearMazo();
+  manoJugador = [mazo.pop(), mazo.pop()];
+  manoDealer = [mazo.pop(), mazo.pop()];
+  juegoTerminado = false;
+  
+  // Cambiar botones
+  document.getElementById('btn-repartir').style.display = 'none';
+  document.getElementById('btn-pedir').style.display = 'block';
+  document.getElementById('btn-pedir').disabled = false;
+  document.getElementById('btn-plantarse').style.display = 'block';
+  document.getElementById('btn-plantarse').disabled = false;
+
+  renderizarCartas();
+
+  // Revisar Blackjack natural
+  setTimeout(() => {
+    if (calcularPuntos(manoJugador) === 21) plantarse();
+  }, 600);
+}
+
+function pedirCarta() {
+  if (juegoTerminado) return;
+  manoJugador.push(mazo.pop());
+  renderizarCartas();
 
   setTimeout(() => {
-    if (perdedor === 'jugador') {
-      manoJugador.push(...pilaMesa);
-      ordenarMano(manoJugador);
-    } else {
-      manoBot.push(...pilaMesa);
-      ordenarMano(manoBot);
+    if (calcularPuntos(manoJugador) > 21) {
+      terminarJuego("¡Te pasaste! 💥", "#ff4500", "derrota");
+    } else if (calcularPuntos(manoJugador) === 21) {
+      plantarse();
     }
-    
-    pilaMesa = [];
-    avanzarRango();
-    verificarVictoria();
-    
-    if(!juegoTerminado) {
-       if(perdedor === 'jugador') prepararTurnoBot();
-       else prepararTurnoJugador();
-    }
-  }, 2500);
+  }, 300);
 }
 
-function verificarVictoria() {
-  if (manoJugador.length === 0) {
-    juegoTerminado = true;
-    mostrarMensajeCentro("");
-    document.getElementById('panel-controles').innerHTML = '<button onclick="repartirInicial()">Volver a Jugar</button>';
-    mostrarOverlay("¡GANASTE!", "#00ffcc");
-    
-    // ECONOMÍA: Entregar premio
-    if (window.parent && window.parent.agregarMonedas) {
-        window.parent.agregarMonedas(2); // Premio por ganar
-        lanzarAnimacionDinero("+2 🪙", "var(--neon-green)");
-    }
-    lanzarConfeti();
+function plantarse() {
+  if (juegoTerminado) return;
+  juegoTerminado = true;
+  
+  document.getElementById('btn-pedir').disabled = true;
+  document.getElementById('btn-plantarse').disabled = true;
+  
+  let puntosDealer = calcularPuntos(manoDealer);
+  while (puntosDealer < 17) {
+    manoDealer.push(mazo.pop());
+    puntosDealer = calcularPuntos(manoDealer);
+  }
 
-  } else if (manoBot.length === 0) {
-    juegoTerminado = true;
-    mostrarMensajeCentro("");
-    document.getElementById('panel-controles').innerHTML = '<button onclick="repartirInicial()">Volver a Jugar</button>';
-    mostrarOverlay("DERROTA", "#ff4500");
+  renderizarCartas();
+  setTimeout(determinarGanador, 500);
+}
+
+function determinarGanador() {
+  let pJugador = calcularPuntos(manoJugador);
+  let pDealer = calcularPuntos(manoDealer);
+
+  if (pDealer > 21) {
+    terminarJuego("Dealer se pasó 🎉", "#00ffcc", "victoria");
+  } else if (pJugador > pDealer) {
+    terminarJuego("¡GANAS! 🏆", "#00ffcc", "victoria");
+  } else if (pJugador < pDealer) {
+    terminarJuego("Dealer gana 💀", "#ff4500", "derrota");
+  } else {
+    terminarJuego("Empate 🤝", "#ffffff", "empate");
   }
 }
 
-window.onload = repartirInicial;
+function terminarJuego(mensaje, color, resultado) {
+  juegoTerminado = true;
+  renderizarCartas();
+  mostrarMensaje(mensaje, color);
+  
+  // Lógica Económica Final
+  if (window.parent && window.parent.agregarMonedas) {
+      if (resultado === "victoria") {
+          let premio = apuestaActual * 2;
+          // Si fue Blackjack natural con 2 cartas, paga 2.5x (Regla de casino real 3:2)
+          if(calcularPuntos(manoJugador) === 21 && manoJugador.length === 2) premio = Math.floor(apuestaActual * 2.5);
+          
+          window.parent.agregarMonedas(premio);
+          lanzarAnimacionDinero(`+${premio} 🪙`, "var(--neon-gold)");
+          lanzarConfeti();
+      } else if (resultado === "empate") {
+          window.parent.agregarMonedas(apuestaActual); // Te devuelve tu dinero
+          lanzarAnimacionDinero(`Devolución`, "#fff");
+      } else {
+          // Derrota
+          document.getElementById('mesa-juego').classList.add('mesa-temblando');
+          lanzarAnimacionDinero(`-${apuestaActual} 🪙`, "var(--neon-orange)");
+      }
+  }
+
+  // Restaurar UI para nueva partida
+  setTimeout(() => {
+      document.getElementById('btn-pedir').style.display = 'none';
+      document.getElementById('btn-plantarse').style.display = 'none';
+      document.getElementById('btn-repartir').style.display = 'block';
+      document.getElementById('panel-apuesta').style.display = 'flex';
+  }, 2000);
+}
+
+window.onload = () => {
+  document.getElementById('btn-pedir').style.display = 'none';
+  document.getElementById('btn-plantarse').style.display = 'none';
+  mostrarMensaje("Haz tu apuesta", "#ffffff");
+  document.getElementById('cartas-jugador').innerHTML = '';
+  document.getElementById('cartas-dealer').innerHTML = '';
+};
 </script>
 </body>
 </html>
