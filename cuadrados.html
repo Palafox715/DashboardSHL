@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuadrados de Póker Shoreline</title>
+<style>
+  :root {
+    --mesa-bg: #0f5132;
+    --carta-w: 70px;
+    --carta-h: 100px;
+    --borde-radio: 6px;
+    --neon-orange: #ff4500;
+    --neon-green: #00ffcc;
+    --neon-blue: #0088ff;
+  }
+
+  body {
+    margin: 0;
+    padding: 10px 20px;
+    background-color: var(--mesa-bg);
+    background-image: radial-gradient(circle, #146c43 0%, #0a3622 100%);
+    font-family: 'Inter', sans-serif;
+    color: white;
+    height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* --- CABECERA Y PUNTAJES --- */
+  .zona-superior {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .zona-robo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0,0,0,0.3);
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .etiqueta-robo { font-size: 0.9rem; text-transform: uppercase; font-weight: bold; color: var(--neon-green); }
+  
+  .puntaje-total {
+    font-size: 3rem;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 0 10px var(--neon-orange);
+    background: rgba(0,0,0,0.5);
+    padding: 10px 30px;
+    border-radius: 15px;
+  }
+
+  .btn-reiniciar {
+    background: rgba(31, 40, 51, 0.95);
+    color: #fff;
+    border: 2px solid var(--neon-blue);
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: 800;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 136, 255, 0.5);
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+  }
+  .btn-reiniciar:hover { transform: scale(1.05); background: var(--neon-blue); }
+
+  /* --- TABLERO 5x5 --- */
+  .zona-central {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    flex: 1;
+    gap: 20px;
+  }
+
+  .grid-container {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr); /* 5 cols + 1 col para puntaje de fila */
+    grid-template-rows: repeat(6, 1fr);    /* 5 filas + 1 fila para puntaje de col */
+    gap: 8px;
+  }
+
+  .ranura {
+    width: var(--carta-w);
+    height: var(--carta-h);
+    background: rgba(0,0,0,0.2);
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border-radius: var(--borde-radio);
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s ease;
+  }
+
+  .ranura.activa:hover {
+    background: rgba(0, 255, 204, 0.2);
+    border-color: var(--neon-green);
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(0, 255, 204, 0.5) inset;
+  }
+
+  .carta {
+    width: var(--carta-w);
+    height: var(--carta-h);
+    background-color: white;
+    border-radius: var(--borde-radio);
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+    background-size: cover;
+    background-position: center;
+    animation: aparecer 0.3s ease-out forwards;
+  }
+
+  @keyframes aparecer {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  /* --- ETIQUETAS DE PUNTAJE (Filas y Columnas) --- */
+  .puntaje-linea {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #aaa;
+    text-align: center;
+    padding: 5px;
+    background: rgba(0,0,0,0.4);
+    border-radius: var(--borde-radio);
+    min-height: var(--carta-h); /* Para filas */
+  }
+  
+  .puntaje-col { min-height: 40px; } /* Para columnas (abajo) */
+
+  .mano-nombre { color: var(--neon-blue); font-size: 0.75rem; margin-bottom: 2px; }
+  .mano-puntos { color: #fff; font-size: 1.1rem; }
+
+  /* --- FIN DEL JUEGO --- */
+  #mensaje-estado {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    font-size: 3rem;
+    font-weight: 900;
+    text-shadow: 0 5px 15px rgba(0,0,0,0.9);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    z-index: 1000;
+    text-align: center;
+    background: rgba(0,0,0,0.8);
+    padding: 30px 50px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    color: var(--neon-green);
+    border: 2px solid var(--neon-green);
+  }
+
+  .confeti {
+    position: absolute;
+    top: -20px;
+    width: 10px;
+    height: 20px;
+    background-color: var(--neon-green);
+    z-index: 500;
+    animation: caer linear forwards;
+  }
+  @keyframes caer {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<h1 id="mensaje-estado">¡Juego Terminado!<br><span id="puntaje-final" style="color:white;">0 pts</span></h1>
+
+<div class="zona-superior">
+  <div class="zona-robo">
+    <span class="etiqueta-robo">Siguiente Carta</span>
+    <div id="carta-actual" class="ranura" style="border:none; background:transparent;"></div>
+  </div>
+  
+  <div class="puntaje-total" id="marcador-total">0</div>
+  
+  <button class="btn-reiniciar" onclick="iniciarJuego()">↻ Nuevo Juego</button>
+</div>
+
+<div class="zona-central">
+  <div class="grid-container" id="tablero">
+    </div>
+</div>
+
+<script>
+// --- CONFIGURACIÓN BASE ---
+const palos = ['Corazones', 'Diamantes', 'Treboles', 'Picas'];
+const rangos = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+// Valores numéricos para evaluar escaleras (A=1 y 14)
+const valoresNum = { '2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, '10':10, 'J':11, 'Q':12, 'K':13, 'A':14 };
+
+// Sistema de puntuación Americano clásico
+const PUNTOS = {
+  'Escalera Real': 100,
+  'Escalera de Color': 75,
+  'Póker': 50,
+  'Full House': 25,
+  'Color': 20,
+  'Escalera': 15,
+  'Trío': 10,
+  'Doble Pareja': 5,
+  'Pareja': 2,
+  'Nada': 0
+};
+
+let mazo = [];
+let cartaActual = null;
+let cuadrícula = Array(5).fill(null).map(() => Array(5).fill(null));
+let cartasColocadas = 0;
+
+function lanzarConfeti() {
+  const colores = ['#00ffcc', '#ff4500', '#c300ff', '#ffff00', '#ffffff'];
+  for (let i = 0; i < 80; i++) {
+    let confeti = document.createElement('div');
+    confeti.className = 'confeti';
+    confeti.style.left = Math.random() * 100 + 'vw';
+    confeti.style.backgroundColor = colores[Math.floor(Math.random() * colores.length)];
+    confeti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+    confeti.style.animationDelay = (Math.random() * 0.5) + 's';
+    document.body.appendChild(confeti);
+    setTimeout(() => confeti.remove(), 4000);
+  }
+}
+
+function crearMazo() {
+  mazo = [];
+  for (let palo of palos) {
+    for (let rango of rangos) {
+      mazo.push({ id: `${rango}_${palo}`, rango: rango, palo: palo, valor: valoresNum[rango], img: `./Naipes/${rango}_${palo}.png` });
+    }
+  }
+  // Barajar
+  for (let i = mazo.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [mazo[i], mazo[j]] = [mazo[j], mazo[i]];
+  }
+}
+
+function iniciarJuego() {
+  crearMazo();
+  cuadrícula = Array(5).fill(null).map(() => Array(5).fill(null));
+  cartasColocadas = 0;
+  
+  document.getElementById('mensaje-estado').style.opacity = 0;
+  document.getElementById('mensaje-estado').style.transform = "translate(-50%, -50%) scale(0.8)";
+  
+  construirTablero();
+  robarCarta();
+  actualizarPuntajes();
+}
+
+function construirTablero() {
+  const tablero = document.getElementById('tablero');
+  tablero.innerHTML = '';
+
+  for (let f = 0; f < 5; f++) {
+    for (let c = 0; c < 5; c++) {
+      let ranura = document.createElement('div');
+      ranura.className = 'ranura activa';
+      ranura.id = `ranura-${f}-${c}`;
+      ranura.onclick = () => colocarCarta(f, c);
+      tablero.appendChild(ranura);
+    }
+    // Añadir ranura de puntaje de Fila al final de cada fila
+    let puntajeFila = document.createElement('div');
+    puntajeFila.className = 'puntaje-linea';
+    puntajeFila.id = `score-fila-${f}`;
+    tablero.appendChild(puntajeFila);
+  }
+
+  // Última fila (Puntajes de Columnas)
+  for (let c = 0; c < 5; c++) {
+    let puntajeCol = document.createElement('div');
+    puntajeCol.className = 'puntaje-linea puntaje-col';
+    puntajeCol.id = `score-col-${c}`;
+    tablero.appendChild(puntajeCol);
+  }
+  // Esquina inferior derecha vacía
+  let vacio = document.createElement('div');
+  tablero.appendChild(vacio);
+}
+
+function robarCarta() {
+  if (cartasColocadas >= 25) return;
+  
+  cartaActual = mazo.pop();
+  const divActual = document.getElementById('carta-actual');
+  divActual.innerHTML = '';
+  
+  let divCarta = document.createElement('div');
+  divCarta.className = 'carta';
+  divCarta.style.backgroundImage = `url('${cartaActual.img}')`;
+  divActual.appendChild(divCarta);
+}
+
+function colocarCarta(fila, col) {
+  if (cuadrícula[fila][col] !== null || !cartaActual) return;
+
+  // Actualizar lógica
+  cuadrícula[fila][col] = cartaActual;
+  cartasColocadas++;
+  
+  // Actualizar visual
+  const ranura = document.getElementById(`ranura-${fila}-${col}`);
+  ranura.className = 'ranura'; // Quita 'activa' para no mostrar hover
+  ranura.onclick = null; // Deshabilita clic
+  
+  let divCarta = document.createElement('div');
+  divCarta.className = 'carta';
+  divCarta.style.backgroundImage = `url('${cartaActual.img}')`;
+  ranura.appendChild(divCarta);
+
+  cartaActual = null;
+  document.getElementById('carta-actual').innerHTML = '';
+
+  actualizarPuntajes();
+
+  if (cartasColocadas === 25) {
+    finalizarJuego();
+  } else {
+    robarCarta();
+  }
+}
+
+// --- LÓGICA DE EVALUACIÓN DE MANOS DE PÓKER ---
+function evaluarLinea(lineaCartas) {
+  // Solo evalúa si la línea está llena (5 cartas)
+  if (lineaCartas.includes(null)) return { nombre: '-', puntos: 0 };
+
+  let valores = lineaCartas.map(c => c.valor).sort((a, b) => a - b);
+  let palos = lineaCartas.map(c => c.palo);
+
+  let esColor = palos.every(p => p === palos[0]);
+  let esEscalera = valores.every((v, i) => i === 0 || v === valores[i-1] + 1);
+  
+  // Caso especial: Escalera con As bajo (A, 2, 3, 4, 5)
+  if (!esEscalera && valores.join(',') === '2,3,4,5,14') esEscalera = true;
+
+  let conteos = {};
+  valores.forEach(v => conteos[v] = (conteos[v] || 0) + 1);
+  let frecuencias = Object.values(conteos).sort((a, b) => b - a);
+
+  if (esColor && esEscalera && valores[4] === 14 && valores[0] === 10) return { nombre: 'R. Flush', puntos: PUNTOS['Escalera Real'] };
+  if (esColor && esEscalera) return { nombre: 'Str. Flush', puntos: PUNTOS['Escalera de Color'] };
+  if (frecuencias[0] === 4) return { nombre: 'Póker', puntos: PUNTOS['Póker'] };
+  if (frecuencias[0] === 3 && frecuencias[1] === 2) return { nombre: 'Full', puntos: PUNTOS['Full House'] };
+  if (esColor) return { nombre: 'Color', puntos: PUNTOS['Color'] };
+  if (esEscalera) return { nombre: 'Escalera', puntos: PUNTOS['Escalera'] };
+  if (frecuencias[0] === 3) return { nombre: 'Trío', puntos: PUNTOS['Trío'] };
+  if (frecuencias[0] === 2 && frecuencias[1] === 2) return { nombre: 'Doble Par', puntos: PUNTOS['Doble Pareja'] };
+  if (frecuencias[0] === 2) return { nombre: 'Pareja', puntos: PUNTOS['Pareja'] };
+  
+  return { nombre: 'Nada', puntos: 0 };
+}
+
+function actualizarPuntajes() {
+  let granTotal = 0;
+
+  // Evaluar Filas
+  for (let f = 0; f < 5; f++) {
+    let linea = cuadrícula[f]; // La fila completa
+    let resultado = evaluarLinea(linea);
+    granTotal += resultado.puntos;
+    
+    let el = document.getElementById(`score-fila-${f}`);
+    el.innerHTML = `<span class="mano-nombre">${resultado.nombre}</span><span class="mano-puntos">${resultado.puntos > 0 ? '+'+resultado.puntos : 0}</span>`;
+    if(resultado.puntos > 0) el.style.color = 'var(--neon-green)';
+  }
+
+  // Evaluar Columnas
+  for (let c = 0; c < 5; c++) {
+    let linea = [cuadrícula[0][c], cuadrícula[1][c], cuadrícula[2][c], cuadrícula[3][c], cuadrícula[4][c]];
+    let resultado = evaluarLinea(linea);
+    granTotal += resultado.puntos;
+    
+    let el = document.getElementById(`score-col-${c}`);
+    el.innerHTML = `<span class="mano-nombre">${resultado.nombre}</span><span class="mano-puntos">${resultado.puntos > 0 ? '+'+resultado.puntos : 0}</span>`;
+    if(resultado.puntos > 0) el.style.color = 'var(--neon-green)';
+  }
+
+  // Actualizar marcador central
+  document.getElementById('marcador-total').innerText = granTotal;
+}
+
+function finalizarJuego() {
+  const total = document.getElementById('marcador-total').innerText;
+  document.getElementById('puntaje-final').innerText = `${total} Puntos`;
+  
+  const msg = document.getElementById('mensaje-estado');
+  msg.style.opacity = 1;
+  msg.style.transform = "translate(-50%, -50%) scale(1)";
+  
+  // Si logró un buen puntaje (generalmente > 50 es decente en sistema americano), confeti
+  if (parseInt(total) > 50) {
+      lanzarConfeti();
+  }
+}
+
+window.onload = iniciarJuego;
+</script>
+</body>
+</html>
