@@ -228,6 +228,18 @@
     box-shadow: 0 0 25px rgba(255, 0, 127, 0.8);
     transform: translateY(-3px);
   }
+
+/* Efecto exclusivo para Squares (Dorado) */
+  #btn-cuadrados {
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+  }
+  #btn-cuadrados:hover {
+    background: #ffd700;
+    color: #000; /* Texto negro para contraste */
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.8);
+    transform: translateY(-3px);
+  }
   
   /* Efecto exclusivo para Solitario (Morado) */
   #btn-solitario {
@@ -356,7 +368,7 @@
   <button id="btn-blackjack" class="btn-juego">🎲 Blackjack</button>
   <button id="btn-poker" class="btn-juego">🤠 Póker</button>
   <button id="btn-piramide" class="btn-juego">🔺 Pirámide</button>
-</div>
+  <button id="btn-cuadrados" class="btn-juego">🔲 Squares</button> </div>
 
 <div id="modal-solitario" class="modal-oculto">
   <div class="modal-contenido">
@@ -736,6 +748,7 @@ const btnPiramide = document.getElementById('btn-piramide'); // <-- AGREGAMOS ES
 const modalSolitario = document.getElementById('modal-solitario');
 const btnCerrar = document.getElementById('btn-cerrar-solitario');
 const iframeSolitario = document.getElementById('frame-solitario');
+const btnCuadrados = document.getElementById('btn-cuadrados');
 
 btnSolitario.addEventListener('click', () => {
   modalSolitario.classList.remove('modal-oculto');
@@ -762,6 +775,13 @@ btnCerrar.addEventListener('click', () => {
   modalSolitario.classList.add('modal-oculto');
   iframeSolitario.src = ""; 
 });
+
+
+btnCuadrados.addEventListener('click', () => {
+  modalSolitario.classList.remove('modal-oculto');
+  iframeSolitario.src = "./cuadrados.html"; 
+});
+  
 // === FIN LÓGICA BOTONES ===
 
   
