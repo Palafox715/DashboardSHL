@@ -248,6 +248,7 @@
   }
   .btn-codigo:hover { background: var(--neon-blue); transform: scale(1.05); }
 
+
   /* Modal de Códigos */
   #modal-codigos {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -276,6 +277,19 @@
   .codigo-input:focus { outline: none; border-color: var(--neon-blue); }
   /* ============================== */
 
+
+/* Efecto exclusivo para la Galería (Blanco/Plata) */
+  #btn-galeria {
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+  }
+  #btn-galeria:hover {
+    background: #ffffff;
+    color: #000;
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.8);
+    transform: translateY(-3px);
+  }
+  
   
   /* === INICIO MÓDULO SOLITARIO === */
 /* === DISEÑO BASE PARA LOS BOTONES DE JUEGOS === */
@@ -456,7 +470,8 @@
   <button id="btn-blackjack" class="btn-juego">🎲 Blackjack</button>
   <button id="btn-poker" class="btn-juego">🤠 Póker</button>
   <button id="btn-piramide" class="btn-juego">🔺 Pirámide</button>
-  <button id="btn-cuadrados" class="btn-juego">🔲 Squares</button> </div>
+  <button id="btn-cuadrados" class="btn-juego">🔲 Squares</button>
+  <button id="btn-galeria" class="btn-juego">🖼️ Galería</button> </div>
 
 <div id="modal-solitario" class="modal-oculto">
   <div class="modal-contenido">
@@ -837,6 +852,8 @@ const modalSolitario = document.getElementById('modal-solitario');
 const btnCerrar = document.getElementById('btn-cerrar-solitario');
 const iframeSolitario = document.getElementById('frame-solitario');
 const btnCuadrados = document.getElementById('btn-cuadrados');
+const btnGaleria = document.getElementById('btn-galeria');
+
 
 btnSolitario.addEventListener('click', () => {
   modalSolitario.classList.remove('modal-oculto');
@@ -868,6 +885,11 @@ btnCerrar.addEventListener('click', () => {
 btnCuadrados.addEventListener('click', () => {
   modalSolitario.classList.remove('modal-oculto');
   iframeSolitario.src = "./cuadrados.html"; 
+});
+
+btnGaleria.addEventListener('click', () => {
+  modalSolitario.classList.remove('modal-oculto');
+  iframeSolitario.src = "./galeria.html"; 
 });
   
 // === FIN LÓGICA BOTONES ===
