@@ -289,6 +289,19 @@
     box-shadow: 0 0 25px rgba(255, 255, 255, 0.8);
     transform: translateY(-3px);
   }
+
+
+/* Efecto exclusivo para Mentiroso (Púrpura Neón) */
+  #btn-mentiroso {
+    border: 2px solid var(--neon-purple);
+    box-shadow: 0 0 15px rgba(195, 0, 255, 0.4);
+  }
+  #btn-mentiroso:hover {
+    background: var(--neon-purple);
+    color: #fff;
+    box-shadow: 0 0 25px rgba(195, 0, 255, 0.8);
+    transform: translateY(-3px);
+  }
   
   
   /* === INICIO MÓDULO SOLITARIO === */
@@ -471,6 +484,7 @@
   <button id="btn-poker" class="btn-juego">🤠 Póker</button>
   <button id="btn-piramide" class="btn-juego">🔺 Pirámide</button>
   <button id="btn-cuadrados" class="btn-juego">🔲 Squares</button>
+  <button id="btn-mentiroso" class="btn-juego">🎭 Mentiroso</button>
   <button id="btn-galeria" class="btn-juego">🖼️ Galería</button> </div>
 
 <div id="modal-solitario" class="modal-oculto">
@@ -853,6 +867,7 @@ const btnCerrar = document.getElementById('btn-cerrar-solitario');
 const iframeSolitario = document.getElementById('frame-solitario');
 const btnCuadrados = document.getElementById('btn-cuadrados');
 const btnGaleria = document.getElementById('btn-galeria');
+const btnMentiroso = document.getElementById('btn-mentiroso');
 
 
 btnSolitario.addEventListener('click', () => {
@@ -890,6 +905,20 @@ btnCuadrados.addEventListener('click', () => {
 btnGaleria.addEventListener('click', () => {
   modalSolitario.classList.remove('modal-oculto');
   iframeSolitario.src = "./galeria.html"; 
+});
+
+// Evento de Mentiroso CON ECONOMÍA
+btnMentiroso.addEventListener('click', () => {
+  const costoEntrada = 1; // Cuesta 1 moneda jugar
+  
+  if (restarMonedas(costoEntrada)) {
+    // Sí tenía dinero, abrimos el juego
+    modalSolitario.classList.remove('modal-oculto');
+    iframeSolitario.src = "./mentiroso.html"; 
+  } else {
+    // No tiene dinero, mostramos alerta
+    alert("¡Fondos insuficientes! Ingresa un código para obtener monedas.");
+  }
 });
   
 // === FIN LÓGICA BOTONES ===
