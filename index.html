@@ -216,6 +216,18 @@
     box-shadow: 0 0 25px rgba(0, 136, 255, 0.8);
     transform: translateY(-3px);
   }
+
+/* Efecto exclusivo para Pirámide (Magenta) */
+  #btn-piramide {
+    border: 2px solid #ff007f;
+    box-shadow: 0 0 15px rgba(255, 0, 127, 0.4);
+  }
+  #btn-piramide:hover {
+    background: #ff007f;
+    color: #fff;
+    box-shadow: 0 0 25px rgba(255, 0, 127, 0.8);
+    transform: translateY(-3px);
+  }
   
   /* Efecto exclusivo para Solitario (Morado) */
   #btn-solitario {
@@ -343,6 +355,7 @@
   <button id="btn-solitario" class="btn-juego">🃏 Solitario</button>
   <button id="btn-blackjack" class="btn-juego">🎲 Blackjack</button>
   <button id="btn-poker" class="btn-juego">🤠 Póker</button>
+  <button id="btn-piramide" class="btn-juego">🔺 Pirámide</button>
 </div>
 
 <div id="modal-solitario" class="modal-oculto">
@@ -718,7 +731,8 @@ async function loadData() {
 // === INICIO LÓGICA BOTONES DE JUEGOS ===
 const btnSolitario = document.getElementById('btn-solitario');
 const btnBlackjack = document.getElementById('btn-blackjack');
-const btnPoker = document.getElementById('btn-poker'); // <-- Nuevo botón
+const btnPoker = document.getElementById('btn-poker');
+const btnPiramide = document.getElementById('btn-piramide'); // <-- AGREGAMOS ESTO
 const modalSolitario = document.getElementById('modal-solitario');
 const btnCerrar = document.getElementById('btn-cerrar-solitario');
 const iframeSolitario = document.getElementById('frame-solitario');
@@ -733,10 +747,15 @@ btnBlackjack.addEventListener('click', () => {
   iframeSolitario.src = "./blackjack.html"; 
 });
 
-// Lógica del Póker
 btnPoker.addEventListener('click', () => {
   modalSolitario.classList.remove('modal-oculto');
   iframeSolitario.src = "./poker.html"; 
+});
+
+// <-- AGREGAMOS LA LÓGICA PARA EL CLIC DE LA PIRÁMIDE -->
+btnPiramide.addEventListener('click', () => {
+  modalSolitario.classList.remove('modal-oculto');
+  iframeSolitario.src = "./piramide.html"; 
 });
 
 btnCerrar.addEventListener('click', () => {
