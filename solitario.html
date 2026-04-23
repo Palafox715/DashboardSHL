@@ -10,6 +10,7 @@
     --carta-w: 80px;
     --carta-h: 115px;
     --borde-radio: 6px;
+    --neon-green: #00ffcc;
   }
 
   body {
@@ -48,16 +49,22 @@
     min-height: var(--carta-h);
     position: relative;
     border-radius: var(--borde-radio);
-    padding-bottom: 150px; /* Espacio extra para soltar cartas fácilmente */
+    padding-bottom: 150px;
   }
 
   .carta-slot {
     width: var(--carta-w);
     height: var(--carta-h);
-    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border: 2px dashed rgba(255, 255, 255, 0.4);
+    background: rgba(0,0,0,0.2);
     border-radius: var(--borde-radio);
     box-sizing: border-box;
     position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: rgba(255,255,255,0.2);
+    font-size: 2rem;
   }
 
   .carta {
@@ -70,14 +77,23 @@
     background-position: center;
     cursor: grab;
     position: absolute;
-    transition: transform 0.1s ease;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+
+  .carta:not(.boca-abajo):hover {
+    box-shadow: 0 0 10px var(--neon-green);
+    z-index: 100;
   }
 
   .carta:active { cursor: grabbing; }
 
   .carta.boca-abajo {
     background-image: repeating-linear-gradient(45deg, #b30000 0, #b30000 5px, #800000 5px, #800000 10px);
-    cursor: default;
+    cursor: pointer; /* Cambiado para el deck */
+  }
+
+  .carta.boca-abajo:hover {
+     box-shadow: 2px 2px 5px rgba(0,0,0,0.4); /* Quitar brillo verde si está boca abajo */
   }
 
   .btn-reiniciar {
@@ -92,23 +108,61 @@
     font-weight: bold;
     box-shadow: 0 0 10px rgba(255,69,0,0.5);
     z-index: 1000;
+    text-transform: uppercase;
+  }
+
+  .btn-reiniciar:hover { transform: scale(1.05); }
+
+  #mensaje-estado {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    font-size: 4rem;
+    font-weight: 900;
+    text-shadow: 0 5px 15px rgba(0,0,0,0.9);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    z-index: 1000;
+    text-align: center;
+    background: rgba(0,0,0,0.6);
+    padding: 20px 40px;
+    border-radius: 20px;
+    backdrop-filter: blur(5px);
+    color: var(--neon-green);
+  }
+
+  .confeti {
+    position: absolute;
+    top: -20px;
+    width: 10px;
+    height: 20px;
+    background-color: var(--neon-green);
+    z-index: 500;
+    animation: caer linear forwards;
+  }
+
+  @keyframes caer {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
   }
 </style>
 </head>
 <body>
 
+<h1 id="mensaje-estado">¡Ganas! 🎉</h1>
 <button class="btn-reiniciar" onclick="iniciarJuego()">↻ Reiniciar Juego</button>
 
 <div class="top-board">
   <div class="deck-area">
-    <div id="deck" class="carta-slot" onclick="robarCarta()"></div>
+    <div id="deck" class="carta-slot" onclick="robarCarta()">↻</div>
     <div id="waste" class="carta-slot drop-zone" data-tipo="waste"></div>
   </div>
   <div class="foundation-area">
-    <div id="found-0" class="carta-slot drop-zone" data-tipo="fundacion" data-idx="0"></div>
-    <div id="found-1" class="carta-slot drop-zone" data-tipo="fundacion" data-idx="1"></div>
-    <div id="found-2" class="carta-slot drop-zone" data-tipo="fundacion" data-idx="2"></div>
-    <div id="found-3" class="carta-slot drop-zone" data-tipo="fundacion" data-idx="3"></div>
+    <div id="found-0" class="carta-slot drop-zone" data-tipo="fundacion" data-idx="0">A</div>
+    <div id="found-1" class="carta-slot drop-zone" data-tipo="fundacion" data-idx="1">A</div>
+    <div id="found-2" class="carta-slot drop-zone" data-tipo="fundacion" data-idx="2">A</div>
+    <div id="found-3" class="carta-slot drop-zone" data-tipo="fundacion" data-idx="3">A</div>
   </div>
 </div>
 
@@ -129,6 +183,21 @@ const valores = { 'A':1, '2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9,
 
 let mazoCompleto = [];
 let estadoJuego = {};
+let juegoTerminado = false;
+
+function lanzarConfeti() {
+  const colores = ['#00ffcc', '#ff4500', '#c300ff', '#ffff00', '#ffffff'];
+  for (let i = 0; i < 100; i++) {
+    let confeti = document.createElement('div');
+    confeti.className = 'confeti';
+    confeti.style.left = Math.random() * 100 + 'vw';
+    confeti.style.backgroundColor = colores[Math.floor(Math.random() * colores.length)];
+    confeti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+    confeti.style.animationDelay = (Math.random() * 0.5) + 's';
+    document.body.appendChild(confeti);
+    setTimeout(() => confeti.remove(), 4000);
+  }
+}
 
 function crearMazo() {
   mazoCompleto = [];
@@ -148,6 +217,10 @@ function barajar(array) {
 }
 
 function iniciarJuego() {
+  juegoTerminado = false;
+  document.getElementById('mensaje-estado').style.opacity = 0;
+  document.getElementById('mensaje-estado').style.transform = "translate(-50%, -50%) scale(0.8)";
+  
   crearMazo(); barajar(mazoCompleto);
   estadoJuego = { deck: [], waste: [], fundaciones: [[],[],[],[]], columnas: [[],[],[],[],[],[],[]] };
   
@@ -168,6 +241,8 @@ function iniciarJuego() {
 }
 
 function robarCarta() {
+  if (juegoTerminado) return;
+  
   if (estadoJuego.deck.length > 0) {
     let carta = estadoJuego.deck.pop();
     carta.visible = true;
@@ -180,34 +255,42 @@ function robarCarta() {
 }
 
 function renderizarMesa() {
-  const deckDiv = document.getElementById('deck'); deckDiv.innerHTML = '';
-  if(estadoJuego.deck.length > 0) deckDiv.appendChild(crearDivCarta({ visible: false }));
+  const deckDiv = document.getElementById('deck'); deckDiv.innerHTML = '↻';
+  if(estadoJuego.deck.length > 0) {
+      deckDiv.innerHTML = '';
+      deckDiv.appendChild(crearDivCarta({ visible: false }));
+  }
 
   const wasteDiv = document.getElementById('waste'); wasteDiv.innerHTML = '';
-  if(estadoJuego.waste.length > 0) wasteDiv.appendChild(crearDivCarta(estadoJuego.waste[estadoJuego.waste.length - 1], 0, false));
+  if(estadoJuego.waste.length > 0) wasteDiv.appendChild(crearDivCarta(estadoJuego.waste[estadoJuego.waste.length - 1], 0, false, 'waste'));
 
   for (let i = 0; i < 4; i++) {
-    let foundDiv = document.getElementById(`found-${i}`); foundDiv.innerHTML = '';
-    if(estadoJuego.fundaciones[i].length > 0) foundDiv.appendChild(crearDivCarta(estadoJuego.fundaciones[i][estadoJuego.fundaciones[i].length - 1], 0, false));
+    let foundDiv = document.getElementById(`found-${i}`); foundDiv.innerHTML = 'A';
+    if(estadoJuego.fundaciones[i].length > 0) foundDiv.appendChild(crearDivCarta(estadoJuego.fundaciones[i][estadoJuego.fundaciones[i].length - 1], 0, false, 'fundacion', i));
   }
 
   for (let i = 0; i < 7; i++) {
     let colDiv = document.getElementById(`col-${i}`); colDiv.innerHTML = '';
     estadoJuego.columnas[i].forEach((carta, index) => {
-      colDiv.appendChild(crearDivCarta(carta, index, true));
+      colDiv.appendChild(crearDivCarta(carta, index, true, 'columna', i));
     });
   }
+  
+  comprobarVictoria();
 }
 
-function crearDivCarta(carta, index, isColumna) {
+function crearDivCarta(carta, index, isColumna, ubicacion = null, idxUbicacion = null) {
   let div = document.createElement('div');
   div.className = 'carta ' + (carta.visible ? '' : 'boca-abajo');
   if (carta.id) div.id = carta.id;
   
-  if (carta.visible) {
+  if (carta.visible && !juegoTerminado) {
     div.style.backgroundImage = `url('${carta.imgVisible}')`;
     div.draggable = true;
     div.addEventListener('dragstart', dragStart);
+    
+    // Doble clic para autocompletar fundaciones
+    div.addEventListener('dblclick', () => intentarMovimientoAutomatico(carta.id, ubicacion, idxUbicacion));
   }
   if (isColumna) div.style.top = `${index * 25}px`;
   return div;
@@ -219,78 +302,110 @@ let origenDrag = null;
 function buscarCarta(id) {
   if (estadoJuego.waste.length > 0 && estadoJuego.waste[estadoJuego.waste.length-1].id === id) 
     return { tipo: 'waste', cartas: [estadoJuego.waste[estadoJuego.waste.length-1]] };
+    
+  for(let i=0; i<4; i++) {
+     if(estadoJuego.fundaciones[i].length > 0 && estadoJuego.fundaciones[i][estadoJuego.fundaciones[i].length-1].id === id)
+        return { tipo: 'fundacion', idx: i, cartas: [estadoJuego.fundaciones[i][estadoJuego.fundaciones[i].length-1]] };
+  }
   
   for(let c=0; c<7; c++) {
     let idx = estadoJuego.columnas[c].findIndex(carta => carta.id === id);
     if (idx !== -1) return { tipo: 'columna', idx: c, cartas: estadoJuego.columnas[c].slice(idx), cant: estadoJuego.columnas[c].length - idx };
   }
-  return null; // No permitimos arrastrar de fundaciones para simplificar
+  return null;
 }
 
 function dragStart(e) {
+  if(juegoTerminado) return;
   origenDrag = buscarCarta(e.target.id);
   e.dataTransfer.setData('text/plain', e.target.id);
 }
 
 document.querySelectorAll('.drop-zone').forEach(zone => {
-  zone.addEventListener('dragover', e => e.preventDefault());
+  zone.addEventListener('dragover', e => { if(!juegoTerminado) e.preventDefault()});
   zone.addEventListener('drop', handleDrop);
 });
 
+function esMovimientoValidoColumna(cartaBase, colDestino) {
+    if (colDestino.length === 0) return cartaBase.valor === 13; // Rey
+    let ultimaCarta = colDestino[colDestino.length - 1];
+    return (cartaBase.color !== ultimaCarta.color && cartaBase.valor === ultimaCarta.valor - 1);
+}
+
+function esMovimientoValidoFundacion(cartaBase, fundDestino) {
+    if (fundDestino.length === 0) return cartaBase.valor === 1; // As
+    let ultimaCarta = fundDestino[fundDestino.length - 1];
+    return (cartaBase.palo === ultimaCarta.palo && cartaBase.valor === ultimaCarta.valor + 1);
+}
+
 function handleDrop(e) {
   e.preventDefault();
-  if (!origenDrag) return;
+  if (!origenDrag || juegoTerminado) return;
 
   const dropZone = e.currentTarget;
   const tipoDestino = dropZone.getAttribute('data-tipo');
   const idxDestino = parseInt(dropZone.getAttribute('data-idx'));
-  const cartaBase = origenDrag.cartas[0]; // La carta que estamos sosteniendo
+  const cartaBase = origenDrag.cartas[0];
 
   let movimientoValido = false;
 
-  // REGLA: Mover a una columna
   if (tipoDestino === 'columna') {
-    let colDestino = estadoJuego.columnas[idxDestino];
-    if (colDestino.length === 0) {
-      if (cartaBase.valor === 13) movimientoValido = true; // Solo el Rey (K) a espacios vacíos
-    } else {
-      let ultimaCarta = colDestino[colDestino.length - 1];
-      // Color opuesto y valor exactamente menor por 1
-      if (cartaBase.color !== ultimaCarta.color && cartaBase.valor === ultimaCarta.valor - 1) movimientoValido = true;
-    }
+    movimientoValido = esMovimientoValidoColumna(cartaBase, estadoJuego.columnas[idxDestino]);
+  } else if (tipoDestino === 'fundacion' && origenDrag.cartas.length === 1) {
+    movimientoValido = esMovimientoValidoFundacion(cartaBase, estadoJuego.fundaciones[idxDestino]);
   }
 
-  // REGLA: Mover a las Fundaciones (arriba a la derecha)
-  if (tipoDestino === 'fundacion' && origenDrag.cartas.length === 1) { // Solo 1 carta a la vez
-    let fundDestino = estadoJuego.fundaciones[idxDestino];
-    if (fundDestino.length === 0) {
-      if (cartaBase.valor === 1) movimientoValido = true; // Solo Ases (A) a fundaciones vacías
-    } else {
-      let ultimaCarta = fundDestino[fundDestino.length - 1];
-      // Mismo palo y valor exactamente mayor por 1
-      if (cartaBase.palo === ultimaCarta.palo && cartaBase.valor === ultimaCarta.valor + 1) movimientoValido = true;
-    }
-  }
+  if (movimientoValido) ejecutarMovimiento(tipoDestino, idxDestino);
+  origenDrag = null;
+}
 
-  // EJECUTAR EL MOVIMIENTO
-  if (movimientoValido) {
-    // 1. Añadir al destino
+function intentarMovimientoAutomatico(idCarta, ubicacion, idxUbicacion) {
+    if(juegoTerminado || ubicacion === 'fundacion') return; // No auto-mover desde fundaciones
+    
+    let info = buscarCarta(idCarta);
+    if(!info || info.cartas.length > 1) return; // Solo mover 1 carta auto
+    
+    const carta = info.cartas[0];
+    
+    for(let i=0; i<4; i++) {
+        if(esMovimientoValidoFundacion(carta, estadoJuego.fundaciones[i])) {
+            origenDrag = info;
+            ejecutarMovimiento('fundacion', i);
+            return;
+        }
+    }
+}
+
+function ejecutarMovimiento(tipoDestino, idxDestino) {
+    // 1. Añadir
     if (tipoDestino === 'columna') estadoJuego.columnas[idxDestino].push(...origenDrag.cartas);
-    if (tipoDestino === 'fundacion') estadoJuego.fundaciones[idxDestino].push(cartaBase);
+    if (tipoDestino === 'fundacion') estadoJuego.fundaciones[idxDestino].push(origenDrag.cartas[0]);
 
-    // 2. Quitar del origen
+    // 2. Quitar
     if (origenDrag.tipo === 'waste') estadoJuego.waste.pop();
+    if (origenDrag.tipo === 'fundacion') estadoJuego.fundaciones[origenDrag.idx].pop();
     if (origenDrag.tipo === 'columna') {
       let colOrigen = estadoJuego.columnas[origenDrag.idx];
       colOrigen.splice(colOrigen.length - origenDrag.cant, origenDrag.cant);
-      // Voltear la nueva carta superior de la columna si estaba boca abajo
       if (colOrigen.length > 0 && !colOrigen[colOrigen.length - 1].visible) {
         colOrigen[colOrigen.length - 1].visible = true;
       }
     }
     renderizarMesa();
-  }
-  origenDrag = null;
+}
+
+function comprobarVictoria() {
+    let cartasEnFundacion = 0;
+    for(let i=0; i<4; i++) {
+        cartasEnFundacion += estadoJuego.fundaciones[i].length;
+    }
+    
+    if(cartasEnFundacion === 52 && !juegoTerminado) {
+        juegoTerminado = true;
+        document.getElementById('mensaje-estado').style.opacity = 1;
+        document.getElementById('mensaje-estado').style.transform = "translate(-50%, -50%) scale(1)";
+        lanzarConfeti();
+    }
 }
 
 window.onload = iniciarJuego;
