@@ -4,6 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Shoreline — Dashboard</title>
+
+  <div class="economia-container">
+  <div class="contador-monedas">
+    <span id="display-monedas">0</span> 🪙
+  </div>
+  <button class="btn-codigo" onclick="abrirModalCodigos()">Canjear Código</button>
+</div>
+
+<div id="modal-codigos">
+  <div class="codigo-caja">
+    <h2 style="margin-top:0;">Canjear Recompensa</h2>
+    <input type="text" id="input-codigo" class="codigo-input" placeholder="INGRESA CÓDIGO" autocomplete="off">
+    <br>
+    <button class="btn-codigo" onclick="canjearCodigo()">Canjear</button>
+    <button class="btn-codigo" style="border-color:#ff4500; margin-left:10px;" onclick="cerrarModalCodigos()">Cancelar</button>
+    <p id="msg-codigo" style="font-weight:bold; margin-bottom:0;"></p>
+  </div>
+</div> 
+
+  
 <style>
   :root {
     --bg-dark: #0b0c10;
@@ -189,6 +209,74 @@
   .totals-center h3 { margin: 0; font-size: 1.3rem; color: var(--text-light); }
   .totals-center span { display: block; font-size: 2.7rem; font-weight: 800; margin: 0.3rem 0; transition: all 0.3s ease-in-out; }
 
+/* === SISTEMA DE ECONOMÍA (UI) === */
+  .economia-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 15px;
+    z-index: 1000;
+  }
+
+  .contador-monedas {
+    background: rgba(31, 40, 51, 0.95);
+    color: #ffd700;
+    border: 2px solid #ffd700;
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    font-weight: 900;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+  }
+
+  .btn-codigo {
+    background: rgba(31, 40, 51, 0.95);
+    color: #fff;
+    border: 2px solid var(--neon-blue);
+    padding: 10px 15px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 136, 255, 0.3);
+    transition: all 0.2s ease;
+  }
+  .btn-codigo:hover { background: var(--neon-blue); transform: scale(1.05); }
+
+  /* Modal de Códigos */
+  #modal-codigos {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    z-index: 9999;
+    display: flex; justify-content: center; align-items: center;
+    opacity: 0; visibility: hidden; transition: all 0.3s ease;
+  }
+  #modal-codigos.activo { opacity: 1; visibility: visible; }
+  
+  .codigo-caja {
+    background: var(--panel-dark);
+    padding: 30px;
+    border-radius: 15px;
+    border: 2px solid var(--neon-blue);
+    text-align: center;
+    box-shadow: 0 0 30px rgba(0,0,0,0.8);
+  }
+  
+  .codigo-input {
+    background: rgba(0,0,0,0.5); border: 1px solid #555; color: #fff;
+    padding: 10px; font-size: 1.2rem; border-radius: 5px; margin: 15px 0;
+    width: 200px; text-align: center; text-transform: uppercase;
+  }
+  .codigo-input:focus { outline: none; border-color: var(--neon-blue); }
+  /* ============================== */
+
+  
   /* === INICIO MÓDULO SOLITARIO === */
 /* === DISEÑO BASE PARA LOS BOTONES DE JUEGOS === */
   .btn-juego {
@@ -784,6 +872,93 @@ btnCuadrados.addEventListener('click', () => {
   
 // === FIN LÓGICA BOTONES ===
 
+
+
+// === CEREBRO ECONÓMICO (EL BANCO) ===
+
+// 1. Inicialización de la Bóveda
+let balanceMonedas = parseInt(localStorage.getItem('shoreline_monedas')) || 0;
+let codigosUsados = JSON.parse(localStorage.getItem('shoreline_codigos_usados')) || [];
+
+function actualizarDisplayMonedas() {
+  document.getElementById('display-monedas').innerText = balanceMonedas;
+}
+actualizarDisplayMonedas(); // Mostrar al cargar la página
+
+// 2. Funciones del Banco
+function agregarMonedas(cantidad) {
+  balanceMonedas += cantidad;
+  localStorage.setItem('shoreline_monedas', balanceMonedas);
+  actualizarDisplayMonedas();
+  
+  // Efecto visual rápido al ganar monedas
+  const display = document.querySelector('.contador-monedas');
+  display.style.transform = 'scale(1.2)';
+  display.style.boxShadow = '0 0 30px rgba(255, 215, 0, 0.8)';
+  setTimeout(() => {
+    display.style.transform = 'scale(1)';
+    display.style.boxShadow = '0 0 15px rgba(255, 215, 0, 0.3)';
+  }, 300);
+}
+
+function restarMonedas(cantidad) {
+  if (balanceMonedas >= cantidad) {
+    balanceMonedas -= cantidad;
+    localStorage.setItem('shoreline_monedas', balanceMonedas);
+    actualizarDisplayMonedas();
+    return true; // Transacción exitosa
+  }
+  return false; // Fondos insuficientes
+}
+
+// 3. Sistema de Códigos
+function abrirModalCodigos() {
+  document.getElementById('modal-codigos').classList.add('activo');
+  document.getElementById('input-codigo').value = '';
+  document.getElementById('msg-codigo').innerText = '';
+}
+
+function cerrarModalCodigos() {
+  document.getElementById('modal-codigos').classList.remove('activo');
+}
+
+function canjearCodigo() {
+  const input = document.getElementById('input-codigo').value.trim().toUpperCase();
+  const msg = document.getElementById('msg-codigo');
+  
+  if (input === '') return;
+
+  // Verificar si ya se usó
+  if (codigosUsados.includes(input)) {
+    msg.innerText = "❌ Este código ya fue utilizado.";
+    msg.style.color = "#ff4500";
+    return;
+  }
+
+  // Base de datos de códigos válidos
+  const baseDeCodigos = {
+    "SHORELINE": { recompensa: 1, mensaje: "¡Código válido! Ganaste 1 Moneda." },
+    // "BETA_TESTER": { recompensa: 10, mensaje: "¡Bonus de Beta! Ganaste 10 Monedas." } -> Ejemplo futuro
+  };
+
+  if (baseDeCodigos[input]) {
+    // Éxito
+    const premio = baseDeCodigos[input].recompensa;
+    agregarMonedas(premio);
+    codigosUsados.push(input);
+    localStorage.setItem('shoreline_codigos_usados', JSON.stringify(codigosUsados));
+    
+    msg.innerText = "✅ " + baseDeCodigos[input].mensaje;
+    msg.style.color = "#00ffcc";
+    setTimeout(cerrarModalCodigos, 2000); // Cerrar automáticamente tras éxito
+  } else {
+    // Fallo
+    msg.innerText = "❌ Código inválido o expirado.";
+    msg.style.color = "#ff4500";
+  }
+}
+// ====================================
+  
   
 loadData();
 setInterval(loadData, 60000); 
