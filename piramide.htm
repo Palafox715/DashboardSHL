@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pirámide Shoreline</title>
+<style>
+  :root {
+    --mesa-bg: #0f5132;
+    --carta-w: 80px;
+    --carta-h: 115px;
+    --borde-radio: 6px;
+    --neon-orange: #ff4500;
+    --neon-green: #00ffcc;
+    --neon-blue: #0088ff;
+  }
+
+  body {
+    margin: 0;
+    padding: 20px;
+    background-color: var(--mesa-bg);
+    background-image: radial-gradient(circle, #146c43 0%, #0a3622 100%);
+    font-family: 'Inter', sans-serif;
+    color: white;
+    height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .zona-superior {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0 40px;
+    z-index: 10;
+  }
+
+  .deck-area { display: flex; gap: 15px; }
+
+  .carta-slot {
+    width: var(--carta-w);
+    height: var(--carta-h);
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border-radius: var(--borde-radio);
+    background: rgba(0,0,0,0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: rgba(255,255,255,0.2);
+    font-size: 2rem;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .zona-piramide {
+    flex: 1;
+    position: relative;
+    margin-top: 20px;
+    /* Ajuste para centrar la pirámide. El left de cada carta se calcula en JS */
+  }
+
+  .carta {
+    width: var(--carta-w);
+    height: var(--carta-h);
+    background-color: white;
+    border-radius: var(--borde-radio);
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.6);
+    background-size: cover;
+    background-position: center;
+    position: absolute;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.3s ease, opacity 0.4s ease;
+    cursor: pointer;
+  }
+
+  /* Cartas bloqueadas se ven un poco oscuras */
+  .carta.bloqueada { filter: brightness(0.6); cursor: not-allowed; }
+  
+  /* Carta seleccionada brilla en verde */
+  .carta.seleccionada {
+    transform: translateY(-10px);
+    box-shadow: 0 0 20px var(--neon-green), 0 0 40px var(--neon-green);
+    border: 2px solid var(--neon-green);
+    z-index: 100;
+  }
+
+  /* Animación de error (sacudida roja) */
+  .carta.error { animation: sacudir 0.4s; box-shadow: 0 0 20px red; border: 2px solid red; }
+
+  @keyframes sacudir {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+
+  .carta.boca-abajo { background-image: repeating-linear-gradient(45deg, #b30000 0, #b30000 5px, #800000 5px, #800000 10px); }
+
+  .controles { display: flex; justify-content: center; padding-bottom: 20px; z-index: 10; gap: 20px;}
+
+  button {
+    background: rgba(31, 40, 51, 0.95);
+    color: #fff;
+    border: 2px solid var(--neon-orange);
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: 800;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(255,69,0,0.5);
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+  }
+
+  button:hover { transform: scale(1.05); }
+
+  #mensaje-estado {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    font-size: 3.5rem;
+    font-weight: 900;
+    text-shadow: 0 5px 15px rgba(0,0,0,0.9);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    z-index: 1000;
+    text-align: center;
+    background: rgba(0,0,0,0.7);
+    padding: 20px 40px;
+    border-radius: 20px;
+    backdrop-filter: blur(5px);
+    color: var(--neon-green);
+  }
+
+  .ayuda { color: #aaa; font-size: 0.9rem; margin-top: -10px; font-weight: bold; text-align: center; }
+
+  .confeti {
+    position: absolute;
+    top: -20px;
+    width: 10px;
+    height: 20px;
+    background-color: var(--neon-green);
+    z-index: 500;
+    animation: caer linear forwards;
+  }
+  @keyframes caer {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="zona-superior">
+  <div class="deck-area">
+    <div id="stock" class="carta-slot" onclick="robarCarta()">↻</div>
+    <div id="waste-container" style="position: relative; width: 80px; height: 115px;"></div>
+  </div>
+  <div>
+    <button onclick="iniciarJuego()">↻ Reiniciar</button>
+  </div>
+</div>
+
+<div class="ayuda">
+  Busca pares que sumen 13 (A=1, J=11, Q=12). ¡El Rey (K=13) se elimina solo!
+</div>
+
+<h1 id="mensaje-estado">¡Pirámide Limpia! 🎉</h1>
+
+<div class="zona-piramide" id="piramide-container">
+  </div>
+
+<script>
+const palos = ['Corazones', 'Diamantes', 'Treboles', 'Picas'];
+const rangos = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+const valores = { 'A':1, '2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, '10':10, 'J':11, 'Q':12, 'K':13 };
+
+let mazo = [];
+let piramide = []; // Guardará objetos { id, fila, col, carta, eliminada }
+let waste = [];
+let cartaSeleccionada = null; // El elemento DOM de la primera carta tocada
+
+function lanzarConfeti() {
+  const colores = ['#00ffcc', '#ff4500', '#c300ff', '#ffff00', '#ffffff'];
+  for (let i = 0; i < 80; i++) {
+    let confeti = document.createElement('div');
+    confeti.className = 'confeti';
+    confeti.style.left = Math.random() * 100 + 'vw';
+    confeti.style.backgroundColor = colores[Math.floor(Math.random() * colores.length)];
+    confeti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+    confeti.style.animationDelay = (Math.random() * 0.5) + 's';
+    document.body.appendChild(confeti);
+    setTimeout(() => confeti.remove(), 4000);
+  }
+}
+
+function crearMazo() {
+  mazo = [];
+  for (let palo of palos) {
+    for (let rango of rangos) {
+      mazo.push({ id: `${rango}_${palo}`, valor: valores[rango], img: `./Naipes/${rango}_${palo}.png` });
+    }
+  }
+  // Barajar
+  for (let i = mazo.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [mazo[i], mazo[j]] = [mazo[j], mazo[i]];
+  }
+}
+
+function iniciarJuego() {
+  crearMazo();
+  piramide = [];
+  waste = [];
+  cartaSeleccionada = null;
+  document.getElementById('mensaje-estado').style.opacity = 0;
+  document.getElementById('mensaje-estado').style.transform = "translate(-50%, -50%) scale(0.8)";
+  
+  // Construir lógica de la pirámide (7 filas, 28 cartas)
+  for (let f = 0; f < 7; f++) {
+    for (let c = 0; c <= f; c++) {
+      piramide.push({ fila: f, col: c, carta: mazo.pop(), eliminada: false });
+    }
+  }
+  
+  renderizarMesa();
+}
+
+function calcularPosicion(fila, col) {
+  // Dimensiones
+  const wCarta = 80; const hCarta = 115;
+  const gapX = 10; const superposicionY = 60; // Cuánto se tapan hacia abajo
+  
+  // Asumimos un ancho de pantalla de ~900px para centrar
+  const centroX = window.innerWidth / 2; 
+  const anchoFila = (fila + 1) * wCarta + (fila * gapX);
+  const inicioX = centroX - (anchoFila / 2);
+  
+  const posX = inicioX + (col * (wCarta + gapX));
+  const posY = fila * superposicionY;
+  
+  return { x: posX, y: posY };
+}
+
+function estaBloqueada(fila, col) {
+  if (fila === 6) return false; // La fila de hasta abajo nunca está bloqueada por otras abajo
+  
+  // Está bloqueada si existe y NO ha sido eliminada la carta justo debajo a la izq o a la der
+  const izq = piramide.find(p => p.fila === fila + 1 && p.col === col);
+  const der = piramide.find(p => p.fila === fila + 1 && p.col === col + 1);
+  
+  const bloqueadaPorIzq = izq ? !izq.eliminada : false;
+  const bloqueadaPorDer = der ? !der.eliminada : false;
+  
+  return bloqueadaPorIzq || bloqueadaPorDer;
+}
+
+function renderizarMesa() {
+  const container = document.getElementById('piramide-container');
+  container.innerHTML = '';
+
+  // Dibujar Pirámide
+  piramide.forEach((item, index) => {
+    if (item.eliminada) return;
+
+    let pos = calcularPosicion(item.fila, item.col);
+    let div = document.createElement('div');
+    div.className = 'carta' + (estaBloqueada(item.fila, item.col) ? ' bloqueada' : '');
+    div.style.left = `${pos.x}px`;
+    div.style.top = `${pos.y}px`;
+    div.style.backgroundImage = `url('${item.carta.img}')`;
+    div.style.zIndex = item.fila; // Para que las de abajo tapen a las de arriba
+    
+    // Guardamos datos en el DOM para la lógica de clics
+    div.dataset.indexPiramide = index;
+    div.dataset.valor = item.carta.valor;
+    div.dataset.origen = 'piramide';
+    
+    div.onclick = () => manejarClicCarta(div);
+    container.appendChild(div);
+  });
+
+  // Dibujar Mazo/Waste
+  const deckSlot = document.getElementById('stock');
+  deckSlot.innerHTML = mazo.length > 0 ? '↻' : '❌'; // Si se acaba el mazo, marcar con cruz
+  
+  const wasteContainer = document.getElementById('waste-container');
+  wasteContainer.innerHTML = '';
+  if (waste.length > 0) {
+    let topWaste = waste[waste.length - 1];
+    let div = document.createElement('div');
+    div.className = 'carta';
+    div.style.backgroundImage = `url('${topWaste.img}')`;
+    div.dataset.valor = topWaste.valor;
+    div.dataset.origen = 'waste';
+    div.onclick = () => manejarClicCarta(div);
+    wasteContainer.appendChild(div);
+  }
+}
+
+function robarCarta() {
+  if (cartaSeleccionada) deseleccionarCarta(); // Si habías tocado una, suéltala
+  
+  if (mazo.length > 0) {
+    waste.push(mazo.pop());
+  } else if (waste.length > 0) {
+    // Si se acaba, reciclamos el waste (Regla flexible: 3 pases permitidos usualmente, aquí infinito para relajar)
+    mazo = waste.reverse();
+    waste = [];
+  }
+  renderizarMesa();
+}
+
+function manejarClicCarta(cartaClicada) {
+  const esPiramide = cartaClicada.dataset.origen === 'piramide';
+  const idxPiramide = esPiramide ? parseInt(cartaClicada.dataset.indexPiramide) : null;
+  
+  // Rechazar clics en cartas bloqueadas de la pirámide
+  if (esPiramide && estaBloqueada(piramide[idxPiramide].fila, piramide[idxPiramide].col)) {
+    mostrarError(cartaClicada);
+    return;
+  }
+
+  const valorClicado = parseInt(cartaClicada.dataset.valor);
+
+  // REGLA DEL REY (13): Se elimina solo inmediatamente
+  if (valorClicado === 13) {
+    eliminarCartas(cartaClicada, null);
+    return;
+  }
+
+  // SI NO HAY NADA SELECCIONADO: Seleccionamos esta
+  if (!cartaSeleccionada) {
+    cartaSeleccionada = cartaClicada;
+    cartaSeleccionada.classList.add('seleccionada');
+    return;
+  }
+
+  // SI HACEMOS CLIC EN LA MISMA: Deseleccionamos
+  if (cartaSeleccionada === cartaClicada) {
+    deseleccionarCarta();
+    return;
+  }
+
+  // SI YA HAY OTRA SELECCIONADA: Comprobamos si suman 13
+  const valorAnterior = parseInt(cartaSeleccionada.dataset.valor);
+  if (valorAnterior + valorClicado === 13) {
+    eliminarCartas(cartaSeleccionada, cartaClicada);
+  } else {
+    // Si fallan, mostramos error y soltamos la selección
+    mostrarError(cartaClicada);
+    mostrarError(cartaSeleccionada);
+    deseleccionarCarta();
+  }
+}
+
+function deseleccionarCarta() {
+  if (cartaSeleccionada) {
+    cartaSeleccionada.classList.remove('seleccionada');
+    cartaSeleccionada = null;
+  }
+}
+
+function mostrarError(elemento) {
+  elemento.classList.add('error');
+  setTimeout(() => elemento.classList.remove('error'), 400);
+}
+
+function eliminarCartas(c1, c2) {
+  // Efecto visual de desvanecimiento
+  if (c1) { c1.style.opacity = 0; c1.style.transform = 'scale(1.2)'; }
+  if (c2) { c2.style.opacity = 0; c2.style.transform = 'scale(1.2)'; }
+  cartaSeleccionada = null;
+
+  setTimeout(() => {
+    // Lógica interna: Marcar como eliminadas o sacarlas del array
+    [c1, c2].forEach(cartaHTML => {
+      if (!cartaHTML) return;
+      if (cartaHTML.dataset.origen === 'piramide') {
+        piramide[parseInt(cartaHTML.dataset.indexPiramide)].eliminada = true;
+      } else if (cartaHTML.dataset.origen === 'waste') {
+        waste.pop(); // Siempre es la última del array
+      }
+    });
+
+    renderizarMesa();
+    comprobarVictoria();
+  }, 300); // Dar tiempo a la animación CSS antes de re-renderizar
+}
+
+function comprobarVictoria() {
+  // El juego se gana si todas las cartas de la pirámide están marcadas como eliminadas
+  const piramideLimpia = piramide.every(item => item.eliminada === true);
+  
+  if (piramideLimpia) {
+    document.getElementById('mensaje-estado').style.opacity = 1;
+    document.getElementById('mensaje-estado').style.transform = "translate(-50%, -50%) scale(1)";
+    lanzarConfeti();
+  }
+}
+
+// Para asegurar que la pirámide se centre correctamente si cambia el tamaño de la ventana
+window.addEventListener('resize', renderizarMesa);
+
+window.onload = iniciarJuego;
+</script>
+</body>
+</html>
