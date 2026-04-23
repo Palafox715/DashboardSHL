@@ -38,11 +38,18 @@
     background: rgba(0,0,0,0.4);
     padding: 10px 20px;
     border-radius: 10px;
-    display: inline-block;
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
     font-size: 0.9rem;
     color: #ccc;
     border: 1px solid rgba(255,255,255,0.1);
   }
+
+  /* NUEVO: Resaltado de la jugada ganadora */
+  .premio { padding: 5px 10px; border-radius: 5px; transition: all 0.3s ease; }
+  .premio.ganador { background: rgba(0, 255, 204, 0.2); color: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); font-weight: bold; }
 
   .zona-juego {
     flex: 1;
@@ -56,7 +63,7 @@
   .mano-container {
     display: flex;
     gap: 15px;
-    height: 180px;
+    height: 200px;
     align-items: center;
   }
 
@@ -66,6 +73,20 @@
     flex-direction: column;
     align-items: center;
     cursor: pointer;
+    perspective: 1000px; /* Para efecto 3D */
+  }
+
+  /* NUEVO: Animación de reparto en cascada */
+  @keyframes caer {
+    0% { transform: translateY(-100px) rotateY(180deg); opacity: 0; }
+    100% { transform: translateY(0) rotateY(0deg); opacity: 1; }
+  }
+
+  /* NUEVO: Animación de cambio de carta (volteo) */
+  @keyframes voltear {
+    0% { transform: rotateY(0deg); }
+    50% { transform: rotateY(90deg); filter: brightness(0.5); }
+    100% { transform: rotateY(0deg); filter: brightness(1); }
   }
 
   .carta {
@@ -78,6 +99,9 @@
     background-position: center;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
+
+  .carta.animar-caida { animation: caer 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; opacity: 0; }
+  .carta.animar-volteo { animation: voltear 0.4s ease-in-out forwards; }
 
   .carta.boca-abajo {
     background-image: repeating-linear-gradient(45deg, #b30000 0, #b30000 5px, #800000 5px, #800000 10px);
@@ -104,9 +128,7 @@
     text-transform: uppercase;
   }
 
-  .carta-wrapper.retenida .etiqueta-hold {
-    opacity: 1;
-  }
+  .carta-wrapper.retenida .etiqueta-hold { opacity: 1; }
 
   .controles {
     display: flex;
@@ -134,6 +156,14 @@
   button:hover:not(:disabled) { transform: scale(1.05); }
   button:disabled { opacity: 0.5; cursor: not-allowed; border-color: #555; box-shadow: none; text-shadow: none; }
 
+  /* Pulso para el botón cuando espera inicio */
+  @keyframes pulso-btn {
+    0% { box-shadow: 0 0 15px rgba(0, 136, 255, 0.5); transform: scale(1); }
+    50% { box-shadow: 0 0 25px rgba(0, 136, 255, 0.8); transform: scale(1.05); }
+    100% { box-shadow: 0 0 15px rgba(0, 136, 255, 0.5); transform: scale(1); }
+  }
+  .btn-animado { animation: pulso-btn 1.5s infinite; }
+
   #mensaje-estado {
     position: absolute;
     top: 50%; left: 50%;
@@ -159,10 +189,10 @@
     height: 20px;
     background-color: var(--neon-green);
     z-index: 50;
-    animation: caer linear forwards;
+    animation: caer-confeti linear forwards;
   }
 
-  @keyframes caer {
+  @keyframes caer-confeti {
     0% { transform: translateY(0) rotate(0deg); opacity: 1; }
     100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
   }
@@ -172,19 +202,26 @@
 
 <div class="cabecera">
   <div class="tabla-pagos">
-    🏆 Escalera Real | 🌈 Escalera de Color | 🍀 Póker | 🏠 Full House | 💧 Color | 🪜 Escalera | 🎲 Trío | ✌️ Doble Pareja | 👍 Pareja (J o mejor)
+    <span class="premio" id="premio-royal">🏆 Escalera Real</span>
+    <span class="premio" id="premio-strflush">🌈 Escalera de Color</span>
+    <span class="premio" id="premio-poker">🍀 Póker</span>
+    <span class="premio" id="premio-full">🏠 Full House</span>
+    <span class="premio" id="premio-flush">💧 Color</span>
+    <span class="premio" id="premio-straight">🪜 Escalera</span>
+    <span class="premio" id="premio-trio">🎲 Trío</span>
+    <span class="premio" id="premio-twopair">✌️ Doble Pareja</span>
+    <span class="premio" id="premio-pair">👍 Pareja (J+)</span>
   </div>
 </div>
 
-<h1 id="mensaje-estado">¡Ganas!</h1>
+<h1 id="mensaje-estado"></h1>
 
 <div class="zona-juego">
-  <div class="mano-container" id="cartas-jugador">
-    </div>
+  <div class="mano-container" id="cartas-jugador"></div>
 </div>
 
 <div class="controles">
-  <button id="btn-accion" onclick="manejarAccion()">Repartir 🎲</button>
+  <button id="btn-accion" class="btn-animado" onclick="manejarAccion()">Repartir 🎲</button>
 </div>
 
 <script>
@@ -218,14 +255,18 @@ function crearMazo() {
       mazo.push({ id: `${rango}_${palo}`, img: `./Naipes/${rango}_${palo}.png`, valor: valores[rango], palo: palo });
     }
   }
-  // Barajar
   for (let i = mazo.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [mazo[i], mazo[j]] = [mazo[j], mazo[i]];
   }
 }
 
-function renderizarMesa() {
+function resetearTablaPagos() {
+  document.querySelectorAll('.premio').forEach(el => el.classList.remove('ganador'));
+}
+
+// Parámetro 'modo' puede ser: 'inicio' (boca abajo), 'caer' (reparto inicial), 'voltear' (cambio de cartas)
+function renderizarMesa(modo = 'inicio') {
   const contenedor = document.getElementById('cartas-jugador');
   contenedor.innerHTML = '';
 
@@ -234,12 +275,22 @@ function renderizarMesa() {
     wrapper.className = 'carta-wrapper' + (retenidas[i] ? ' retenida' : '');
     
     let cartaDiv = document.createElement('div');
-    if (mano[i]) {
-      cartaDiv.className = 'carta';
-      cartaDiv.style.backgroundImage = `url('${mano[i].img}')`;
-      cartaDiv.onclick = () => alternarRetener(i);
+    
+    if (modo === 'inicio') {
+        cartaDiv.className = 'carta boca-abajo';
     } else {
-      cartaDiv.className = 'carta boca-abajo';
+        cartaDiv.className = 'carta';
+        cartaDiv.style.backgroundImage = `url('${mano[i].img}')`;
+        cartaDiv.onclick = () => alternarRetener(i);
+        
+        // Agregar animaciones según el modo
+        if (modo === 'caer') {
+            cartaDiv.classList.add('animar-caida');
+            cartaDiv.style.animationDelay = `${i * 0.1}s`; // Efecto cascada
+        } else if (modo === 'voltear' && !retenidas[i]) {
+            // Solo animar las que fueron cambiadas
+            cartaDiv.classList.add('animar-volteo');
+        }
     }
 
     let etiqueta = document.createElement('div');
@@ -253,9 +304,13 @@ function renderizarMesa() {
 }
 
 function alternarRetener(index) {
-  if (fase !== "REPARTO1") return; // Solo se retiene antes del segundo reparto
+  if (fase !== "REPARTO1") return;
   retenidas[index] = !retenidas[index];
-  renderizarMesa();
+  
+  // Pequeño hack para forzar el repintado de la retención sin volver a animar la carta entera
+  const wrappers = document.querySelectorAll('.carta-wrapper');
+  if(retenidas[index]) wrappers[index].classList.add('retenida');
+  else wrappers[index].classList.remove('retenida');
 }
 
 function mostrarMensaje(texto, color, mostrar) {
@@ -270,81 +325,96 @@ function manejarAccion() {
   const btn = document.getElementById('btn-accion');
 
   if (fase === "INICIO" || fase === "REPARTO2") {
-    // Iniciar nueva ronda
     crearMazo();
     retenidas = [false, false, false, false, false];
     mostrarMensaje("", "", false);
+    resetearTablaPagos();
+    btn.classList.remove('btn-animado');
+    btn.disabled = true; // Desactivar botón durante animación
     
     for (let i = 0; i < 5; i++) mano[i] = mazo.pop();
     
     fase = "REPARTO1";
-    btn.innerText = "Cambiar Cartas 🔄";
-    btn.style.borderColor = "#ff4500";
-    btn.style.textShadow = "0 0 5px #ff4500";
-    btn.style.boxShadow = "0 0 15px rgba(255, 69, 0, 0.5)";
-    renderizarMesa();
+    renderizarMesa('caer');
+    
+    // Esperar a que acabe la animación para reactivar botón
+    setTimeout(() => {
+        btn.innerText = "Cambiar Cartas 🔄";
+        btn.style.borderColor = "#ff4500";
+        btn.style.textShadow = "0 0 5px #ff4500";
+        btn.style.boxShadow = "0 0 15px rgba(255, 69, 0, 0.5)";
+        btn.disabled = false;
+    }, 800); 
 
   } else if (fase === "REPARTO1") {
-    // Cambiar cartas no retenidas y evaluar
+    btn.disabled = true; // Bloquear doble clic
+    
+    // Guardar estado visual previo para la animación
+    let cambiadasAlguna = false;
     for (let i = 0; i < 5; i++) {
       if (!retenidas[i]) {
         mano[i] = mazo.pop();
+        cambiadasAlguna = true;
       }
     }
-    retenidas = [false, false, false, false, false]; // Reset visual
-    fase = "REPARTO2";
     
-    btn.innerText = "Nueva Mano 🎲";
-    btn.style.borderColor = "#0088ff";
-    btn.style.textShadow = "0 0 5px #0088ff";
-    btn.style.boxShadow = "0 0 15px rgba(0, 136, 255, 0.5)";
-    renderizarMesa();
-    evaluarMano();
+    fase = "REPARTO2";
+    renderizarMesa(cambiadasAlguna ? 'voltear' : 'estatico'); // Voltear solo si hubo cambios
+    
+    setTimeout(() => {
+        btn.innerText = "Nueva Mano 🎲";
+        btn.style.borderColor = "#0088ff";
+        btn.style.textShadow = "0 0 5px #0088ff";
+        btn.style.boxShadow = "0 0 15px rgba(0, 136, 255, 0.5)";
+        btn.classList.add('btn-animado');
+        btn.disabled = false;
+        retenidas = [false, false, false, false, false]; // Reset lógico
+        evaluarMano();
+    }, 500); // Dar tiempo al volteo antes de evaluar
   }
 }
 
-// === MOTOR DE EVALUACIÓN DE PÓKER ===
 function evaluarMano() {
   let valores = mano.map(c => c.valor).sort((a, b) => a - b);
   let palos = mano.map(c => c.palo);
 
   let esColor = palos.every(p => p === palos[0]);
   let esEscalera = valores.every((v, i) => i === 0 || v === valores[i-1] + 1);
-  
-  // Caso especial: Escalera con As bajo (A, 2, 3, 4, 5)
   if (!esEscalera && valores.join(',') === '2,3,4,5,14') esEscalera = true;
 
   let conteos = {};
   valores.forEach(v => conteos[v] = (conteos[v] || 0) + 1);
-  let frecuencias = Object.values(conteos).sort((a, b) => b - a); // [4,1], [3,2], etc.
+  let frecuencias = Object.values(conteos).sort((a, b) => b - a);
 
-  let resultado = { msj: "Mala Suerte 💨", win: false };
+  let resultado = { msj: "Mala Suerte 💨", win: false, idPremio: null };
 
-  if (esColor && esEscalera && valores[4] === 14 && valores[0] === 10) resultado = { msj: "¡ESCALERA REAL! 👑✨", win: true };
-  else if (esColor && esEscalera) resultado = { msj: "¡ESCALERA DE COLOR! 🌈", win: true };
-  else if (frecuencias[0] === 4) resultado = { msj: "¡PÓKER! 🍀", win: true };
-  else if (frecuencias[0] === 3 && frecuencias[1] === 2) resultado = { msj: "¡FULL HOUSE! 🏠", win: true };
-  else if (esColor) resultado = { msj: "¡COLOR! 💧", win: true };
-  else if (esEscalera) resultado = { msj: "¡ESCALERA! 🪜", win: true };
-  else if (frecuencias[0] === 3) resultado = { msj: "¡TRÍO! 🎲", win: true };
-  else if (frecuencias[0] === 2 && frecuencias[1] === 2) resultado = { msj: "¡DOBLE PAREJA! ✌️", win: true };
+  if (esColor && esEscalera && valores[4] === 14 && valores[0] === 10) resultado = { msj: "¡ESCALERA REAL! 👑✨", win: true, idPremio: 'premio-royal' };
+  else if (esColor && esEscalera) resultado = { msj: "¡ESCALERA DE COLOR! 🌈", win: true, idPremio: 'premio-strflush' };
+  else if (frecuencias[0] === 4) resultado = { msj: "¡PÓKER! 🍀", win: true, idPremio: 'premio-poker' };
+  else if (frecuencias[0] === 3 && frecuencias[1] === 2) resultado = { msj: "¡FULL HOUSE! 🏠", win: true, idPremio: 'premio-full' };
+  else if (esColor) resultado = { msj: "¡COLOR! 💧", win: true, idPremio: 'premio-flush' };
+  else if (esEscalera) resultado = { msj: "¡ESCALERA! 🪜", win: true, idPremio: 'premio-straight' };
+  else if (frecuencias[0] === 3) resultado = { msj: "¡TRÍO! 🎲", win: true, idPremio: 'premio-trio' };
+  else if (frecuencias[0] === 2 && frecuencias[1] === 2) resultado = { msj: "¡DOBLE PAREJA! ✌️", win: true, idPremio: 'premio-twopair' };
   else if (frecuencias[0] === 2) {
-    // "Jacks or Better" (Pareja de Jotas o superior para ganar)
     let pares = Object.keys(conteos).filter(k => conteos[k] === 2);
     if (pares.some(p => parseInt(p) >= 11)) {
-      resultado = { msj: "¡PAREJA ALTA! 👍", win: true };
+      resultado = { msj: "¡PAREJA ALTA! 👍", win: true, idPremio: 'premio-pair' };
     } else {
-      resultado = { msj: "Pareja Baja 😞", win: false };
+      resultado = { msj: "Pareja Baja 😞", win: false, idPremio: null };
     }
   }
 
   mostrarMensaje(resultado.msj, resultado.win ? "#00ffcc" : "#ff4500", true);
-  if (resultado.win) lanzarConfeti();
+  
+  if (resultado.win) {
+      lanzarConfeti();
+      if(resultado.idPremio) document.getElementById(resultado.idPremio).classList.add('ganador');
+  }
 }
 
 window.onload = () => {
-  renderizarMesa();
-  mostrarMensaje("Video Póker", "#ffffff", true);
+  renderizarMesa('inicio');
 };
 </script>
 </body>
