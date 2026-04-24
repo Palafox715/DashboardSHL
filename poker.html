@@ -12,6 +12,7 @@
     --borde-radio: 8px;
     --neon-blue: #0088ff;
     --neon-green: #00ffcc;
+    --neon-orange: #ff4500;
   }
 
   body {
@@ -35,7 +36,7 @@
   }
 
   .tabla-pagos {
-    background: rgba(0,0,0,0.4);
+    background: rgba(0,0,0,0.6);
     padding: 10px 20px;
     border-radius: 10px;
     display: inline-flex;
@@ -44,12 +45,13 @@
     gap: 15px;
     font-size: 0.9rem;
     color: #ccc;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(0, 136, 255, 0.3);
+    box-shadow: 0 0 15px rgba(0, 136, 255, 0.2);
   }
 
-  /* NUEVO: Resaltado de la jugada ganadora */
   .premio { padding: 5px 10px; border-radius: 5px; transition: all 0.3s ease; }
-  .premio.ganador { background: rgba(0, 255, 204, 0.2); color: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); font-weight: bold; }
+  .premio.ganador { background: rgba(0, 255, 204, 0.2); color: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); font-weight: bold; transform: scale(1.1); }
+  .multiplicador { color: var(--neon-blue); font-weight: 900; margin-left: 5px; }
 
   .zona-juego {
     flex: 1;
@@ -73,16 +75,14 @@
     flex-direction: column;
     align-items: center;
     cursor: pointer;
-    perspective: 1000px; /* Para efecto 3D */
+    perspective: 1000px;
   }
 
-  /* NUEVO: Animación de reparto en cascada */
   @keyframes caer {
     0% { transform: translateY(-100px) rotateY(180deg); opacity: 0; }
     100% { transform: translateY(0) rotateY(0deg); opacity: 1; }
   }
 
-  /* NUEVO: Animación de cambio de carta (volteo) */
   @keyframes voltear {
     0% { transform: rotateY(0deg); }
     50% { transform: rotateY(90deg); filter: brightness(0.5); }
@@ -130,6 +130,33 @@
 
   .carta-wrapper.retenida .etiqueta-hold { opacity: 1; }
 
+  /* --- ZONA DE APUESTAS --- */
+  .zona-apuesta {
+    background: rgba(0,0,0,0.7);
+    padding: 15px;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 15px rgba(0, 136, 255, 0.2);
+    margin-bottom: 20px;
+    z-index: 10;
+  }
+  
+  .chips-container { display: flex; gap: 10px; }
+  
+  .chip {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: #333; border: 3px dashed var(--neon-blue);
+    color: var(--neon-blue); font-weight: bold;
+    display: flex; justify-content: center; align-items: center;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .chip:hover { transform: scale(1.1); background: var(--neon-blue); color: #000; }
+  .apuesta-display { font-size: 1.5rem; color: var(--neon-blue); font-weight: 900; }
+
   .controles {
     display: flex;
     justify-content: center;
@@ -156,7 +183,6 @@
   button:hover:not(:disabled) { transform: scale(1.05); }
   button:disabled { opacity: 0.5; cursor: not-allowed; border-color: #555; box-shadow: none; text-shadow: none; }
 
-  /* Pulso para el botón cuando espera inicio */
   @keyframes pulso-btn {
     0% { box-shadow: 0 0 15px rgba(0, 136, 255, 0.5); transform: scale(1); }
     50% { box-shadow: 0 0 25px rgba(0, 136, 255, 0.8); transform: scale(1.05); }
@@ -182,16 +208,21 @@
     backdrop-filter: blur(5px);
   }
 
-  .confeti {
-    position: absolute;
-    top: -20px;
-    width: 10px;
-    height: 20px;
-    background-color: var(--neon-green);
-    z-index: 50;
-    animation: caer-confeti linear forwards;
+  /* Animación Dinero Flotante */
+  @keyframes flotar-monedas {
+    0% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -80px) scale(1.5); opacity: 0; }
+  }
+  .flotante-dinero {
+    position: absolute; top: 40%; left: 50%; transform: translateX(-50%);
+    font-size: 4rem; font-weight: 900; pointer-events: none; z-index: 200;
+    text-shadow: 0 0 20px rgba(0,0,0,0.8); animation: flotar-monedas 2.5s forwards;
   }
 
+  .confeti {
+    position: absolute; top: -20px; width: 10px; height: 20px;
+    background-color: var(--neon-green); z-index: 50; animation: caer-confeti linear forwards;
+  }
   @keyframes caer-confeti {
     0% { transform: translateY(0) rotate(0deg); opacity: 1; }
     100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
@@ -202,15 +233,15 @@
 
 <div class="cabecera">
   <div class="tabla-pagos">
-    <span class="premio" id="premio-royal">🏆 Escalera Real</span>
-    <span class="premio" id="premio-strflush">🌈 Escalera de Color</span>
-    <span class="premio" id="premio-poker">🍀 Póker</span>
-    <span class="premio" id="premio-full">🏠 Full House</span>
-    <span class="premio" id="premio-flush">💧 Color</span>
-    <span class="premio" id="premio-straight">🪜 Escalera</span>
-    <span class="premio" id="premio-trio">🎲 Trío</span>
-    <span class="premio" id="premio-twopair">✌️ Doble Pareja</span>
-    <span class="premio" id="premio-pair">👍 Pareja (J+)</span>
+    <span class="premio" id="premio-royal">🏆 Escalera Real <span class="multiplicador">x250</span></span>
+    <span class="premio" id="premio-strflush">🌈 Esc. de Color <span class="multiplicador">x50</span></span>
+    <span class="premio" id="premio-poker">🍀 Póker <span class="multiplicador">x25</span></span>
+    <span class="premio" id="premio-full">🏠 Full House <span class="multiplicador">x9</span></span>
+    <span class="premio" id="premio-flush">💧 Color <span class="multiplicador">x6</span></span>
+    <span class="premio" id="premio-straight">🪜 Escalera <span class="multiplicador">x4</span></span>
+    <span class="premio" id="premio-trio">🎲 Trío <span class="multiplicador">x3</span></span>
+    <span class="premio" id="premio-twopair">✌️ Doble Pareja <span class="multiplicador">x2</span></span>
+    <span class="premio" id="premio-pair">👍 Pareja (J+) <span class="multiplicador">x1</span></span>
   </div>
 </div>
 
@@ -220,8 +251,18 @@
   <div class="mano-container" id="cartas-jugador"></div>
 </div>
 
+<div class="zona-apuesta" id="panel-apuesta">
+  <div class="apuesta-display">Apuesta: <span id="valor-apuesta">1</span> 🪙</div>
+  <div class="chips-container">
+    <div class="chip" onclick="ajustarApuesta(1)">+1</div>
+    <div class="chip" onclick="ajustarApuesta(5)">+5</div>
+    <div class="chip" onclick="ajustarApuesta(10)">+10</div>
+    <div class="chip" style="border-color: #ff4500; color: #ff4500;" onclick="resetApuesta()">C</div>
+  </div>
+</div>
+
 <div class="controles">
-  <button id="btn-accion" class="btn-animado" onclick="manejarAccion()">Repartir 🎲</button>
+  <button id="btn-accion" class="btn-animado" onclick="manejarAccion()">Apostar y Repartir 🎲</button>
 </div>
 
 <script>
@@ -229,10 +270,44 @@ const palos = ['Corazones', 'Diamantes', 'Treboles', 'Picas'];
 const rangos = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 const valores = { '2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, '10':10, 'J':11, 'Q':12, 'K':13, 'A':14 };
 
+// Tabla de Multiplicadores Clásica (Paga x Veces la apuesta)
+const MULTIPLICADORES = {
+  'premio-royal': 250,
+  'premio-strflush': 50,
+  'premio-poker': 25,
+  'premio-full': 9,
+  'premio-flush': 6,
+  'premio-straight': 4,
+  'premio-trio': 3,
+  'premio-twopair': 2,
+  'premio-pair': 1
+};
+
 let mazo = [];
 let mano = [null, null, null, null, null];
 let retenidas = [false, false, false, false, false];
 let fase = "INICIO"; // INICIO -> REPARTO1 -> REPARTO2
+let apuestaActual = 1;
+
+// === LÓGICA DE APUESTAS ===
+function ajustarApuesta(cantidad) {
+  apuestaActual += cantidad;
+  document.getElementById('valor-apuesta').innerText = apuestaActual;
+}
+
+function resetApuesta() {
+  apuestaActual = 1;
+  document.getElementById('valor-apuesta').innerText = apuestaActual;
+}
+
+function lanzarAnimacionDinero(texto, color) {
+  let div = document.createElement('div');
+  div.className = 'flotante-dinero';
+  div.innerText = texto;
+  div.style.color = color;
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 2500);
+}
 
 function lanzarConfeti() {
   const colores = ['#00ffcc', '#ff4500', '#c300ff', '#ffff00', '#ffffff'];
@@ -265,7 +340,6 @@ function resetearTablaPagos() {
   document.querySelectorAll('.premio').forEach(el => el.classList.remove('ganador'));
 }
 
-// Parámetro 'modo' puede ser: 'inicio' (boca abajo), 'caer' (reparto inicial), 'voltear' (cambio de cartas)
 function renderizarMesa(modo = 'inicio') {
   const contenedor = document.getElementById('cartas-jugador');
   contenedor.innerHTML = '';
@@ -283,12 +357,10 @@ function renderizarMesa(modo = 'inicio') {
         cartaDiv.style.backgroundImage = `url('${mano[i].img}')`;
         cartaDiv.onclick = () => alternarRetener(i);
         
-        // Agregar animaciones según el modo
         if (modo === 'caer') {
             cartaDiv.classList.add('animar-caida');
-            cartaDiv.style.animationDelay = `${i * 0.1}s`; // Efecto cascada
+            cartaDiv.style.animationDelay = `${i * 0.1}s`;
         } else if (modo === 'voltear' && !retenidas[i]) {
-            // Solo animar las que fueron cambiadas
             cartaDiv.classList.add('animar-volteo');
         }
     }
@@ -307,7 +379,6 @@ function alternarRetener(index) {
   if (fase !== "REPARTO1") return;
   retenidas[index] = !retenidas[index];
   
-  // Pequeño hack para forzar el repintado de la retención sin volver a animar la carta entera
   const wrappers = document.querySelectorAll('.carta-wrapper');
   if(retenidas[index]) wrappers[index].classList.add('retenida');
   else wrappers[index].classList.remove('retenida');
@@ -325,19 +396,29 @@ function manejarAccion() {
   const btn = document.getElementById('btn-accion');
 
   if (fase === "INICIO" || fase === "REPARTO2") {
+    // 1. Cobrar la apuesta conectando al Dashboard
+    if (window.parent && window.parent.restarMonedas) {
+        if (!window.parent.restarMonedas(apuestaActual)) {
+            alert("¡Fondos insuficientes! Consigue códigos de recompensa para obtener más monedas.");
+            return;
+        }
+    }
+
+    // Ocultar panel de apuestas mientras se juega
+    document.getElementById('panel-apuesta').style.display = 'none';
+
     crearMazo();
     retenidas = [false, false, false, false, false];
     mostrarMensaje("", "", false);
     resetearTablaPagos();
     btn.classList.remove('btn-animado');
-    btn.disabled = true; // Desactivar botón durante animación
+    btn.disabled = true; 
     
     for (let i = 0; i < 5; i++) mano[i] = mazo.pop();
     
     fase = "REPARTO1";
     renderizarMesa('caer');
     
-    // Esperar a que acabe la animación para reactivar botón
     setTimeout(() => {
         btn.innerText = "Cambiar Cartas 🔄";
         btn.style.borderColor = "#ff4500";
@@ -347,9 +428,8 @@ function manejarAccion() {
     }, 800); 
 
   } else if (fase === "REPARTO1") {
-    btn.disabled = true; // Bloquear doble clic
+    btn.disabled = true; 
     
-    // Guardar estado visual previo para la animación
     let cambiadasAlguna = false;
     for (let i = 0; i < 5; i++) {
       if (!retenidas[i]) {
@@ -359,7 +439,7 @@ function manejarAccion() {
     }
     
     fase = "REPARTO2";
-    renderizarMesa(cambiadasAlguna ? 'voltear' : 'estatico'); // Voltear solo si hubo cambios
+    renderizarMesa(cambiadasAlguna ? 'voltear' : 'estatico'); 
     
     setTimeout(() => {
         btn.innerText = "Nueva Mano 🎲";
@@ -368,9 +448,9 @@ function manejarAccion() {
         btn.style.boxShadow = "0 0 15px rgba(0, 136, 255, 0.5)";
         btn.classList.add('btn-animado');
         btn.disabled = false;
-        retenidas = [false, false, false, false, false]; // Reset lógico
+        retenidas = [false, false, false, false, false]; 
         evaluarMano();
-    }, 500); // Dar tiempo al volteo antes de evaluar
+    }, 500); 
   }
 }
 
@@ -407,10 +487,27 @@ function evaluarMano() {
 
   mostrarMensaje(resultado.msj, resultado.win ? "#00ffcc" : "#ff4500", true);
   
+  // LÓGICA ECONÓMICA DE PAGO
   if (resultado.win) {
       lanzarConfeti();
       if(resultado.idPremio) document.getElementById(resultado.idPremio).classList.add('ganador');
+      
+      let multiplicador = MULTIPLICADORES[resultado.idPremio] || 1;
+      let premio = apuestaActual * multiplicador; // El pago total
+      
+      if (window.parent && window.parent.agregarMonedas) {
+          window.parent.agregarMonedas(premio);
+          lanzarAnimacionDinero(`+${premio} 🪙`, "var(--neon-green)");
+      }
+  } else {
+      lanzarAnimacionDinero(`-${apuestaActual} 🪙`, "var(--neon-orange)");
   }
+
+  // Volver a mostrar el panel de apuestas tras una pausa
+  setTimeout(() => {
+      document.getElementById('panel-apuesta').style.display = 'flex';
+      document.getElementById('btn-accion').innerText = "Apostar y Repartir 🎲";
+  }, 2500);
 }
 
 window.onload = () => {
