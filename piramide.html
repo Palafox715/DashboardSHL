@@ -79,7 +79,7 @@
     transform: translateY(-10px);
     box-shadow: 0 0 20px var(--neon-green), 0 0 40px var(--neon-green);
     border: 2px solid var(--neon-green);
-    z-index: 100;
+    z-index: 100 !important;
   }
 
   .carta.error { animation: sacudir 0.4s; box-shadow: 0 0 20px red; border: 2px solid red; }
@@ -183,7 +183,7 @@
 <h1 id="mensaje-estado">¡Pirámide Limpia! 🎉</h1>
 
 <div class="zona-piramide" id="piramide-container">
-  </div>
+</div>
 
 <script>
 const palos = ['Corazones', 'Diamantes', 'Treboles', 'Picas'];
@@ -210,7 +210,6 @@ function lanzarConfeti() {
   }
 }
 
-// NUEVA FUNCION: Animación del pago
 function lanzarAnimacionDinero(texto, color) {
   let div = document.createElement('div');
   div.className = 'flotante-dinero';
@@ -280,6 +279,7 @@ function renderizarMesa() {
   const container = document.getElementById('piramide-container');
   container.innerHTML = '';
 
+  // Dibujar Pirámide
   piramide.forEach((item, index) => {
     if (item.eliminada) return;
 
@@ -295,9 +295,149 @@ function renderizarMesa() {
     div.dataset.valor = item.carta.valor;
     div.dataset.origen = 'piramide';
     
+    // Si esta carta era la seleccionada antes de re-renderizar, mantener el brillo
+    if (cartaSeleccionada && cartaSeleccionada.dataset.origen === 'piramide' && parseInt(cartaSeleccionada.dataset.indexPiramide) === index) {
+        div.classList.add('seleccionada');
+        cartaSeleccionada = div; // Actualizar referencia al nuevo DOM
+    }
+
     div.onclick = () => manejarClicCarta(div);
     container.appendChild(div);
   });
 
+  // Dibujar Mazo
   const deckSlot = document.getElementById('stock');
-  deckSlot.innerHTML = mazo.
+  deckSlot.innerHTML = mazo.length > 0 ? '↻' : '❌';
+  
+  // Dibujar Waste
+  const wasteContainer = document.getElementById('waste-container');
+  wasteContainer.innerHTML = '';
+  if (waste.length > 0) {
+    let topWaste = waste[waste.length - 1];
+    let div = document.createElement('div');
+    div.className = 'carta';
+    div.style.backgroundImage = `url('${topWaste.img}')`;
+    div.dataset.valor = topWaste.valor;
+    div.dataset.origen = 'waste';
+    
+    // Si esta carta era la seleccionada, mantener el brillo
+    if (cartaSeleccionada && cartaSeleccionada.dataset.origen === 'waste') {
+        div.classList.add('seleccionada');
+        cartaSeleccionada = div;
+    }
+
+    div.onclick = () => manejarClicCarta(div);
+    wasteContainer.appendChild(div);
+  }
+}
+
+function robarCarta() {
+  if (cartaSeleccionada) deseleccionarCarta();
+  
+  if (mazo.length > 0) {
+    waste.push(mazo.pop());
+  } else if (waste.length > 0) {
+    mazo = waste.reverse();
+    waste = [];
+  }
+  renderizarMesa();
+}
+
+function manejarClicCarta(cartaClicada) {
+  const esPiramide = cartaClicada.dataset.origen === 'piramide';
+  const idxPiramide = esPiramide ? parseInt(cartaClicada.dataset.indexPiramide) : null;
+  
+  if (esPiramide && estaBloqueada(piramide[idxPiramide].fila, piramide[idxPiramide].col)) {
+    mostrarError(cartaClicada);
+    return;
+  }
+
+  const valorClicado = parseInt(cartaClicada.dataset.valor);
+
+  if (valorClicado === 13) {
+    eliminarCartas(cartaClicada, null);
+    return;
+  }
+
+  if (!cartaSeleccionada) {
+    cartaSeleccionada = cartaClicada;
+    cartaSeleccionada.classList.add('seleccionada');
+    return;
+  }
+
+  if (cartaSeleccionada === cartaClicada) {
+    deseleccionarCarta();
+    return;
+  }
+
+  const valorAnterior = parseInt(cartaSeleccionada.dataset.valor);
+  if (valorAnterior + valorClicado === 13) {
+    eliminarCartas(cartaSeleccionada, cartaClicada);
+  } else {
+    mostrarError(cartaClicada);
+    mostrarError(cartaSeleccionada);
+    deseleccionarCarta();
+  }
+}
+
+function deseleccionarCarta() {
+  if (cartaSeleccionada) {
+    cartaSeleccionada.classList.remove('seleccionada');
+    cartaSeleccionada = null;
+  }
+}
+
+function mostrarError(elemento) {
+  elemento.classList.add('error');
+  setTimeout(() => elemento.classList.remove('error'), 400);
+}
+
+function eliminarCartas(c1, c2) {
+  if (c1) { c1.style.opacity = 0; c1.style.transform = 'scale(1.2)'; }
+  if (c2) { c2.style.opacity = 0; c2.style.transform = 'scale(1.2)'; }
+  
+  // Extraemos la información ANTES de limpiar cartaSeleccionada
+  let datosC1 = c1 ? { origen: c1.dataset.origen, idx: parseInt(c1.dataset.indexPiramide) } : null;
+  let datosC2 = c2 ? { origen: c2.dataset.origen, idx: parseInt(c2.dataset.indexPiramide) } : null;
+  
+  cartaSeleccionada = null;
+
+  setTimeout(() => {
+    [datosC1, datosC2].forEach(datos => {
+      if (!datos) return;
+      if (datos.origen === 'piramide') {
+        piramide[datos.idx].eliminada = true;
+      } else if (datos.origen === 'waste') {
+        waste.pop();
+      }
+    });
+
+    renderizarMesa();
+    comprobarVictoria();
+  }, 300);
+}
+
+function comprobarVictoria() {
+  const piramideLimpia = piramide.every(item => item.eliminada === true);
+  
+  if (piramideLimpia) {
+    document.getElementById('mensaje-estado').style.opacity = 1;
+    document.getElementById('mensaje-estado').style.transform = "translate(-50%, -50%) scale(1)";
+    
+    // --- ECONOMÍA: Recompensa Jackpot ---
+    if (window.parent && window.parent.agregarMonedas) {
+        window.parent.agregarMonedas(100); 
+        setTimeout(() => {
+            lanzarAnimacionDinero("+100 🪙", "#ffd700"); 
+        }, 500);
+    }
+    
+    lanzarConfeti();
+  }
+}
+
+window.addEventListener('resize', renderizarMesa);
+window.onload = iniciarJuego;
+</script>
+</body>
+</html>
