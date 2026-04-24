@@ -34,15 +34,21 @@
     --neon-orange: #ff4500;
   }
 
-  body {
+body {
+    font-family: 'Inter', sans-serif;
+    color: white;
     margin: 0;
-    font-family: "Inter", system-ui, sans-serif;
-    background: var(--bg-dark);
-    color: var(--text-main);
-    overflow-x: hidden; 
-    overflow-y: auto; 
-    position: relative;
-    width: 100%;
+    padding: 20px;
+    height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    /* --- NUEVO FONDO --- */
+    background-color: #0b0c10; /* Color de respaldo por si tarda en cargar la imagen */
+    background-image: url('./fondo.png');
+    background-size: cover; /* Asegura que cubra toda la pantalla */
+    background-position: center; /* Lo centra */
+    background-attachment: fixed; /* Hace que el fondo se quede quieto si hay scroll */
   }
 
   #battlefield {
