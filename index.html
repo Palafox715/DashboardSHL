@@ -924,25 +924,57 @@ btnMentiroso.addEventListener('click', () => {
 // === FIN LÓGICA BOTONES ===
 
 
+// === CEREBRO ECONÓMICO (EL BANCO) BLINDADO ===
 
-// === CEREBRO ECONÓMICO (EL BANCO) ===
+// 0. Llave Secreta Anti-Hackers (Nadie la ve a menos que lea el código fuente)
+const SECRET_KEY = "Shoreline_Ensenada_2026_TopSecret!";
 
-// 1. Inicialización de la Bóveda
-let balanceMonedas = parseInt(localStorage.getItem('shoreline_monedas')) || 0;
+// Función que crea una firma matemática para validar el dinero
+function generarFirma(cantidad) {
+  // Mezcla la cantidad con la llave secreta y la codifica en Base64
+  return btoa(cantidad + "|" + SECRET_KEY); 
+}
+
+// 1. Inicialización de la Bóveda (Con Verificación)
+let balanceMonedas = 0;
 let codigosUsados = JSON.parse(localStorage.getItem('shoreline_codigos_usados')) || [];
+
+let dineroGuardado = localStorage.getItem('shoreline_monedas');
+let firmaGuardada = localStorage.getItem('shoreline_firma');
+
+if (dineroGuardado !== null) {
+  // Comprobamos si el dinero coincide con la firma que nosotros le pusimos
+  if (firmaGuardada === generarFirma(dineroGuardado)) {
+    balanceMonedas = parseInt(dineroGuardado); // Todo en orden, cargar dinero
+  } else {
+    // ¡HACKER DETECTADO! 🚨
+    console.warn("Alteración de LocalStorage detectada. Reseteando fondos a 0.");
+    alert("🚨 SHORELINE SECURITY: Se detectó una anomalía en tu balance de monedas. Por violar las reglas del casino, tus fondos han sido embargados y reseteados a 0.");
+    balanceMonedas = 0; 
+    guardarEnBoveda(0); // Castigado
+  }
+} else {
+  // Jugador nuevo
+  guardarEnBoveda(0);
+}
 
 function actualizarDisplayMonedas() {
   document.getElementById('display-monedas').innerText = balanceMonedas;
 }
-actualizarDisplayMonedas(); // Mostrar al cargar la página
+actualizarDisplayMonedas();
+
+// Función unificada para guardar dinero + firma
+function guardarEnBoveda(cantidad) {
+  localStorage.setItem('shoreline_monedas', cantidad);
+  localStorage.setItem('shoreline_firma', generarFirma(cantidad));
+}
 
 // 2. Funciones del Banco
 function agregarMonedas(cantidad) {
   balanceMonedas += cantidad;
-  localStorage.setItem('shoreline_monedas', balanceMonedas);
+  guardarEnBoveda(balanceMonedas); // Guardamos con seguridad
   actualizarDisplayMonedas();
   
-  // Efecto visual rápido al ganar monedas
   const display = document.querySelector('.contador-monedas');
   display.style.transform = 'scale(1.2)';
   display.style.boxShadow = '0 0 30px rgba(255, 215, 0, 0.8)';
@@ -955,12 +987,13 @@ function agregarMonedas(cantidad) {
 function restarMonedas(cantidad) {
   if (balanceMonedas >= cantidad) {
     balanceMonedas -= cantidad;
-    localStorage.setItem('shoreline_monedas', balanceMonedas);
+    guardarEnBoveda(balanceMonedas); // Guardamos con seguridad
     actualizarDisplayMonedas();
-    return true; // Transacción exitosa
+    return true; 
   }
-  return false; // Fondos insuficientes
+  return false; 
 }
+
 
 // 3. Sistema de Códigos
 function abrirModalCodigos() {
