@@ -58,7 +58,6 @@
     flex: 1;
     position: relative;
     margin-top: 20px;
-    /* Ajuste para centrar la pirámide. El left de cada carta se calcula en JS */
   }
 
   .carta {
@@ -74,10 +73,8 @@
     cursor: pointer;
   }
 
-  /* Cartas bloqueadas se ven un poco oscuras */
   .carta.bloqueada { filter: brightness(0.6); cursor: not-allowed; }
   
-  /* Carta seleccionada brilla en verde */
   .carta.seleccionada {
     transform: translateY(-10px);
     box-shadow: 0 0 20px var(--neon-green), 0 0 40px var(--neon-green);
@@ -85,7 +82,6 @@
     z-index: 100;
   }
 
-  /* Animación de error (sacudida roja) */
   .carta.error { animation: sacudir 0.4s; box-shadow: 0 0 20px red; border: 2px solid red; }
 
   @keyframes sacudir {
@@ -148,6 +144,24 @@
     0% { transform: translateY(0) rotate(0deg); opacity: 1; }
     100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
   }
+
+  /* NUEVO: Animación de Monedas de Recompensa */
+  @keyframes flotar-monedas {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-50px) scale(1.5); opacity: 0; }
+  }
+
+  .flotante-dinero {
+    position: absolute;
+    top: 65%; left: 50%;
+    transform: translateX(-50%);
+    font-size: 4rem;
+    font-weight: 900;
+    pointer-events: none;
+    z-index: 2000;
+    text-shadow: 0 0 20px rgba(0,0,0,0.8);
+    animation: flotar-monedas 2s forwards;
+  }
 </style>
 </head>
 <body>
@@ -177,10 +191,11 @@ const rangos = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'
 const valores = { 'A':1, '2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, '10':10, 'J':11, 'Q':12, 'K':13 };
 
 let mazo = [];
-let piramide = []; // Guardará objetos { id, fila, col, carta, eliminada }
+let piramide = []; 
 let waste = [];
-let cartaSeleccionada = null; // El elemento DOM de la primera carta tocada
+let cartaSeleccionada = null; 
 
+// --- ANIMACIONES ---
 function lanzarConfeti() {
   const colores = ['#00ffcc', '#ff4500', '#c300ff', '#ffff00', '#ffffff'];
   for (let i = 0; i < 80; i++) {
@@ -195,6 +210,16 @@ function lanzarConfeti() {
   }
 }
 
+// NUEVA FUNCION: Animación del pago
+function lanzarAnimacionDinero(texto, color) {
+  let div = document.createElement('div');
+  div.className = 'flotante-dinero';
+  div.innerText = texto;
+  div.style.color = color;
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 2000);
+}
+
 function crearMazo() {
   mazo = [];
   for (let palo of palos) {
@@ -202,7 +227,6 @@ function crearMazo() {
       mazo.push({ id: `${rango}_${palo}`, valor: valores[rango], img: `./Naipes/${rango}_${palo}.png` });
     }
   }
-  // Barajar
   for (let i = mazo.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [mazo[i], mazo[j]] = [mazo[j], mazo[i]];
@@ -217,7 +241,6 @@ function iniciarJuego() {
   document.getElementById('mensaje-estado').style.opacity = 0;
   document.getElementById('mensaje-estado').style.transform = "translate(-50%, -50%) scale(0.8)";
   
-  // Construir lógica de la pirámide (7 filas, 28 cartas)
   for (let f = 0; f < 7; f++) {
     for (let c = 0; c <= f; c++) {
       piramide.push({ fila: f, col: c, carta: mazo.pop(), eliminada: false });
@@ -228,11 +251,9 @@ function iniciarJuego() {
 }
 
 function calcularPosicion(fila, col) {
-  // Dimensiones
   const wCarta = 80; const hCarta = 115;
-  const gapX = 10; const superposicionY = 60; // Cuánto se tapan hacia abajo
+  const gapX = 10; const superposicionY = 60; 
   
-  // Asumimos un ancho de pantalla de ~900px para centrar
   const centroX = window.innerWidth / 2; 
   const anchoFila = (fila + 1) * wCarta + (fila * gapX);
   const inicioX = centroX - (anchoFila / 2);
@@ -244,9 +265,8 @@ function calcularPosicion(fila, col) {
 }
 
 function estaBloqueada(fila, col) {
-  if (fila === 6) return false; // La fila de hasta abajo nunca está bloqueada por otras abajo
+  if (fila === 6) return false; 
   
-  // Está bloqueada si existe y NO ha sido eliminada la carta justo debajo a la izq o a la der
   const izq = piramide.find(p => p.fila === fila + 1 && p.col === col);
   const der = piramide.find(p => p.fila === fila + 1 && p.col === col + 1);
   
@@ -260,7 +280,6 @@ function renderizarMesa() {
   const container = document.getElementById('piramide-container');
   container.innerHTML = '';
 
-  // Dibujar Pirámide
   piramide.forEach((item, index) => {
     if (item.eliminada) return;
 
@@ -270,9 +289,8 @@ function renderizarMesa() {
     div.style.left = `${pos.x}px`;
     div.style.top = `${pos.y}px`;
     div.style.backgroundImage = `url('${item.carta.img}')`;
-    div.style.zIndex = item.fila; // Para que las de abajo tapen a las de arriba
+    div.style.zIndex = item.fila; 
     
-    // Guardamos datos en el DOM para la lógica de clics
     div.dataset.indexPiramide = index;
     div.dataset.valor = item.carta.valor;
     div.dataset.origen = 'piramide';
@@ -281,129 +299,5 @@ function renderizarMesa() {
     container.appendChild(div);
   });
 
-  // Dibujar Mazo/Waste
   const deckSlot = document.getElementById('stock');
-  deckSlot.innerHTML = mazo.length > 0 ? '↻' : '❌'; // Si se acaba el mazo, marcar con cruz
-  
-  const wasteContainer = document.getElementById('waste-container');
-  wasteContainer.innerHTML = '';
-  if (waste.length > 0) {
-    let topWaste = waste[waste.length - 1];
-    let div = document.createElement('div');
-    div.className = 'carta';
-    div.style.backgroundImage = `url('${topWaste.img}')`;
-    div.dataset.valor = topWaste.valor;
-    div.dataset.origen = 'waste';
-    div.onclick = () => manejarClicCarta(div);
-    wasteContainer.appendChild(div);
-  }
-}
-
-function robarCarta() {
-  if (cartaSeleccionada) deseleccionarCarta(); // Si habías tocado una, suéltala
-  
-  if (mazo.length > 0) {
-    waste.push(mazo.pop());
-  } else if (waste.length > 0) {
-    // Si se acaba, reciclamos el waste (Regla flexible: 3 pases permitidos usualmente, aquí infinito para relajar)
-    mazo = waste.reverse();
-    waste = [];
-  }
-  renderizarMesa();
-}
-
-function manejarClicCarta(cartaClicada) {
-  const esPiramide = cartaClicada.dataset.origen === 'piramide';
-  const idxPiramide = esPiramide ? parseInt(cartaClicada.dataset.indexPiramide) : null;
-  
-  // Rechazar clics en cartas bloqueadas de la pirámide
-  if (esPiramide && estaBloqueada(piramide[idxPiramide].fila, piramide[idxPiramide].col)) {
-    mostrarError(cartaClicada);
-    return;
-  }
-
-  const valorClicado = parseInt(cartaClicada.dataset.valor);
-
-  // REGLA DEL REY (13): Se elimina solo inmediatamente
-  if (valorClicado === 13) {
-    eliminarCartas(cartaClicada, null);
-    return;
-  }
-
-  // SI NO HAY NADA SELECCIONADO: Seleccionamos esta
-  if (!cartaSeleccionada) {
-    cartaSeleccionada = cartaClicada;
-    cartaSeleccionada.classList.add('seleccionada');
-    return;
-  }
-
-  // SI HACEMOS CLIC EN LA MISMA: Deseleccionamos
-  if (cartaSeleccionada === cartaClicada) {
-    deseleccionarCarta();
-    return;
-  }
-
-  // SI YA HAY OTRA SELECCIONADA: Comprobamos si suman 13
-  const valorAnterior = parseInt(cartaSeleccionada.dataset.valor);
-  if (valorAnterior + valorClicado === 13) {
-    eliminarCartas(cartaSeleccionada, cartaClicada);
-  } else {
-    // Si fallan, mostramos error y soltamos la selección
-    mostrarError(cartaClicada);
-    mostrarError(cartaSeleccionada);
-    deseleccionarCarta();
-  }
-}
-
-function deseleccionarCarta() {
-  if (cartaSeleccionada) {
-    cartaSeleccionada.classList.remove('seleccionada');
-    cartaSeleccionada = null;
-  }
-}
-
-function mostrarError(elemento) {
-  elemento.classList.add('error');
-  setTimeout(() => elemento.classList.remove('error'), 400);
-}
-
-function eliminarCartas(c1, c2) {
-  // Efecto visual de desvanecimiento
-  if (c1) { c1.style.opacity = 0; c1.style.transform = 'scale(1.2)'; }
-  if (c2) { c2.style.opacity = 0; c2.style.transform = 'scale(1.2)'; }
-  cartaSeleccionada = null;
-
-  setTimeout(() => {
-    // Lógica interna: Marcar como eliminadas o sacarlas del array
-    [c1, c2].forEach(cartaHTML => {
-      if (!cartaHTML) return;
-      if (cartaHTML.dataset.origen === 'piramide') {
-        piramide[parseInt(cartaHTML.dataset.indexPiramide)].eliminada = true;
-      } else if (cartaHTML.dataset.origen === 'waste') {
-        waste.pop(); // Siempre es la última del array
-      }
-    });
-
-    renderizarMesa();
-    comprobarVictoria();
-  }, 300); // Dar tiempo a la animación CSS antes de re-renderizar
-}
-
-function comprobarVictoria() {
-  // El juego se gana si todas las cartas de la pirámide están marcadas como eliminadas
-  const piramideLimpia = piramide.every(item => item.eliminada === true);
-  
-  if (piramideLimpia) {
-    document.getElementById('mensaje-estado').style.opacity = 1;
-    document.getElementById('mensaje-estado').style.transform = "translate(-50%, -50%) scale(1)";
-    lanzarConfeti();
-  }
-}
-
-// Para asegurar que la pirámide se centre correctamente si cambia el tamaño de la ventana
-window.addEventListener('resize', renderizarMesa);
-
-window.onload = iniciarJuego;
-</script>
-</body>
-</html>
+  deckSlot.innerHTML = mazo.
