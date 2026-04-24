@@ -13,6 +13,7 @@
     --neon-orange: #ff4500;
     --neon-green: #00ffcc;
     --neon-blue: #0088ff;
+    --neon-gold: #ffd700;
   }
 
   body {
@@ -86,8 +87,8 @@
 
   .grid-container {
     display: grid;
-    grid-template-columns: repeat(6, 1fr); /* 5 cols + 1 col para puntaje de fila */
-    grid-template-rows: repeat(6, 1fr);    /* 5 filas + 1 fila para puntaje de col */
+    grid-template-columns: repeat(6, 1fr); 
+    grid-template-rows: repeat(6, 1fr);    
     gap: 8px;
   }
 
@@ -127,7 +128,7 @@
     to { opacity: 1; transform: scale(1); }
   }
 
-  /* --- ETIQUETAS DE PUNTAJE (Filas y Columnas) --- */
+  /* --- ETIQUETAS DE PUNTAJE --- */
   .puntaje-linea {
     display: flex;
     flex-direction: column;
@@ -140,15 +141,15 @@
     padding: 5px;
     background: rgba(0,0,0,0.4);
     border-radius: var(--borde-radio);
-    min-height: var(--carta-h); /* Para filas */
+    min-height: var(--carta-h);
   }
   
-  .puntaje-col { min-height: 40px; } /* Para columnas (abajo) */
+  .puntaje-col { min-height: 40px; } 
 
   .mano-nombre { color: var(--neon-blue); font-size: 0.75rem; margin-bottom: 2px; }
   .mano-puntos { color: #fff; font-size: 1.1rem; }
 
-  /* --- FIN DEL JUEGO --- */
+  /* --- FIN DEL JUEGO Y ECONOMÍA --- */
   #mensaje-estado {
     position: absolute;
     top: 50%; left: 50%;
@@ -182,11 +183,32 @@
     0% { transform: translateY(0) rotate(0deg); opacity: 1; }
     100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
   }
+
+  /* NUEVO: Animación de Monedas Flotantes */
+  @keyframes flotar-monedas {
+    0% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -80px) scale(1.5); opacity: 0; }
+  }
+
+  .flotante-dinero {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, 0);
+    font-size: 4rem;
+    font-weight: 900;
+    pointer-events: none;
+    z-index: 2000;
+    text-shadow: 0 0 20px rgba(0,0,0,0.8);
+    animation: flotar-monedas 2.5s forwards;
+  }
 </style>
 </head>
 <body>
 
-<h1 id="mensaje-estado">¡Juego Terminado!<br><span id="puntaje-final" style="color:white;">0 pts</span></h1>
+<h1 id="mensaje-estado">¡Juego Terminado!<br>
+  <span id="puntaje-final" style="color:white; font-size: 2rem;">0 pts</span><br>
+  <span id="monedas-ganadas" style="color:var(--neon-gold); font-size: 2.5rem; text-shadow: 0 0 10px var(--neon-gold);"></span>
+</h1>
 
 <div class="zona-superior">
   <div class="zona-robo">
@@ -200,18 +222,15 @@
 </div>
 
 <div class="zona-central">
-  <div class="grid-container" id="tablero">
-    </div>
+  <div class="grid-container" id="tablero"></div>
 </div>
 
 <script>
 // --- CONFIGURACIÓN BASE ---
 const palos = ['Corazones', 'Diamantes', 'Treboles', 'Picas'];
 const rangos = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-// Valores numéricos para evaluar escaleras (A=1 y 14)
 const valoresNum = { '2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, '10':10, 'J':11, 'Q':12, 'K':13, 'A':14 };
 
-// Sistema de puntuación Americano clásico
 const PUNTOS = {
   'Escalera Real': 100,
   'Escalera de Color': 75,
@@ -230,6 +249,7 @@ let cartaActual = null;
 let cuadrícula = Array(5).fill(null).map(() => Array(5).fill(null));
 let cartasColocadas = 0;
 
+// --- EFECTOS VISUALES ---
 function lanzarConfeti() {
   const colores = ['#00ffcc', '#ff4500', '#c300ff', '#ffff00', '#ffffff'];
   for (let i = 0; i < 80; i++) {
@@ -244,6 +264,16 @@ function lanzarConfeti() {
   }
 }
 
+function lanzarAnimacionDinero(texto, color) {
+  let div = document.createElement('div');
+  div.className = 'flotante-dinero';
+  div.innerText = texto;
+  div.style.color = color;
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 2500);
+}
+
+// --- MOTOR DEL JUEGO ---
 function crearMazo() {
   mazo = [];
   for (let palo of palos) {
@@ -251,7 +281,6 @@ function crearMazo() {
       mazo.push({ id: `${rango}_${palo}`, rango: rango, palo: palo, valor: valoresNum[rango], img: `./Naipes/${rango}_${palo}.png` });
     }
   }
-  // Barajar
   for (let i = mazo.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [mazo[i], mazo[j]] = [mazo[j], mazo[i]];
@@ -265,6 +294,7 @@ function iniciarJuego() {
   
   document.getElementById('mensaje-estado').style.opacity = 0;
   document.getElementById('mensaje-estado').style.transform = "translate(-50%, -50%) scale(0.8)";
+  document.getElementById('monedas-ganadas').innerText = ''; // Limpiar mensaje anterior
   
   construirTablero();
   robarCarta();
@@ -283,21 +313,18 @@ function construirTablero() {
       ranura.onclick = () => colocarCarta(f, c);
       tablero.appendChild(ranura);
     }
-    // Añadir ranura de puntaje de Fila al final de cada fila
     let puntajeFila = document.createElement('div');
     puntajeFila.className = 'puntaje-linea';
     puntajeFila.id = `score-fila-${f}`;
     tablero.appendChild(puntajeFila);
   }
 
-  // Última fila (Puntajes de Columnas)
   for (let c = 0; c < 5; c++) {
     let puntajeCol = document.createElement('div');
     puntajeCol.className = 'puntaje-linea puntaje-col';
     puntajeCol.id = `score-col-${c}`;
     tablero.appendChild(puntajeCol);
   }
-  // Esquina inferior derecha vacía
   let vacio = document.createElement('div');
   tablero.appendChild(vacio);
 }
@@ -318,14 +345,12 @@ function robarCarta() {
 function colocarCarta(fila, col) {
   if (cuadrícula[fila][col] !== null || !cartaActual) return;
 
-  // Actualizar lógica
   cuadrícula[fila][col] = cartaActual;
   cartasColocadas++;
   
-  // Actualizar visual
   const ranura = document.getElementById(`ranura-${fila}-${col}`);
-  ranura.className = 'ranura'; // Quita 'activa' para no mostrar hover
-  ranura.onclick = null; // Deshabilita clic
+  ranura.className = 'ranura'; 
+  ranura.onclick = null; 
   
   let divCarta = document.createElement('div');
   divCarta.className = 'carta';
@@ -344,9 +369,7 @@ function colocarCarta(fila, col) {
   }
 }
 
-// --- LÓGICA DE EVALUACIÓN DE MANOS DE PÓKER ---
 function evaluarLinea(lineaCartas) {
-  // Solo evalúa si la línea está llena (5 cartas)
   if (lineaCartas.includes(null)) return { nombre: '-', puntos: 0 };
 
   let valores = lineaCartas.map(c => c.valor).sort((a, b) => a - b);
@@ -355,7 +378,6 @@ function evaluarLinea(lineaCartas) {
   let esColor = palos.every(p => p === palos[0]);
   let esEscalera = valores.every((v, i) => i === 0 || v === valores[i-1] + 1);
   
-  // Caso especial: Escalera con As bajo (A, 2, 3, 4, 5)
   if (!esEscalera && valores.join(',') === '2,3,4,5,14') esEscalera = true;
 
   let conteos = {};
@@ -378,9 +400,8 @@ function evaluarLinea(lineaCartas) {
 function actualizarPuntajes() {
   let granTotal = 0;
 
-  // Evaluar Filas
   for (let f = 0; f < 5; f++) {
-    let linea = cuadrícula[f]; // La fila completa
+    let linea = cuadrícula[f]; 
     let resultado = evaluarLinea(linea);
     granTotal += resultado.puntos;
     
@@ -389,7 +410,6 @@ function actualizarPuntajes() {
     if(resultado.puntos > 0) el.style.color = 'var(--neon-green)';
   }
 
-  // Evaluar Columnas
   for (let c = 0; c < 5; c++) {
     let linea = [cuadrícula[0][c], cuadrícula[1][c], cuadrícula[2][c], cuadrícula[3][c], cuadrícula[4][c]];
     let resultado = evaluarLinea(linea);
@@ -400,22 +420,38 @@ function actualizarPuntajes() {
     if(resultado.puntos > 0) el.style.color = 'var(--neon-green)';
   }
 
-  // Actualizar marcador central
   document.getElementById('marcador-total').innerText = granTotal;
 }
 
 function finalizarJuego() {
-  const total = document.getElementById('marcador-total').innerText;
-  document.getElementById('puntaje-final').innerText = `${total} Puntos`;
+  const totalStr = document.getElementById('marcador-total').innerText;
+  const puntosTotales = parseInt(totalStr);
+  
+  document.getElementById('puntaje-final').innerText = `${puntosTotales} Puntos`;
+  
+  // --- ECONOMÍA: Convertir Puntos a Monedas ---
+  if (puntosTotales > 0) {
+      document.getElementById('monedas-ganadas').innerText = `+${puntosTotales} Monedas de Oro`;
+      
+      if (window.parent && window.parent.agregarMonedas) {
+          window.parent.agregarMonedas(puntosTotales); 
+          
+          setTimeout(() => {
+              lanzarAnimacionDinero(`+${puntosTotales} 🪙`, "var(--neon-gold)"); 
+          }, 500);
+      }
+      
+      // Lanzar confeti solo si hicieron más de 0 puntos para que sea especial
+      lanzarConfeti();
+  } else {
+      // Si sacaron 0 puntos, no hay premio ni confeti
+      document.getElementById('monedas-ganadas').innerText = "Sin ganancias esta vez";
+      document.getElementById('monedas-ganadas').style.color = "#aaa";
+  }
   
   const msg = document.getElementById('mensaje-estado');
   msg.style.opacity = 1;
   msg.style.transform = "translate(-50%, -50%) scale(1)";
-  
-  // Si logró un buen puntaje (generalmente > 50 es decente en sistema americano), confeti
-  if (parseInt(total) > 50) {
-      lanzarConfeti();
-  }
 }
 
 window.onload = iniciarJuego;
