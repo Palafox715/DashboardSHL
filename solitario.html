@@ -89,11 +89,11 @@
 
   .carta.boca-abajo {
     background-image: repeating-linear-gradient(45deg, #b30000 0, #b30000 5px, #800000 5px, #800000 10px);
-    cursor: pointer; /* Cambiado para el deck */
+    cursor: pointer;
   }
 
   .carta.boca-abajo:hover {
-     box-shadow: 2px 2px 5px rgba(0,0,0,0.4); /* Quitar brillo verde si está boca abajo */
+     box-shadow: 2px 2px 5px rgba(0,0,0,0.4);
   }
 
   .btn-reiniciar {
@@ -146,6 +146,24 @@
     0% { transform: translateY(0) rotate(0deg); opacity: 1; }
     100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
   }
+
+  /* Animaciones de Economía */
+  @keyframes flotar-monedas {
+    0% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -80px) scale(1.5); opacity: 0; }
+  }
+
+  .flotante-dinero {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, 0);
+    font-size: 4rem;
+    font-weight: 900;
+    pointer-events: none;
+    z-index: 2000;
+    text-shadow: 0 0 20px rgba(0,0,0,0.8);
+    animation: flotar-monedas 2.5s forwards;
+  }
 </style>
 </head>
 <body>
@@ -197,6 +215,15 @@ function lanzarConfeti() {
     document.body.appendChild(confeti);
     setTimeout(() => confeti.remove(), 4000);
   }
+}
+
+function lanzarAnimacionDinero(texto, color) {
+  let div = document.createElement('div');
+  div.className = 'flotante-dinero';
+  div.innerText = texto;
+  div.style.color = color;
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 2500);
 }
 
 function crearMazo() {
@@ -404,6 +431,16 @@ function comprobarVictoria() {
         juegoTerminado = true;
         document.getElementById('mensaje-estado').style.opacity = 1;
         document.getElementById('mensaje-estado').style.transform = "translate(-50%, -50%) scale(1)";
+        
+        // --- ECONOMÍA: Recompensa Jackpot ---
+        if (window.parent && window.parent.agregarMonedas) {
+            window.parent.agregarMonedas(100); 
+            // Animación de dinero
+            setTimeout(() => {
+                lanzarAnimacionDinero("+100 🪙", "#ffd700"); 
+            }, 500);
+        }
+        
         lanzarConfeti();
     }
 }
