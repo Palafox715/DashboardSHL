@@ -6,7 +6,7 @@
 <title>Slots Neon - Shoreline</title>
 <style>
   :root {
-    --mesa-bg: #0b0c10; /* Fondo súper oscuro corporativo referencial */
+    --mesa-bg: #0b0c10;
     --borde-radio: 8px;
     --neon-blue: #0088ff;
     --neon-green: #00ffcc;
@@ -14,7 +14,6 @@
     --neon-purple: #c300ff;
     --neon-gold: #ffd700;
     
-    /* Dimensiones reducidas para que quepa la matriz 3x5 en pantalla */
     --carta-w: 70px;
     --carta-h: 100px;
   }
@@ -23,7 +22,6 @@
     margin: 0;
     padding: 20px;
     background-color: var(--mesa-bg);
-    /* Usamos el patrón de naipes suave como fondo, si lo tienes, si no, color oscuro */
     background-image: url('./fondo.png'), radial-gradient(circle, #1a1a2e 0%, #0b0c10 100%);
     background-size: cover;
     background-attachment: fixed;
@@ -38,7 +36,6 @@
     position: relative;
   }
 
-  /* Animación de Temblor para Jackpot */
   @keyframes temblor {
     0% { transform: translate(1px, 1px) rotate(0deg); }
     10% { transform: translate(-1px, -2px) rotate(-1deg); }
@@ -54,7 +51,6 @@
   }
   .temblando { animation: temblor 0.5s; animation-iteration-count: 2; }
 
-  /* Animaciones de Luces de Victoria */
   @keyframes pulso-verde {
     0%, 100% { border-color: rgba(0, 255, 204, 0.4); box-shadow: 0 0 10px rgba(0, 255, 204, 0.3); }
     50% { border-color: var(--neon-green); box-shadow: 0 0 20px rgba(0, 255, 204, 0.7); }
@@ -90,7 +86,6 @@
     letter-spacing: 3px;
   }
 
-  /* --- ESTRUCTURA DE LA TRAGAMONEDAS (3x5) --- */
   .zona-juego {
     flex: 1;
     display: flex;
@@ -106,23 +101,21 @@
     border: 4px solid var(--neon-blue);
     box-shadow: 0 0 25px rgba(0, 136, 255, 0.4);
     display: grid;
-    grid-template-columns: repeat(5, 1fr); /* 5 Columnas */
+    grid-template-columns: repeat(5, 1fr);
     gap: 12px;
     position: relative;
     transition: all 0.3s ease;
   }
   
-  /* Estados de luces del contenedor principal */
   .slot-machine-container.victoria-verde { animation: pulso-verde 1s infinite; }
   .slot-machine-container.victoria-naranja { animation: pulso-naranja 1s infinite; border-width: 5px; }
   .slot-machine-container.victoria-jackpot { animation: pulso-jackpot 0.5s infinite; border-width: 6px; }
 
-  /* NUEVO: Contenedor visual de las líneas de pago ganadoras */
   #svg-lines-container {
     position: absolute;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    pointer-events: none; /* No interfiere con clics */
+    pointer-events: none;
     z-index: 5;
   }
 
@@ -131,7 +124,6 @@
     flex-direction: column;
     gap: 12px;
     position: relative;
-    /* Efecto de máscara para la animación de giro */
     overflow: hidden; 
     height: calc((var(--carta-h) * 3) + 24px); 
   }
@@ -149,26 +141,22 @@
     position: relative;
   }
   
-  /* Animación de parpadeo suave para cartas ganadoras */
   @keyframes parpadeo-carta {
     0%, 100% { opacity: 1; box-shadow: 2px 2px 8px rgba(0,0,0,0.6); }
     50% { opacity: 0.7; box-shadow: 0 0 15px var(--neon-green), 0 0 30px var(--neon-green); }
   }
   .carta.ganadora { animation: parpadeo-carta 0.5s ease-in-out infinite; z-index: 10; border: 2px solid var(--neon-green); box-sizing: border-box;}
 
-  /* Clase boca-abajo reutilizada del solitario */
   .carta.boca-abajo {
     background-image: repeating-linear-gradient(45deg, #b30000 0, #b30000 5px, #800000 5px, #800000 10px);
     box-shadow: 0 0 10px rgba(128,0,0,0.3);
   }
 
-  /* Animación de "Giro" CSS rápido */
   @keyframes giro-carrete {
     0% { transform: translateY(0); }
     100% { transform: translateY(calc(-100% + ((var(--carta-h) * 3) + 24px))); } 
   }
   
-  /* Contenedor interno que se mueve para simular el giro */
   .carrete-interno {
     display: flex;
     flex-direction: column;
@@ -182,7 +170,6 @@
     animation: giro-carrete 0.1s linear infinite;
   }
 
-  /* --- ZONA DE CONTROLES (Abajo) --- */
   .zona-controles {
     background: rgba(0,0,0,0.7);
     padding: 15px 30px;
@@ -196,7 +183,6 @@
     box-sizing: border-box;
   }
 
-  /* Marcador dorado central */
   .apuesta-display {
     background: rgba(0,0,0,0.6);
     padding: 10px 20px;
@@ -246,7 +232,6 @@
   #btn-apostar:hover:not(:disabled) { transform: scale(1.05) translateY(-3px); box-shadow: 0 5px 30px rgba(255,255,255,1); }
   #btn-apostar:disabled { background: #555; color: #aaa; box-shadow: none; cursor: not-allowed; animation: none;}
 
-  /* --- MENSAJES FLOTANTES DE PAGO Y CONFETI --- */
   #mensaje-estado-flotante {
     position: absolute;
     top: 50%; left: 50%;
@@ -350,49 +335,32 @@
 </div>
 
 <script>
-// --- CONFIGURACIÓN BASE (Símbolos) ---
 const palos = ['Corazones', 'Diamantes', 'Treboles', 'Picas'];
-// Reducimos rangos para aumentar frecuencia de premios (Aces, Reyes, Reinas, Jotas, Dieces, Joker)
 const rangos = ['10', 'J', 'Q', 'K', 'A']; 
 const valores = { '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14, 'Joker': 50 };
 
-// Símbolos disponibles en los carretes (agregamos Joker como símbolo especial)
 let deckSimbolos = [];
 rangos.forEach(r => palos.forEach(p => deckSimbolos.push({id: `${r}_${p}`, valor: valores[r], img: `./Naipes/${r}_${p}.png`, palo: p})));
-// Añadimos 2 Jokers raros al mazo
 deckSimbolos.push({id: 'Joker_1', valor: 50, img: './Naipes/1_Joker.png', palo: 'Especial'});
 deckSimbolos.push({id: 'Joker_2', valor: 50, img: './Naipes/2_Joker.png', palo: 'Especial'});
 
-// --- DEFINICIÓN DE LÍNEAS DE PAGO (3x5 = 15 ranuras) ---
-// La matriz es [Fila][Columna] -> F:0-2, C:0-4
-// Programaremos 5 líneas básicas para este ejemplo (3 horizontales y 2 diagonales principales)
 const LINEAS_PAGO = [
-  // Horizontales
-  { id: 1, color: '#ff4500', coords: [[1,0], [1,1], [1,2], [1,3], [1,4]] }, // Centro recta (Clásica)
-  { id: 2, color: '#00ffcc', coords: [[0,0], [0,1], [0,2], [0,3], [0,4]] }, // Superior recta
-  { id: 3, color: '#00ffcc', coords: [[2,0], [2,1], [2,2], [2,3], [2,4]] }, // Inferior recta
-  // Diagonales Principales
-  { id: 4, color: '#ffd700', coords: [[0,0], [1,1], [2,2], [1,3], [0,4]] }, // V (Valle)
-  { id: 5, color: '#ffd700', coords: [[2,0], [1,1], [0,2], [1,3], [2,4]] }  // ^ (Montaña)
+  { id: 1, color: '#ff4500', coords: [[1,0], [1,1], [1,2], [1,3], [1,4]] }, 
+  { id: 2, color: '#00ffcc', coords: [[0,0], [0,1], [0,2], [0,3], [0,4]] }, 
+  { id: 3, color: '#00ffcc', coords: [[2,0], [2,1], [2,2], [2,3], [2,4]] }, 
+  { id: 4, color: '#ffd700', coords: [[0,0], [1,1], [2,2], [1,3], [0,4]] }, 
+  { id: 5, color: '#ffd700', coords: [[2,0], [1,1], [0,2], [1,3], [2,4]] }  
 ];
 
-// --- TABLA DE PAGOS (Multiplicador x Apuesta) ---
-// Premios basados en la carta de mayor valor en la combinación (de izquierda a derecha)
 const PAGOS = {
-  // 5 Cartas Iguales (Quintilla) -> EL JACKPOT
   '5_Joker': 250, '5_A': 100, '5_K': 50, '5_Q': 30, '5_J': 20, '5_10': 15,
-  // 4 Cartas Iguales
   '4_Joker': 50, '4_A': 25, '4_K': 15, '4_Q': 10, '4_J': 8, '4_10': 6,
-  // 3 Cartas Iguales (Mínimo para cobrar)
   '3_Joker': 15, '3_A': 8, '3_K': 5, '3_Q': 4, '3_J': 3, '3_10': 2
 };
 
-// --- ESTADO DEL JUEGO ---
 let apuestaActual = 1;
 let girando = false;
-let matrizResultado = [[null,null,null,null,null],[null,null,null,null,null],[null,null,null,null,null]]; // 3x5
-
-// --- FUNCIONES VISUALES Y DE LUCES (Pides efectos con distintas ganancias) ---
+let matrizResultado = [[null,null,null,null,null],[null,null,null,null,null],[null,null,null,null,null]]; 
 
 function ajustarApuesta(cantidad) {
   if (girando) return;
@@ -414,22 +382,18 @@ function mostrarMensajeEstado(texto, color, mostrar) {
   msg.style.transform = mostrar ? "translate(-50%, -50%) scale(1)" : "translate(-50%, -50%) scale(0.8)";
 }
 
-// NUEVO: Dibujar línea ganadora con chispas en SVG
 function dibujarLineaGanadora(coords, color) {
   const svg = document.getElementById('svg-lines-container');
   const container = document.getElementById('maquina-contenedor');
   
-  // Limpiar líneas anteriores si las hubiera (aunque las limpia el motor principal)
   svg.innerHTML = '';
   
   let puntos = "";
   coords.forEach(coord => {
-      // Necesitamos encontrar la carta en el DOM para saber su posición exacta
       const carta = document.querySelector(`[data-fila="${coord[0]}"][data-col="${coord[1]}"]`);
       if(carta) {
           const rect = carta.getBoundingClientRect();
           const containerRect = container.getBoundingClientRect();
-          // Calculamos centro de la carta relativo al contenedor
           const centerX = (rect.left + rect.width / 2) - containerRect.left;
           const centerY = (rect.top + rect.height / 2) - containerRect.top;
           puntos += `${centerX},${centerY} `;
@@ -445,51 +409,41 @@ function dibujarLineaGanadora(coords, color) {
   polyline.setAttribute("stroke-linejoin", "round");
   polyline.setAttribute("style", `filter: drop-shadow(0 0 8px ${color}); opacity: 0.8;`);
   
-  // Pequeña animación de entrada de la línea
   polyline.innerHTML = `<animate attributeName="stroke-dasharray" from="2000" to="0" dur="0.5s" />`;
   
   svg.appendChild(polyline);
 }
 
-// EFECTOS DE LUCES SEGÚN NIVEL DE GANANCIA
 function mostrarEfectosVictoria(pagoTotal) {
   const multiplicador = pagoTotal / apuestaActual;
   const maquina = document.getElementById('maquina-contenedor');
   const zonaJuego = document.getElementById('zona-ruleta-main');
   
-  // Limpiar estados anteriores
   maquina.classList.remove('victoria-verde', 'victoria-naranja', 'victoria-jackpot');
   zonaJuego.classList.remove('temblando');
 
   if (multiplicador > 0 && multiplicador < 4) {
-      // Nivel 1: Verde Calmado
       maquina.classList.add('victoria-verde');
       lanzarAnimacionDinero(`+${pagoTotal} 🪙`, "var(--neon-green)");
       mostrarMensajeEstado("🏆 Ganancia", "var(--neon-green)", true);
 
   } else if (multiplicador >= 4 && multiplicador < 11) {
-      // Nivel 2: Naranja Energético
       maquina.classList.add('victoria-naranja');
       lanzarAnimacionDinero(`¡GRAN PREMIO! +${pagoTotal} 🪙`, "var(--neon-gold)");
       mostrarMensajeEstado("🔥 ¡BIG WIN!", "var(--neon-gold)", true);
-      // Confeti moderado
       for(let i=0; i<30; i++) setTimeout(crearUnConfeti, i*50);
 
   } else if (multiplicador >= 11) {
-      // Nivel 3: JACKPOT DE PÁNICO (Luces y temblor)
       maquina.classList.add('victoria-jackpot');
       zonaJuego.classList.add('temblando');
       
       lanzarAnimacionDinero(`🎉 ¡JACKPOT! 🎉 +${pagoTotal} 🪙`, "var(--neon-purple)");
       mostrarMensajeEstado("🚀 ¡🚀JACKPOT🚀! 🚀", "#fff", true);
       
-      // Confeti masivo y lluvia de monedas
-      lanzarConfeti(); 
       for(let i=0; i<50; i++) setTimeout(crearUnConfeti, i*20);
   }
 }
 
-// Auxiliar para confeti individual
 function crearUnConfeti() {
     const colores = ['#00ffcc', '#ff4500', '#c300ff', '#ffd700', '#ffffff'];
     let confeti = document.createElement('div');
@@ -501,13 +455,9 @@ function crearUnConfeti() {
     setTimeout(() => confeti.remove(), 3500);
 }
 
-
-// --- MOTOR DE GIRO Y LÓGICA (3x5) ---
-
 function realizarGiro() {
   if (girando) return;
 
-  // 1. Cobrar la apuesta conectando al Dashboard principal
   if (window.parent && window.parent.restarMonedas) {
       if (!window.parent.restarMonedas(apuestaActual)) {
           alert("¡Fondos insuficientes! Consigue monedas en el Dashboard o canjea un código.");
@@ -519,69 +469,56 @@ function realizarGiro() {
   document.getElementById('btn-apostar').disabled = true;
   document.getElementById('btn-apostar').innerText = "Girando...";
   
-  // Limpiar efectos visuales anteriores
   mostrarMensajeEstado("", "", false);
   const maquina = document.getElementById('maquina-contenedor');
   maquina.classList.remove('victoria-verde', 'victoria-naranja', 'victoria-jackpot');
   document.getElementById('zona-ruleta-main').classList.remove('temblando');
-  document.getElementById('svg-lines-container').innerHTML = ''; // Limpiar líneas SVG
+  document.getElementById('svg-lines-container').innerHTML = ''; 
 
-  // Generar el resultado lógico (3x5 cartas aleatorias)
   for (let f = 0; f < 3; f++) {
     for (let c = 0; c < 5; c++) {
-      // Elegir símbolo al azar del mazo reducido
       let simboloAzar = deckSimbolos[Math.floor(Math.random() * deckSimbolos.length)];
       matrizResultado[f][c] = simboloAzar;
     }
   }
 
-  // Ejecutar Animación Visual (Giro rápido por columna)
   prepararYFrenarCarretes();
 }
-
 
 function prepararYFrenarCarretes() {
     for (let c = 0; c < 5; c++) {
         const interno = document.getElementById(`interno-${c}`);
-        interno.innerHTML = ''; // Limpiar cartas viejas
+        interno.innerHTML = ''; 
         
-        // Crear un "carrete largo" visual (ej. 20 cartas) para simular el giro
         for(let i=0; i<25; i++) {
             let divCarta = document.createElement('div');
             
             if(i < 22) {
-                // Cartas de "relleno" boca abajo para el giro
                 divCarta.className = 'carta boca-abajo';
             } else {
-                // Las últimas 3 cartas del carrete largo son el resultado real (Fila 0, 1, 2 de esta col)
-                let fIndice = i - 22; // 0, 1, 2
+                let fIndice = i - 22; 
                 let simboloReal = matrizResultado[fIndice][c];
                 divCarta.className = 'carta';
                 divCarta.style.backgroundImage = `url('${simboloReal.img}')`;
                 
-                // Guardamos datos en el DOM para las luces ganadoras luego
                 divCarta.dataset.fila = fIndice;
                 divCarta.dataset.col = c;
                 divCarta.dataset.valor = simboloReal.valor;
-                divCarta.dataset.rango = simboloReal.id.split('_')[0]; // ej 'A' o 'Joker'
+                divCarta.dataset.rango = simboloReal.id.split('_')[0]; 
             }
             interno.appendChild(divCarta);
         }
         
-        // Iniciar la animación CSS de giro rápido
         interno.classList.add('girando');
         
-        // Programar el frenado en cascada (Col 0 frena primero, Col 4 al final)
-        const delayFrenado = 1500 + (c * 300); // ej. 1.5s, 1.8s, 2.1s...
+        const delayFrenado = 1500 + (c * 300); 
         
         setTimeout(() => {
             interno.classList.remove('girando');
             
-            // Ajustar el top visual para mostrar solo las últimas 3 cartas reales
             interno.style.top = 'auto';
-            interno.style.bottom = '0'; // Mostramos el final del carrete largo
+            interno.style.bottom = '0'; 
 
-            // Si es la última columna en frenar, calcular ganancia
             if (c === 4) {
                 setTimeout(calcularGanancias, 500);
             }
@@ -592,18 +529,15 @@ function prepararYFrenarCarretes() {
 function calcularGanancias() {
   let pagoTotal = 0;
   let lineasGanadorasIds = [];
-  let cartasAGlow = []; // Coordenadas [f,c] de cartas ganadoras
+  let cartasAGlow = []; 
 
-  // Revisar cada línea de pago definida (las 5 básicas)
   LINEAS_PAGO.forEach(linea => {
       let simbolosEnLinea = [];
       linea.coords.forEach(coord => {
           simbolosEnLinea.push(matrizResultado[coord[0]][coord[1]]);
       });
 
-      // Evaluar la línea (Póker: debe ser la misma carta consecutiva de izquierda a derecha)
-      // Mínimo 3 consecutivas desde la Col 0
-      let rangoBase = simbolosEnLinea[0].id.split('_')[0]; // ej 'A'
+      let rangoBase = simbolosEnLinea[0].id.split('_')[0]; 
       let consecutivas = 1;
       
       for(let i=1; i<5; i++) {
@@ -611,55 +545,45 @@ function calcularGanancias() {
           if(rangoActual === rangoBase) {
               consecutivas++;
           } else {
-              break; // Se rompió la racha
+              break; 
           }
       }
 
       if (consecutivas >= 3) {
-          // Es una línea ganadora
-          let keyPremio = `${consecutivas}_${rangoBase}`; // ej '4_A'
+          let keyPremio = `${consecutivas}_${rangoBase}`; 
           let multiplicador = PAGOS[keyPremio] || 0;
           
           if(multiplicador > 0) {
               pagoTotal += (apuestaActual * multiplicador);
               lineasGanadorasIds.push(linea.id);
               
-              // Guardar las coordenadas de las cartas ganadoras específicas de esta línea para encender luces
               for(let i=0; i<consecutivas; i++) {
                   cartasAGlow.push(linea.coords[i]);
               }
               
-              // Dibujar la línea ganadora visual (SVG) con un pequeño delay
               setTimeout(() => {
                   dibujarLineaGanadora(linea.coords.slice(0, consecutivas), linea.color);
               }, lineasGanadorasIds.length * 200);
           }
       }
   });
-
-  // --- RESOLUCIÓN FINAL DEL GIRO ---
   
   if (pagoTotal > 0) {
-      // 1. Pagar al Dashboard principal
       if (window.parent && window.parent.agregarMonedas) {
           window.parent.agregarMonedas(pagoTotal);
       }
       
-      // 2. Encender luces en las cartas ganadoras
-      // Usamos Set para no repetir coordenadas si una carta gana en 2 líneas
       let cartasUnicasAGlow = [...new Set(cartasAGlow.map(JSON.stringify))].map(JSON.parse);
       cartasUnicasAGlow.forEach(coord => {
           const cartaDOM = document.querySelector(`[data-fila="${coord[0]}"][data-col="${coord[1]}"]`);
           if(cartaDOM) cartaDOM.classList.add('ganadora');
       });
 
-      // 3. Mostrar efectos de sonido/luces según nivel
       mostrarEfectosVictoria(pagoTotal);
   } else {
       mostrarMensajeEstado("Mala Suerte 💨", "var(--neon-orange)", true);
   }
 
-  // Reactivar botón tras una pausa
   setTimeout(() => {
       girando = false;
       const btn = document.getElementById('btn-apostar');
@@ -669,7 +593,6 @@ function calcularGanancias() {
 }
 
 window.onload = () => {
-    // Inicializar visualmente con las cartas boca abajo correctamente alineadas
     for (let c = 0; c < 5; c++) {
         const interno = document.getElementById(`interno-${c}`);
         interno.innerHTML = ''; 
