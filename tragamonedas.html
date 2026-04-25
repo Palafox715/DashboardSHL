@@ -521,7 +521,6 @@ function realizarGiro() {
   
   // Limpiar efectos visuales anteriores
   mostrarMensajeEstado("", "", false);
-  resetearTablaPagos();
   const maquina = document.getElementById('maquina-contenedor');
   maquina.classList.remove('victoria-verde', 'victoria-naranja', 'victoria-jackpot');
   document.getElementById('zona-ruleta-main').classList.remove('temblando');
@@ -539,6 +538,7 @@ function realizarGiro() {
   // Ejecutar Animación Visual (Giro rápido por columna)
   prepararYFrenarCarretes();
 }
+
 
 function prepararYFrenarCarretes() {
     for (let c = 0; c < 5; c++) {
@@ -669,7 +669,16 @@ function calcularGanancias() {
 }
 
 window.onload = () => {
-    // Inicializar visualmente
+    // Inicializar visualmente con las cartas boca abajo correctamente alineadas
+    for (let c = 0; c < 5; c++) {
+        const interno = document.getElementById(`interno-${c}`);
+        interno.innerHTML = ''; 
+        for(let f=0; f<3; f++) {
+            let divCarta = document.createElement('div');
+            divCarta.className = 'carta boca-abajo';
+            interno.appendChild(divCarta);
+        }
+    }
 };
 
 </script>
