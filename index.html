@@ -308,7 +308,25 @@ body {
     box-shadow: 0 0 25px rgba(195, 0, 255, 0.8);
     transform: translateY(-3px);
   }
+
   
+/* Efecto exclusivo para Tragamonedas (Azul y Naranja Neón) */
+  #btn-tragamonedas {
+    border: 2px solid var(--neon-blue);
+    box-shadow: 0 0 15px rgba(0, 136, 255, 0.4);
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+  }
+  
+  @keyframes pulso-slots {
+    0%, 100% { box-shadow: 0 0 15px rgba(0, 136, 255, 0.4); border-color: var(--neon-blue); }
+    50% { box-shadow: 0 0 25px rgba(255, 69, 0, 0.7), 0 0 10px var(--neon-blue); border-color: var(--neon-orange); }
+  }
+
+  #btn-tragamonedas:hover {
+    animation: pulso-slots 0.8s infinite; /* Pulso rápido al hover */
+    transform: translateY(-3px) scale(1.05);
+  }
   
   /* === INICIO MÓDULO SOLITARIO === */
 /* === DISEÑO BASE PARA LOS BOTONES DE JUEGOS === */
@@ -491,6 +509,7 @@ body {
   <button id="btn-piramide" class="btn-juego">🔺 Pirámide</button>
   <button id="btn-cuadrados" class="btn-juego">🔲 Squares</button>
   <button id="btn-mentiroso" class="btn-juego">🎭 Mentiroso</button>
+  <button id="btn-tragamonedas" class="btn-juego">🎰 Slots</button>
   <button id="btn-galeria" class="btn-juego">🖼️ Galería</button> </div>
 
 <div id="modal-solitario" class="modal-oculto">
@@ -867,14 +886,14 @@ async function loadData() {
 const btnSolitario = document.getElementById('btn-solitario');
 const btnBlackjack = document.getElementById('btn-blackjack');
 const btnPoker = document.getElementById('btn-poker');
-const btnPiramide = document.getElementById('btn-piramide'); // <-- AGREGAMOS ESTO
+const btnPiramide = document.getElementById('btn-piramide'); 
 const modalSolitario = document.getElementById('modal-solitario');
 const btnCerrar = document.getElementById('btn-cerrar-solitario');
 const iframeSolitario = document.getElementById('frame-solitario');
 const btnCuadrados = document.getElementById('btn-cuadrados');
 const btnGaleria = document.getElementById('btn-galeria');
+const btnTragamonedas = document.getElementById('btn-tragamonedas');
 const btnMentiroso = document.getElementById('btn-mentiroso');
-
 
 btnSolitario.addEventListener('click', () => {
   modalSolitario.classList.remove('modal-oculto');
@@ -891,17 +910,10 @@ btnPoker.addEventListener('click', () => {
   iframeSolitario.src = "./poker.html"; 
 });
 
-// <-- AGREGAMOS LA LÓGICA PARA EL CLIC DE LA PIRÁMIDE -->
 btnPiramide.addEventListener('click', () => {
   modalSolitario.classList.remove('modal-oculto');
   iframeSolitario.src = "./piramide.html"; 
 });
-
-btnCerrar.addEventListener('click', () => {
-  modalSolitario.classList.add('modal-oculto');
-  iframeSolitario.src = ""; 
-});
-
 
 btnCuadrados.addEventListener('click', () => {
   modalSolitario.classList.remove('modal-oculto');
@@ -911,6 +923,12 @@ btnCuadrados.addEventListener('click', () => {
 btnGaleria.addEventListener('click', () => {
   modalSolitario.classList.remove('modal-oculto');
   iframeSolitario.src = "./galeria.html"; 
+});
+
+// Evento de Tragamonedas (NUEVO)
+btnTragamonedas.addEventListener('click', () => {
+  modalSolitario.classList.remove('modal-oculto');
+  iframeSolitario.src = "./tragamonedas.html"; 
 });
 
 // Evento de Mentiroso CON ECONOMÍA
@@ -926,8 +944,15 @@ btnMentiroso.addEventListener('click', () => {
     alert("¡Fondos insuficientes! Ingresa un código para obtener monedas.");
   }
 });
-  
+
+// Botón para cerrar la ventana del juego
+btnCerrar.addEventListener('click', () => {
+  modalSolitario.classList.add('modal-oculto');
+  iframeSolitario.src = ""; 
+});
+
 // === FIN LÓGICA BOTONES ===
+  
 
 
 // === CEREBRO ECONÓMICO (EL BANCO) BLINDADO ===
