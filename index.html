@@ -1,29 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Shoreline — Dashboard</title>
-
-  <div class="economia-container">
-  <div class="contador-monedas">
-    <span id="display-monedas">0</span> 🪙
-  </div>
-  <button class="btn-codigo" onclick="abrirModalCodigos()">Canjear Código</button>
-</div>
-
-<div id="modal-codigos">
-  <div class="codigo-caja">
-    <h2 style="margin-top:0;">Canjear Recompensa</h2>
-    <input type="text" id="input-codigo" class="codigo-input" placeholder="INGRESA CÓDIGO" autocomplete="off">
-    <br>
-    <button class="btn-codigo" onclick="canjearCodigo()">Canjear</button>
-    <button class="btn-codigo" style="border-color:#ff4500; margin-left:10px;" onclick="cerrarModalCodigos()">Cancelar</button>
-    <p id="msg-codigo" style="font-weight:bold; margin-bottom:0;"></p>
-  </div>
-</div> 
-
-  
 <style>
   :root {
     --bg-dark: #0b0c10;
@@ -34,7 +14,7 @@
     --neon-orange: #ff4500;
   }
 
-body {
+  body {
     font-family: 'Inter', sans-serif;
     color: white;
     margin: 0;
@@ -43,12 +23,11 @@ body {
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    /* --- NUEVO FONDO --- */
-    background-color: #0b0c10; /* Color de respaldo por si tarda en cargar la imagen */
+    background-color: #0b0c10; 
     background-image: url('./fondo.png');
-    background-size: cover; /* Asegura que cubra toda la pantalla */
-    background-position: center; /* Lo centra */
-    background-attachment: fixed; /* Hace que el fondo se quede quieto si hay scroll */
+    background-size: cover; 
+    background-position: center; 
+    background-attachment: fixed; 
   }
 
   #battlefield {
@@ -67,7 +46,6 @@ body {
     pointer-events: none; 
   }
 
-  /* === ESTRUCTURA DOM TÁCTICA: CONTENEDOR Y SPRITE === */
   .agent-container {
     position: absolute;
     display: flex;
@@ -76,21 +54,19 @@ body {
     justify-content: center;
     transition: transform 0.1s linear, opacity 0.3s ease;
     will-change: transform;
-    pointer-events: auto; /* Permite interacción del mouse en el contenedor */
+    pointer-events: auto; 
     cursor: crosshair;
   }
 
-  /* === NUEVO: EXPANSIÓN DE ÁREA DE DETECCIÓN (LA RED) === */
   .agent-container::after {
     content: '';
     position: absolute;
-    /* Creamos un "aura" invisible masiva (2.5 veces el tamaño del agente) */
     top: -75%; 
     left: -75%;
     width: 250%; 
     height: 250%;
     background: transparent;
-    z-index: 1; /* Captura el mouse antes que cualquier otra cosa */
+    z-index: 1; 
     border-radius: 50%;
   }
 
@@ -102,25 +78,22 @@ body {
     transition: filter 0.2s ease, transform 0.2s ease; 
   }
 
-  /* === GLOBO DE CARTA (TOOLTIP INTERACTIVO) === */
   .agent-card-tooltip {
     position: absolute;
-    bottom: 100%; /* Aparece justo encima del personaje */
+    bottom: 100%; 
     left: 50%;
-    /* Posición inicial oculta y ligeramente reducida */
     transform: translateX(-50%) translateY(10px) scale(0.9);
     opacity: 0;
     visibility: hidden;
     transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
-    pointer-events: none; /* Evita parpadeos si el mouse toca la carta */
-    width: 140px; /* Ancho táctico de la carta. Ajustable según proporción */
+    pointer-events: none; 
+    width: 140px; 
     z-index: 100;
     background: var(--bg-dark);
     border-radius: 8px;
     padding: 4px;
   }
 
-  /* Estilos de carta por facción */
   .agent-container.Gio .agent-card-tooltip { border: 2px solid var(--neon-green); box-shadow: 0 0 15px rgba(0,255,204,0.5); }
   .agent-container.ricky .agent-card-tooltip { border: 2px solid var(--neon-orange); box-shadow: 0 0 15px rgba(255,69,0,0.5); }
 
@@ -131,14 +104,12 @@ body {
     display: block;
   }
 
-  /* Animación al pasar el mouse */
   .agent-container:hover .agent-card-tooltip {
     opacity: 1;
     visibility: visible;
-    transform: translateX(-50%) translateY(-10px) scale(1); /* Flota hacia arriba */
+    transform: translateX(-50%) translateY(-10px) scale(1); 
   }
 
-  /* Efecto Espejo (Ricky Team) */
   .agent-container.Gio .agent-sprite {
     filter: drop-shadow(0 0 5px rgba(0, 255, 204, 0.9)) drop-shadow(0 0 15px rgba(0, 255, 204, 0.6));
   }
@@ -215,123 +186,8 @@ body {
   .totals-center h3 { margin: 0; font-size: 1.3rem; color: var(--text-light); }
   .totals-center span { display: block; font-size: 2.7rem; font-weight: 800; margin: 0.3rem 0; transition: all 0.3s ease-in-out; }
 
-/* === SISTEMA DE ECONOMÍA (UI) === */
-  .economia-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    display: flex;
-    gap: 15px;
-    z-index: 1000;
-  }
-
-  .contador-monedas {
-    background: rgba(31, 40, 51, 0.95);
-    color: #ffd700;
-    border: 2px solid #ffd700;
-    padding: 10px 20px;
-    font-size: 1.2rem;
-    font-weight: 900;
-    border-radius: 8px;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
-  }
-
-  .btn-codigo {
-    background: rgba(31, 40, 51, 0.95);
-    color: #fff;
-    border: 2px solid var(--neon-blue);
-    padding: 10px 15px;
-    font-size: 1rem;
-    font-weight: bold;
-    border-radius: 8px;
-    cursor: pointer;
-    box-shadow: 0 0 10px rgba(0, 136, 255, 0.3);
-    transition: all 0.2s ease;
-  }
-  .btn-codigo:hover { background: var(--neon-blue); transform: scale(1.05); }
-
-
-  /* Modal de Códigos */
-  #modal-codigos {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(5px);
-    z-index: 9999;
-    display: flex; justify-content: center; align-items: center;
-    opacity: 0; visibility: hidden; transition: all 0.3s ease;
-  }
-  #modal-codigos.activo { opacity: 1; visibility: visible; }
-  
-  .codigo-caja {
-    background: var(--panel-dark);
-    padding: 30px;
-    border-radius: 15px;
-    border: 2px solid var(--neon-blue);
-    text-align: center;
-    box-shadow: 0 0 30px rgba(0,0,0,0.8);
-  }
-  
-  .codigo-input {
-    background: rgba(0,0,0,0.5); border: 1px solid #555; color: #fff;
-    padding: 10px; font-size: 1.2rem; border-radius: 5px; margin: 15px 0;
-    width: 200px; text-align: center; text-transform: uppercase;
-  }
-  .codigo-input:focus { outline: none; border-color: var(--neon-blue); }
-  /* ============================== */
-
-
-/* Efecto exclusivo para la Galería (Blanco/Plata) */
-  #btn-galeria {
-    border: 2px solid #ffffff;
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
-  }
-  #btn-galeria:hover {
-    background: #ffffff;
-    color: #000;
-    box-shadow: 0 0 25px rgba(255, 255, 255, 0.8);
-    transform: translateY(-3px);
-  }
-
-
-/* Efecto exclusivo para Mentiroso (Púrpura Neón) */
-  #btn-mentiroso {
-    border: 2px solid var(--neon-purple);
-    box-shadow: 0 0 15px rgba(195, 0, 255, 0.4);
-  }
-  #btn-mentiroso:hover {
-    background: var(--neon-purple);
-    color: #fff;
-    box-shadow: 0 0 25px rgba(195, 0, 255, 0.8);
-    transform: translateY(-3px);
-  }
-
-  
-/* Efecto exclusivo para Tragamonedas (Azul y Naranja Neón) */
-  #btn-tragamonedas {
-    border: 2px solid var(--neon-blue);
-    box-shadow: 0 0 15px rgba(0, 136, 255, 0.4);
-    background: rgba(0, 0, 0, 0.8);
-    color: #fff;
-  }
-  
-  @keyframes pulso-slots {
-    0%, 100% { box-shadow: 0 0 15px rgba(0, 136, 255, 0.4); border-color: var(--neon-blue); }
-    50% { box-shadow: 0 0 25px rgba(255, 69, 0, 0.7), 0 0 10px var(--neon-blue); border-color: var(--neon-orange); }
-  }
-
-  #btn-tragamonedas:hover {
-    animation: pulso-slots 0.8s infinite; /* Pulso rápido al hover */
-    transform: translateY(-3px) scale(1.05);
-  }
-  
-  /* === INICIO MÓDULO SOLITARIO === */
-/* === DISEÑO BASE PARA LOS BOTONES DE JUEGOS === */
+  /* MANTENEMOS ESTILOS DEL MODAL Y BOTON DE GALERÍA */
   .btn-juego {
-    /* Nota: Quitamos position, bottom y right de aquí, porque el div contenedor ya los acomoda */
     background: rgba(31, 40, 51, 0.95);
     color: #fff;
     padding: 12px 24px;
@@ -343,65 +199,9 @@ body {
     font-family: inherit;
     text-transform: uppercase;
   }
-
-/* Efecto exclusivo para Póker (Azul Neón) */
-  #btn-poker {
-    border: 2px solid #0088ff;
-    box-shadow: 0 0 15px rgba(0, 136, 255, 0.4);
-  }
-  #btn-poker:hover {
-    background: #0088ff;
-    color: #fff;
-    box-shadow: 0 0 25px rgba(0, 136, 255, 0.8);
-    transform: translateY(-3px);
-  }
-
-/* Efecto exclusivo para Pirámide (Magenta) */
-  #btn-piramide {
-    border: 2px solid #ff007f;
-    box-shadow: 0 0 15px rgba(255, 0, 127, 0.4);
-  }
-  #btn-piramide:hover {
-    background: #ff007f;
-    color: #fff;
-    box-shadow: 0 0 25px rgba(255, 0, 127, 0.8);
-    transform: translateY(-3px);
-  }
-
-/* Efecto exclusivo para Squares (Dorado) */
-  #btn-cuadrados {
-    border: 2px solid #ffd700;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
-  }
-  #btn-cuadrados:hover {
-    background: #ffd700;
-    color: #000; /* Texto negro para contraste */
-    box-shadow: 0 0 25px rgba(255, 215, 0, 0.8);
-    transform: translateY(-3px);
-  }
   
-  /* Efecto exclusivo para Solitario (Morado) */
-  #btn-solitario {
-    border: 2px solid #c300ff;
-    box-shadow: 0 0 15px rgba(195, 0, 255, 0.4);
-  }
-  #btn-solitario:hover {
-    background: #c300ff;
-    box-shadow: 0 0 25px rgba(195, 0, 255, 0.8);
-    transform: translateY(-3px);
-  }
-
-  /* Efecto exclusivo para Blackjack (Verde Neón) */
-  #btn-blackjack {
-    border: 2px solid #00ffcc;
-    box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
-  }
-  #btn-blackjack:hover {
-    background: #00ffcc;
-    color: #000; /* Texto oscuro para resaltar con el fondo brillante */
-    box-shadow: 0 0 25px rgba(0, 255, 204, 0.8);
-    transform: translateY(-3px);
-  }
+  #btn-galeria { border: 2px solid #ffffff; box-shadow: 0 0 15px rgba(255, 255, 255, 0.4); }
+  #btn-galeria:hover { background: #ffffff; color: #000; box-shadow: 0 0 25px rgba(255, 255, 255, 0.8); transform: translateY(-3px); }
 
   #modal-solitario {
     position: fixed;
@@ -417,16 +217,11 @@ body {
     transition: opacity 0.3s ease, visibility 0.3s ease;
   }
   
-  #modal-solitario.modal-oculto {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-  }
+  #modal-solitario.modal-oculto { opacity: 0; visibility: hidden; pointer-events: none; }
 
   .modal-contenido {
     position: relative;
-    width: 90%;
-    height: 90%;
+    width: 90%; height: 90%;
     background: var(--panel-dark);
     border-radius: 15px;
     border: 1px solid rgba(255,255,255,0.1);
@@ -435,8 +230,7 @@ body {
 
   .cerrar-btn {
     position: absolute;
-    top: -15px;
-    right: -15px;
+    top: -15px; right: -15px;
     background: #ff4500;
     color: white;
     border: none;
@@ -450,13 +244,10 @@ body {
   }
   
   #frame-solitario {
-    width: 100%;
-    height: 100%;
+    width: 100%; height: 100%;
     border-radius: 15px;
     background: transparent;
   }
-  /* === FIN MÓDULO SOLITARIO === */
-
 </style>
 </head>
 <body>
@@ -503,14 +294,8 @@ body {
 </div>
 
 <div style="position: fixed; bottom: 30px; right: 30px; display: flex; gap: 15px; z-index: 1000;">
-  <button id="btn-solitario" class="btn-juego">🃏 Solitario</button>
-  <button id="btn-blackjack" class="btn-juego">🎲 Blackjack</button>
-  <button id="btn-poker" class="btn-juego">🤠 Póker</button>
-  <button id="btn-piramide" class="btn-juego">🔺 Pirámide</button>
-  <button id="btn-cuadrados" class="btn-juego">🔲 Squares</button>
-  <button id="btn-mentiroso" class="btn-juego">🎭 Mentiroso</button>
-  <button id="btn-tragamonedas" class="btn-juego">🎰 Slots</button>
-  <button id="btn-galeria" class="btn-juego">🖼️ Galería</button> </div>
+  <button id="btn-galeria" class="btn-juego">🖼️ Galería</button> 
+</div>
 
 <div id="modal-solitario" class="modal-oculto">
   <div class="modal-contenido">
@@ -547,33 +332,27 @@ class Entity {
     this.team = team;
     this.xfer = 0; 
     
-    // 1. Contenedor principal
     this.domElement = document.createElement('div');
     this.domElement.className = `agent-container ${this.team}`;
     this.domElement.id = `agent-${id}`; 
 
-    // === TÁCTICA: INTERACCIÓN Y PAUSA ===
     this.isHovered = false;
     this.domElement.addEventListener('mouseenter', () => {
       this.isHovered = true;
-      this.domElement.style.zIndex = "1000"; // Asegura que la carta quede sobre todos
+      this.domElement.style.zIndex = "1000"; 
     });
     this.domElement.addEventListener('mouseleave', () => {
       this.isHovered = false;
-      this.domElement.style.zIndex = ""; // Restaura el nivel natural
+      this.domElement.style.zIndex = ""; 
     });
     
-    // 2. Globo de Carta PNG (Tooltip)
     const cardTooltip = document.createElement('div');
     cardTooltip.className = 'agent-card-tooltip';
     const cardImg = document.createElement('img');
     
-    // Intentamos cargar la carta específica del agente usando su ID
     cardImg.src = `./cartas/${id}.png`;
     
-    // BLINDAJE TÁCTICO PARA LA CARTA
     cardImg.onerror = function() { 
-      // Si Default.png TAMBIÉN falla, ocultamos el globo para no ensuciar la interfaz
       this.onerror = function() { cardTooltip.style.display = 'none'; };
       this.src = "./cartas/Default.png"; 
     };
@@ -581,21 +360,17 @@ class Entity {
     cardTooltip.appendChild(cardImg);
     this.domElement.appendChild(cardTooltip);
 
-    // 3. GIF Animado
     const img = document.createElement('img');
     const spritePath = `./Sprite/${id}.gif`;
     img.src = spritePath;
     
-    // BLINDAJE TÁCTICO PARA EL SPRITE
     img.onerror = function() {
-      // Si default.gif falla, ocultamos la imagen rota
       this.onerror = function() { this.style.display = 'none'; };
       this.src = "./Sprite/default.gif"; 
     };
     img.className = 'agent-sprite';
     this.domElement.appendChild(img);
     
-    // 4. Etiqueta de Nombre
     const nameLabel = document.createElement('span');
     nameLabel.className = 'agent-name-label';
     nameLabel.textContent = this.name.split(' ')[0]; 
@@ -644,7 +419,6 @@ class Entity {
   }
 
   update(wallX) {
-    // TÁCTICA: Si el usuario está inspeccionando al agente, congelamos su posición temporalmente
     if (this.isHovered) return;
 
     const attractionForce = 0.015;
@@ -881,205 +655,22 @@ async function loadData() {
   }
 }
 
-
-// === INICIO LÓGICA BOTONES DE JUEGOS ===
-const btnSolitario = document.getElementById('btn-solitario');
-const btnBlackjack = document.getElementById('btn-blackjack');
-const btnPoker = document.getElementById('btn-poker');
-const btnPiramide = document.getElementById('btn-piramide'); 
+// === ACTIVACIÓN SOLO GALERÍA ===
+const btnGaleria = document.getElementById('btn-galeria');
 const modalSolitario = document.getElementById('modal-solitario');
 const btnCerrar = document.getElementById('btn-cerrar-solitario');
 const iframeSolitario = document.getElementById('frame-solitario');
-const btnCuadrados = document.getElementById('btn-cuadrados');
-const btnGaleria = document.getElementById('btn-galeria');
-const btnTragamonedas = document.getElementById('btn-tragamonedas');
-const btnMentiroso = document.getElementById('btn-mentiroso');
-
-btnSolitario.addEventListener('click', () => {
-  modalSolitario.classList.remove('modal-oculto');
-  iframeSolitario.src = "./solitario.html"; 
-});
-
-btnBlackjack.addEventListener('click', () => {
-  modalSolitario.classList.remove('modal-oculto');
-  iframeSolitario.src = "./blackjack.html"; 
-});
-
-btnPoker.addEventListener('click', () => {
-  modalSolitario.classList.remove('modal-oculto');
-  iframeSolitario.src = "./poker.html"; 
-});
-
-btnPiramide.addEventListener('click', () => {
-  modalSolitario.classList.remove('modal-oculto');
-  iframeSolitario.src = "./piramide.html"; 
-});
-
-btnCuadrados.addEventListener('click', () => {
-  modalSolitario.classList.remove('modal-oculto');
-  iframeSolitario.src = "./cuadrados.html"; 
-});
 
 btnGaleria.addEventListener('click', () => {
   modalSolitario.classList.remove('modal-oculto');
   iframeSolitario.src = "./galeria.html"; 
 });
 
-// Evento de Tragamonedas (NUEVO)
-btnTragamonedas.addEventListener('click', () => {
-  modalSolitario.classList.remove('modal-oculto');
-  iframeSolitario.src = "./tragamonedas.html"; 
-});
-
-// Evento de Mentiroso CON ECONOMÍA
-btnMentiroso.addEventListener('click', () => {
-  const costoEntrada = 1; // Cuesta 1 moneda jugar
-  
-  if (restarMonedas(costoEntrada)) {
-    // Sí tenía dinero, abrimos el juego
-    modalSolitario.classList.remove('modal-oculto');
-    iframeSolitario.src = "./mentiroso.html"; 
-  } else {
-    // No tiene dinero, mostramos alerta
-    alert("¡Fondos insuficientes! Ingresa un código para obtener monedas.");
-  }
-});
-
-// Botón para cerrar la ventana del juego
 btnCerrar.addEventListener('click', () => {
   modalSolitario.classList.add('modal-oculto');
   iframeSolitario.src = ""; 
 });
 
-// === FIN LÓGICA BOTONES ===
-  
-
-
-// === CEREBRO ECONÓMICO (EL BANCO) BLINDADO ===
-
-// 0. Llave Secreta Anti-Hackers (Nadie la ve a menos que lea el código fuente)
-const SECRET_KEY = "Shoreline_Ensenada_2026_TopSecret!";
-
-// Función que crea una firma matemática para validar el dinero
-function generarFirma(cantidad) {
-  // Mezcla la cantidad con la llave secreta y la codifica en Base64
-  return btoa(cantidad + "|" + SECRET_KEY); 
-}
-
-// 1. Inicialización de la Bóveda (Con Verificación)
-let balanceMonedas = 0;
-let codigosUsados = JSON.parse(localStorage.getItem('shoreline_codigos_usados')) || [];
-
-let dineroGuardado = localStorage.getItem('shoreline_monedas');
-let firmaGuardada = localStorage.getItem('shoreline_firma');
-
-if (dineroGuardado !== null) {
-  // Comprobamos si el dinero coincide con la firma que nosotros le pusimos
-  if (firmaGuardada === generarFirma(dineroGuardado)) {
-    balanceMonedas = parseInt(dineroGuardado); // Todo en orden, cargar dinero
-  } else {
-    // ¡HACKER DETECTADO! 🚨
-    console.warn("Alteración de LocalStorage detectada. Reseteando fondos a 0.");
-    alert("🚨 SHORELINE SECURITY: Se detectó una anomalía en tu balance de monedas. Por violar las reglas del casino, tus fondos han sido embargados y reseteados a 0.");
-    balanceMonedas = 0; 
-    guardarEnBoveda(0); // Castigado
-  }
-} else {
-  // Jugador nuevo
-  guardarEnBoveda(0);
-}
-
-function actualizarDisplayMonedas() {
-  document.getElementById('display-monedas').innerText = balanceMonedas;
-}
-actualizarDisplayMonedas();
-
-// Función unificada para guardar dinero + firma
-function guardarEnBoveda(cantidad) {
-  localStorage.setItem('shoreline_monedas', cantidad);
-  localStorage.setItem('shoreline_firma', generarFirma(cantidad));
-}
-
-// 2. Funciones del Banco
-function agregarMonedas(cantidad) {
-  balanceMonedas += cantidad;
-  guardarEnBoveda(balanceMonedas); // Guardamos con seguridad
-  actualizarDisplayMonedas();
-  
-  const display = document.querySelector('.contador-monedas');
-  display.style.transform = 'scale(1.2)';
-  display.style.boxShadow = '0 0 30px rgba(255, 215, 0, 0.8)';
-  setTimeout(() => {
-    display.style.transform = 'scale(1)';
-    display.style.boxShadow = '0 0 15px rgba(255, 215, 0, 0.3)';
-  }, 300);
-}
-
-function restarMonedas(cantidad) {
-  if (balanceMonedas >= cantidad) {
-    balanceMonedas -= cantidad;
-    guardarEnBoveda(balanceMonedas); // Guardamos con seguridad
-    actualizarDisplayMonedas();
-    return true; 
-  }
-  return false; 
-}
-
-
-// 3. Sistema de Códigos
-function abrirModalCodigos() {
-  document.getElementById('modal-codigos').classList.add('activo');
-  document.getElementById('input-codigo').value = '';
-  document.getElementById('msg-codigo').innerText = '';
-}
-
-function cerrarModalCodigos() {
-  document.getElementById('modal-codigos').classList.remove('activo');
-}
-
-function canjearCodigo() {
-  const input = document.getElementById('input-codigo').value.trim().toUpperCase();
-  const msg = document.getElementById('msg-codigo');
-  
-  if (input === '') return;
-
-  // Verificar si ya se usó
-  if (codigosUsados.includes(input)) {
-    msg.innerText = "❌ Este código ya fue utilizado.";
-    msg.style.color = "#ff4500";
-    return;
-  }
-
-  // Base de datos de códigos válidos
-  const baseDeCodigos = {
-    "SHORELINE": { recompensa: 1, mensaje: "¡Código válido! Ganaste 1 Moneda." },
-    "BIENVENIDA2026": { recompensa: 5, mensaje: "¡Bienvenido al sistema! Toma 5 monedas." },
-    "GIO_BOSS": { recompensa: 10, mensaje: "¡Encontraste un código de facción! +10 Monedas." },
-    "RICKY_WINS": { recompensa: 10, mensaje: "¡Recompensa de facción! +10 Monedas." },
-    "JACKPOT": { recompensa: 100, mensaje: "¡BINGO! Ganaste el premio mayor. 100 Monedas." },
-    "CASHBACK": { recompensa: 100, mensaje: "¡Compensación del sistema! +100 Monedas recuperadas." }    
-  };
-  
-
-  if (baseDeCodigos[input]) {
-    // Éxito
-    const premio = baseDeCodigos[input].recompensa;
-    agregarMonedas(premio);
-    codigosUsados.push(input);
-    localStorage.setItem('shoreline_codigos_usados', JSON.stringify(codigosUsados));
-    
-    msg.innerText = "✅ " + baseDeCodigos[input].mensaje;
-    msg.style.color = "#00ffcc";
-    setTimeout(cerrarModalCodigos, 2000); // Cerrar automáticamente tras éxito
-  } else {
-    // Fallo
-    msg.innerText = "❌ Código inválido o expirado.";
-    msg.style.color = "#ff4500";
-  }
-}
-// ====================================
-  
-  
 loadData();
 setInterval(loadData, 60000); 
 </script>
