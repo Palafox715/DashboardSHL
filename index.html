@@ -186,7 +186,7 @@
   .totals-center h3 { margin: 0; font-size: 1.3rem; color: var(--text-light); }
   .totals-center span { display: block; font-size: 2.7rem; font-weight: 800; margin: 0.3rem 0; transition: all 0.3s ease-in-out; }
 
-  /* ESTILOS DE BOTONES Y MODALES AÑADIDOS */
+  /* MANTENEMOS ESTILOS DEL MODAL Y BOTON DE GALERÍA */
   .btn-juego {
     background: rgba(31, 40, 51, 0.95);
     color: #fff;
@@ -203,10 +203,7 @@
   #btn-galeria { border: 2px solid #ffffff; box-shadow: 0 0 15px rgba(255, 255, 255, 0.4); }
   #btn-galeria:hover { background: #ffffff; color: #000; box-shadow: 0 0 25px rgba(255, 255, 255, 0.8); transform: translateY(-3px); }
 
-  #btn-tracker { border: 2px solid var(--neon-green); box-shadow: 0 0 15px rgba(0, 255, 204, 0.4); }
-  #btn-tracker:hover { background: var(--neon-green); color: #000; box-shadow: 0 0 25px rgba(0, 255, 204, 0.8); transform: translateY(-3px); }
-
-  #modal-solitario, #modal-tracker {
+  #modal-solitario {
     position: fixed;
     top: 0; left: 0;
     width: 100vw; height: 100vh;
@@ -220,7 +217,7 @@
     transition: opacity 0.3s ease, visibility 0.3s ease;
   }
   
-  #modal-solitario.modal-oculto, #modal-tracker.modal-oculto { opacity: 0; visibility: hidden; pointer-events: none; }
+  #modal-solitario.modal-oculto { opacity: 0; visibility: hidden; pointer-events: none; }
 
   .modal-contenido {
     position: relative;
@@ -229,11 +226,6 @@
     border-radius: 15px;
     border: 1px solid rgba(255,255,255,0.1);
     box-shadow: 0 0 50px rgba(0,0,0,0.8);
-  }
-  
-  /* Nuevo estilo de contenido claro específico para el Tracker */
-  .modal-tracker-fondo {
-    background: #eef2f5 !important;
   }
 
   .cerrar-btn {
@@ -251,13 +243,7 @@
     z-index: 10;
   }
   
-  .cerrar-btn-tracker {
-    background: var(--neon-green);
-    color: black;
-    box-shadow: 0 0 15px rgba(0,255,204,0.5);
-  }
-  
-  #frame-solitario, #frame-tracker {
+  #frame-solitario {
     width: 100%; height: 100%;
     border-radius: 15px;
     background: transparent;
@@ -307,17 +293,10 @@
   </div>
 </div>
 
-<!-- CONTENEDOR DE BOTONES (Añadido el nuevo botón del Tracker) -->
 <div style="position: fixed; bottom: 30px; right: 30px; display: flex; gap: 15px; z-index: 1000;">
-  <!-- Si tiene los botones del Cuadrilátero o Máquina del Tiempo, puede pegarlos aquí -->
-  
   <button id="btn-galeria" class="btn-juego">🖼️ Galería</button> 
-  
-  <!-- BOTÓN NUEVO XFER TRACKER -->
-  <button id="btn-tracker" class="btn-juego">📊 XFER Tracker</button>
 </div>
 
-<!-- MODAL GALERÍA -->
 <div id="modal-solitario" class="modal-oculto">
   <div class="modal-contenido">
     <button id="btn-cerrar-solitario" class="cerrar-btn">&times;</button>
@@ -325,14 +304,6 @@
   </div>
 </div>
 
-<!-- NUEVO MODAL XFER TRACKER -->
-<div id="modal-tracker" class="modal-oculto">
-  <div class="modal-contenido modal-tracker-fondo">
-    <button id="btn-cerrar-tracker" class="cerrar-btn cerrar-btn-tracker">&times;</button>
-    <!-- ASEGÚRESE QUE LA CARPETA EN GITHUB SE LLAME EXACTAMENTE "transfer-tracker" -->
-    <iframe id="frame-tracker" src="" frameborder="0"></iframe>
-  </div>
-</div>
   
 <script>
 const SHEET_ID = "1xNrDZ6uXUS0XMU3033SALOPPORgyjQomH68W2GyTAUo";
@@ -684,7 +655,7 @@ async function loadData() {
   }
 }
 
-// === ACTIVACIÓN DE MODALES (Galería y Tracker) ===
+// === ACTIVACIÓN SOLO GALERÍA ===
 const btnGaleria = document.getElementById('btn-galeria');
 const modalSolitario = document.getElementById('modal-solitario');
 const btnCerrar = document.getElementById('btn-cerrar-solitario');
@@ -698,23 +669,6 @@ btnGaleria.addEventListener('click', () => {
 btnCerrar.addEventListener('click', () => {
   modalSolitario.classList.add('modal-oculto');
   iframeSolitario.src = ""; 
-});
-
-// === LÓGICA DEL NUEVO TRACKER ===
-const btnTracker = document.getElementById('btn-tracker');
-const modalTracker = document.getElementById('modal-tracker');
-const btnCerrarTracker = document.getElementById('btn-cerrar-tracker');
-const iframeTracker = document.getElementById('frame-tracker');
-
-btnTracker.addEventListener('click', () => {
-  modalTracker.classList.remove('modal-oculto');
-  // Se asume que subirá la carpeta con el nombre "transfer-tracker" a la raíz de su repositorio
-  iframeTracker.src = "./transfer-tracker/index.html"; 
-});
-
-btnCerrarTracker.addEventListener('click', () => {
-  modalTracker.classList.add('modal-oculto');
-  iframeTracker.src = ""; 
 });
 
 loadData();
