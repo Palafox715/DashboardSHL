@@ -1,0 +1,257 @@
+# Personal Transfer Tracker Project
+
+## Project Goal
+
+Build a fast, lightweight web application using only **HTML, CSS, and vanilla JavaScript** that helps me track my call center transfer metrics in real time. The app is for personal use only and should prioritize **speed, simplicity, and keyboard-first interaction** over unnecessary features.
+
+The application should feel like a productivity tool rather than a spreadsheet.
+
+---
+
+## Core Workflow
+
+After every call:
+
+1. Copy the customer information from the CRM.
+2. Paste it into the application.
+3. Press **Approved** or **Declined** (or use keyboard shortcuts).
+4. Immediately move on to the next call.
+
+The entire process should take no more than **2–3 seconds**.
+
+---
+
+## Design Goals
+
+* Modern, clean interface
+* Minimal clicks
+* Dark mode by default
+* Responsive layout
+* Large readable numbers for statistics
+* Fast animations (optional but subtle)
+* Keyboard-friendly
+* No login required
+* No backend required
+* Data stored locally in the browser
+
+---
+
+## Dashboard
+
+Display:
+
+* Today's Approved Transfers
+* Today's Declined Transfers
+* Weekly Approved Transfers
+* Weekly Declined Transfers
+* Total Weekly Transfers
+* Approval Rate
+* Estimated Weekly Bonus
+* Current Week (automatically determined)
+* Daily Goal Progress (optional)
+
+---
+
+## Quick Entry Area
+
+The top of the page should always contain a large paste box.
+
+I should be able to paste information like:
+
+File #: 8347263
+
+John Smith
+
+(555) 123-4567
+
+or other similar formats.
+
+The application should automatically extract:
+
+* File Number
+* Customer Name
+* Phone Number
+
+using flexible parsing with regular expressions so it works with multiple CRM formats.
+
+After parsing, I only need to choose:
+
+* ✅ Approved
+* ❌ Declined
+
+The entry is then automatically saved.
+
+---
+
+## Keyboard Shortcuts
+
+The application should support:
+
+* Ctrl+V → Paste
+* A → Save as Approved
+* D → Save as Declined
+* Esc → Clear current entry
+* Ctrl+F → Focus Search
+
+Keyboard shortcuts should make it possible to use the application with almost no mouse interaction.
+
+---
+
+## Recent Activity
+
+Show the most recent transfers.
+
+Each entry should display:
+
+* Status icon
+* Customer Name
+* File Number
+* Phone Number
+* Time
+* Date
+
+Allow searching by:
+
+* File Number
+* Customer Name
+* Phone Number
+
+---
+
+## Weekly Bonus Calculator
+
+In Settings, allow configurable values such as:
+
+Approved Transfer = $4
+
+Declined Transfer = $2
+
+The dashboard should automatically calculate:
+
+Estimated Weekly Bonus
+
+using the current week's totals.
+
+---
+
+## Weekly Organization
+
+Automatically organize entries by week.
+
+When a new week starts:
+
+* Begin tracking a new week automatically.
+* Preserve previous weeks for historical viewing.
+
+Include a Weekly History page where I can review previous weeks' metrics.
+
+---
+
+## Duplicate Detection
+
+If a File Number already exists during the current week:
+
+Show a warning such as:
+
+"This File Number already exists. Save anyway?"
+
+with options to continue or cancel.
+
+---
+
+## Export & Import
+
+Support:
+
+* Export to CSV
+* Import from CSV
+* JSON backup (optional)
+
+---
+
+## Settings
+
+Allow customization of:
+
+* Approved payout
+* Declined payout
+* Weekly goal
+* Theme (Light/Dark)
+* Automatic duplicate checking
+
+---
+
+## Charts (Optional)
+
+Include simple charts such as:
+
+* Transfers by Day
+* Approved vs Declined Pie Chart
+* Weekly Trend
+
+Charts should be lightweight and not distract from the main workflow.
+
+---
+
+## Technical Requirements
+
+Use:
+
+* HTML5
+* CSS3
+* Vanilla JavaScript (ES6+)
+
+Use:
+
+* IndexedDB for data storage
+* Modular JavaScript files
+* No frameworks
+* No backend
+* No external database
+
+Suggested file structure:
+
+```
+transfer-tracker/
+
+index.html
+style.css
+
+js/
+    app.js
+    parser.js
+    storage.js
+    dashboard.js
+    ui.js
+    settings.js
+```
+
+---
+
+## Future Enhancements
+
+Potential Version 2 ideas:
+
+* Editable entries
+* Notes for transfers
+* Daily productivity graphs
+* Desktop notifications
+* Auto-backups
+* Electron or Tauri desktop version
+* Import directly from copied CRM text formats
+* Keyboard-only "Rapid Entry Mode"
+* Monthly statistics
+* Achievement streaks
+* Password lock (optional)
+
+---
+
+## Primary Objective
+
+Every design decision should answer one question:
+
+**"Does this make logging a transfer faster?"**
+
+If the answer is no, the feature should be simplified or removed.
+
+The goal is to create a polished personal productivity tool that helps track transfer performance, estimate weekly bonuses, and provide quick insights without slowing down the workday.

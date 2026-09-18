@@ -1,0 +1,687 @@
+# Transfer Tracker Project — Continuation Prompt
+
+I am continuing development on my personal **Transfer Tracker** web app.
+
+The app is a fast, lightweight call-center transfer tracking and payroll auditing tool.
+
+## Tech Stack
+
+* HTML5
+* CSS3
+* Vanilla JavaScript (ES6+)
+* IndexedDB only
+* No frameworks
+* No backend
+* No login
+
+Priorities:
+
+* Speed
+* Keyboard-first workflow
+* Minimal clicks
+* Real-time tracking
+* Mobile-friendly around 400px width
+* Dark mode by default
+* Clean payroll/audit experience
+
+---
+
+# Current File Structure
+
+```text
+transfer-tracker/
+
+index.html
+style.css
+
+js/
+    app.js
+    parser.js
+    storage.js
+    dashboard.js
+    ui.js
+```
+
+---
+
+# Current Architecture
+
+CRM Copy
+
+↓
+
+Paste Boxes
+
+↓
+
+parser.js
+
+↓
+
+Transfer Object
+
+↓
+
+storage.js
+
+↓
+
+IndexedDB
+
+↓
+
+dashboard.js + ui.js
+
+↓
+
+Dashboard + Payroll History
+
+---
+
+# Transfer Object
+
+```javascript
+{
+    id: crypto.randomUUID(),
+
+    fileNumber: "0854305",
+
+    customerName: "John Smith",
+
+    phone: "(555) 555-5555",
+
+    status: "approved",
+
+    timestamp: Date.now()
+}
+```
+
+---
+
+# Current Status
+
+The application is fully functional.
+
+Completed:
+
+✅ Transfer entry workflow
+✅ Customer parser
+✅ Phone parser
+✅ IndexedDB storage
+✅ Recent Activity
+✅ Delete transfer
+✅ Today's approved/declined counts
+✅ Daily bonus engine
+✅ Today's Bonus Total
+✅ Date-aware bonus rules
+✅ Saturday bonus rules
+✅ Wednesday → Tuesday payroll week
+✅ Current Week summary
+✅ Compact Recent Activity cards
+✅ Recent Activity limited to 5 transfers
+✅ Lifetime Earnings
+✅ Lifetime Transfer count
+✅ Payroll History modal
+✅ Weekly payroll breakdown
+✅ Daily payroll breakdown
+✅ Transfer-level payroll/audit view
+✅ Delete transfers from payroll history
+✅ Back navigation inside the modal
+✅ Spreadsheet-style payroll presentation
+✅ Hover/click feedback on payroll rows
+✅ Payroll History button styling
+✅ Compact transfer rows in detailed payroll view
+
+---
+
+# Bonus Rules
+
+## Normal Days — Sunday through Friday
+
+### Approved
+
+* 0–2 = $0
+* 3–7 = every approved transfer pays $4.70
+* 8+ = every approved transfer pays $5.85
+
+Example:
+
+```text
+8 approved
+8 × $5.85 = $46.80
+```
+
+### Declined
+
+* 0–2 = $0
+* 3+ = every declined transfer pays $1.75
+
+---
+
+# Saturday Rules
+
+Saturday is automatically detected from the transfer date.
+
+No toggle.
+
+### Approved
+
+* 0–1 = $0
+* 2+ = every approved transfer pays $5.85
+
+### Declined
+
+* 0–2 = $0
+* 3+ = every declined transfer pays $1.75
+
+The bonus engine is the single source of truth.
+
+Do not duplicate bonus calculations in UI code.
+
+---
+
+# Payroll Week
+
+Payroll week is:
+
+```text
+Wednesday → Tuesday
+```
+
+NOT Monday → Sunday.
+
+Weekly bonus is calculated by summing each day's earned bonus because thresholds reset daily.
+
+---
+
+# Dashboard Design
+
+The main dashboard is intentionally optimized for live call entry.
+
+Current structure:
+
+```text
+Header
+
+Entry Card
+
+Today's Performance
+
+Recent Activity
+
+Current Week
+
+History
+```
+
+Recent Activity is intentionally compact.
+
+It shows a maximum of **5 transfers**.
+
+Each recent transfer is approximately 2 lines tall and shows:
+
+* Status
+* Customer
+* Time
+* File number
+* Phone
+* Menu/delete option
+
+Do NOT turn Recent Activity into a history table.
+
+---
+
+# Today's Performance
+
+We recently decided to REMOVE the progress indicators.
+
+The progress bars were not useful because:
+
+* Everyone already knows the bonus thresholds.
+* Saturday changes the approved threshold from 3 to 2.
+* The progress indicators added visual noise.
+
+The following HTML was removed from both Approved and Declined boxes:
+
+```html
+<div class="progress-label">
+...
+</div>
+
+<div class="progress-bar">
+...
+</div>
+```
+
+The corresponding progress CSS was also removed.
+
+Do NOT re-add progress bars unless explicitly requested.
+
+Today's Performance should remain focused on:
+
+```text
+Today's Approved
+Today's Declined
+Today's Bonus Total
+```
+
+---
+
+# Current Week
+
+Current Week appears under Recent Activity and before History.
+
+It shows:
+
+```text
+Current Week
+
+Wednesday → Tuesday
+
+Approved
+Declined
+Bonus
+```
+
+This section is styled and functional.
+
+---
+
+# History Section
+
+The main History section is intentionally simple.
+
+It should ONLY show:
+
+```text
+History
+
+Lifetime Earnings
+$0.00
+
+Total Transfers
+0
+
+[ View Payroll History ]
+```
+
+Do NOT put the entire transfer history under History.
+
+The detailed payroll history lives inside the modal.
+
+---
+
+# Payroll History Modal
+
+There is ONE modal.
+
+The workflow is:
+
+```text
+View Payroll History
+
+        ↓
+
+Weekly Payroll List
+
+        ↓
+
+Click a Week
+
+        ↓
+
+Daily Breakdown
+
+        ↓
+
+Click a Day
+
+        ↓
+
+Individual Transfers
+```
+
+There is a Back button inside the modal to move backward through the drill-down.
+
+The modal can also be closed with the X or by clicking outside it.
+
+Do NOT create additional nested modals.
+
+---
+
+# Payroll Weekly View
+
+The weekly view resembles a compact spreadsheet.
+
+Header:
+
+```text
+Week
+Approved
+Declined
+Bonus
+```
+
+Example:
+
+```text
+Aug 5 → Aug 11      5       4      $30.50
+```
+
+The week row is clickable.
+
+Hover shows a highlight.
+
+Cursor changes to a pointer.
+
+A subtle active/press effect exists.
+
+---
+
+# Daily Breakdown
+
+IMPORTANT:
+
+We intentionally decided NOT to change the daily breakdown into a seven-day Wednesday → Tuesday list.
+
+Do NOT add empty days.
+
+Only existing payroll data should appear.
+
+The day row is clickable.
+
+The day row uses a hand/pointer cursor on hover.
+
+The user specifically wanted this because the day is clickable.
+
+---
+
+# Detailed Transfer View
+
+The transfer-level payroll view is compact and spreadsheet-like.
+
+It shows:
+
+* Time
+* Status
+* Customer
+* File number
+* Phone
+* Menu
+
+Transfers use compact rows rather than large cards.
+
+Approved transfers use green styling.
+
+Declined transfers use red styling.
+
+The delete menu continues to work.
+
+---
+
+# Important Existing Functions
+
+### storage.js
+
+```javascript
+initDatabase()
+saveTransfer()
+getTransfers()
+getRecentTransfers()
+deleteTransfer()
+```
+
+### parser.js
+
+```javascript
+parseCustomer()
+parsePhone()
+```
+
+### dashboard.js
+
+Important functions include:
+
+```javascript
+getTodayTransfers()
+getWeekStart()
+getCurrentWeekTransfers()
+countStatus()
+
+getBonusRules()
+
+calculateApprovedBonus()
+calculateDeclinedBonus()
+calculateDailyBonus()
+calculateWeeklyBonus()
+
+groupTransfersByWeek()
+createPayrollWeekData()
+
+updateDashboard()
+```
+
+### ui.js
+
+Important functions include:
+
+```javascript
+createTransferCard()
+renderRecentTransfers()
+attachMenuEvents()
+closeMenus()
+
+createHistoryTransferCard()
+
+renderHistory()
+
+attachHistoryMenuEvents()
+```
+
+There are also payroll modal functions and payroll rendering functions already implemented.
+
+---
+
+# Current Payroll Data Flow
+
+Transfers are grouped by Wednesday → Tuesday payroll week.
+
+`createPayrollWeekData(transfers)` creates:
+
+```javascript
+{
+    weekStart,
+    weekEnd,
+    days,
+    transferCount,
+    weeklyApproved,
+    weeklyDeclined,
+    weeklyBonus
+}
+```
+
+Each day contains:
+
+```javascript
+{
+    date,
+    transfers,
+    transferCount,
+    approvedCount,
+    declinedCount,
+    dailyBonus
+}
+```
+
+Weekly bonus is calculated by summing the daily bonuses.
+
+Do not replace this with weekly threshold calculations.
+
+---
+
+# Current UI Philosophy
+
+The app is becoming a legitimate payroll productivity tool.
+
+Keep these principles:
+
+* Do not rebuild working features.
+* Make small isolated changes.
+* Preserve existing functionality.
+* Do not add unnecessary scrolling.
+* Do not turn the dashboard into a spreadsheet.
+* Keep Recent Activity compact.
+* Keep Payroll History detailed.
+* Use the modal for deeper review.
+* Keep the bonus engine as the single source of truth.
+* Prefer simple, reliable UI over flashy UI.
+* Avoid adding features just because they are possible.
+
+---
+
+# NEXT PRIORITY
+
+We have officially reached a good stopping point for the current payroll-history milestone.
+
+The next major roadmap item is:
+
+## Phase 4 — Backup
+
+Build:
+
+### 1. Export JSON Backup
+
+Allow the user to export all IndexedDB transfer records into a JSON file.
+
+Example:
+
+```text
+transfer-tracker-backup-2026-08-10.json
+```
+
+The export must preserve:
+
+* id
+* fileNumber
+* customerName
+* phone
+* status
+* timestamp
+
+### 2. Import JSON Restore
+
+Allow the user to select a previously exported JSON backup and restore the transfer records into IndexedDB.
+
+Important considerations:
+
+* Validate the JSON structure.
+* Reject malformed backup files.
+* Preserve timestamps exactly.
+* Preserve transfer IDs.
+* Avoid accidentally corrupting existing data.
+* Handle duplicate IDs safely.
+* Do not silently overwrite existing records.
+* Give the user clear success/error feedback.
+
+The backup feature should probably live in a simple Settings/Data area rather than cluttering the main dashboard.
+
+---
+
+# After Backup
+
+Once Export/Import is complete, move to Phase 5:
+
+## Keyboard-first workflow
+
+Potential shortcuts:
+
+```text
+A → Approved
+D → Declined
+Enter → Submit/save
+Escape → Close modal/menu
+```
+
+Only implement shortcuts carefully so they do not interfere with typing in the customer or phone textareas.
+
+Then:
+
+## Final UX Polish
+
+Potential items:
+
+* Save confirmation feedback
+* Better empty states
+* Accessibility improvements
+* Mobile refinements
+* Keyboard navigation
+* Confirmation for destructive actions if needed
+* General visual consistency
+
+Eventually the app may be prepared for coworker use.
+
+---
+
+# Development Rules
+
+VERY IMPORTANT:
+
+Do not rebuild the app.
+
+Do not replace working architecture.
+
+Do not make large unrelated changes.
+
+Work one step at a time.
+
+Give exact instructions such as:
+
+```text
+Replace this entire function.
+```
+
+or:
+
+```text
+Add this directly below X.
+```
+
+or:
+
+```text
+Delete these exact lines.
+```
+
+Avoid vague instructions.
+
+After each step, wait for me to say **done** before continuing.
+
+If I paste code, inspect the actual code I provide before telling me what to change.
+
+If something is already working, leave it alone.
+
+We are building on a working application, not starting over.
+
+---
+
+# Current Milestone
+
+The payroll history system is now considered complete enough to move forward.
+
+We can now officially:
+
+* Track transfers
+* Calculate bonuses
+* Handle Saturday rules
+* Track Wednesday → Tuesday payroll weeks
+* Review lifetime earnings
+* Review weekly payroll
+* Drill into individual days
+* Audit individual transfers
+* Delete invalid transfers
+
+The next session should begin with:
+
+**Designing and implementing JSON Export/Import backup.**
+
+Start with the smallest safe step and wait for confirmation before moving on.

@@ -1,0 +1,695 @@
+Transfer Tracker — Continuation Prompt for Tomorrow
+
+We are continuing development on my personal Transfer Tracker web app.
+
+This is a fast, lightweight call-center transfer tracking and payroll auditing tool.
+
+Tech Stack
+HTML5
+CSS3
+Vanilla JavaScript (ES6+)
+IndexedDB only
+No frameworks
+No backend
+No login
+
+Priorities:
+
+Speed
+Keyboard-first workflow
+Minimal clicks
+Real-time tracking
+Mobile-friendly around 400px width
+Dark mode by default
+Clean payroll/audit experience
+Important: Wednesday Official Trial Run
+
+Wednesday, August 12, 2026 is the official trial run with real data.
+
+The app is now being used with actual transfer data.
+
+Therefore:
+
+Be extremely conservative with changes.
+
+Do not rebuild anything.
+
+Do not refactor working architecture.
+
+Do not change the transfer object.
+
+Do not alter bonus rules unless explicitly requested.
+
+Do not make large unrelated changes.
+
+Current File Structure
+transfer-tracker/
+
+index.html
+style.css
+
+js/
+    app.js
+    parser.js
+    storage.js
+    dashboard.js
+    ui.js
+Architecture
+
+CRM Copy
+
+↓
+
+Paste Boxes
+
+↓
+
+parser.js
+
+↓
+
+Transfer Object
+
+↓
+
+storage.js
+
+↓
+
+IndexedDB
+
+↓
+
+dashboard.js + ui.js
+
+↓
+
+Dashboard + Payroll History
+
+Transfer Object
+{
+    id: crypto.randomUUID(),
+
+    fileNumber: "0854305",
+
+    customerName: "John Smith",
+
+    phone: "(555) 555-5555",
+
+    status: "approved",
+
+    timestamp: Date.now()
+}
+
+Do not change this structure.
+
+Source of Truth
+
+Raw transfer records in IndexedDB are the source of truth.
+
+Calculated payroll values must NOT be stored as permanent transfer data.
+
+Payroll values are recalculated from raw transfers.
+
+Completed and Working
+
+✅ Transfer entry workflow
+✅ Customer parser
+✅ Phone parser
+✅ IndexedDB storage
+✅ Recent Activity
+✅ Delete transfer
+✅ Today's approved/declined counts
+✅ Daily bonus engine
+✅ Date-aware bonus rules
+✅ Saturday bonus rules
+✅ Wednesday → Tuesday payroll week
+✅ Compact Recent Activity cards
+✅ Recent Activity limited to 5 transfers
+✅ Lifetime Earnings
+✅ Lifetime Transfer count
+✅ Payroll History modal
+✅ Weekly payroll breakdown
+✅ Daily payroll breakdown
+✅ Transfer-level payroll/audit view
+✅ Delete transfers from payroll history
+✅ Back navigation inside modal
+✅ Spreadsheet-style payroll presentation
+✅ Hover/click feedback on payroll rows
+✅ Payroll History button styling
+✅ Compact transfer rows
+✅ Separate Approved Bonus / Declined Bonus calculations
+✅ Separate Approved Bonus / Declined Bonus displayed in payroll views
+✅ Daily payroll deletion recalculates immediately
+✅ Multiple daily transfers can now be deleted without refreshing
+
+Bonus Rules
+Normal Days — Sunday through Friday
+Approved
+0–2 = $0
+3–7 = every approved transfer pays $4.70
+8+ = every approved transfer pays $5.85
+
+Example:
+
+8 approved
+8 × $5.85 = $46.80
+Declined
+0–2 = $0
+3+ = every declined transfer pays $1.75
+Saturday
+
+Saturday is automatically detected from the transfer date.
+
+Approved
+0–1 = $0
+2+ = every approved transfer pays $5.85
+Declined
+0–2 = $0
+3+ = every declined transfer pays $1.75
+
+No toggle.
+
+The bonus engine is the single source of truth.
+
+Separate Payroll Bonus Breakdown
+
+Actual pay stubs show Approved Bonus and Declined Bonus separately.
+
+This is now supported.
+
+The calculation layer has:
+
+calculateApprovedBonus()
+calculateDeclinedBonus()
+calculateDailyBonusBreakdown()
+calculateDailyBonus()
+
+calculateDailyBonusBreakdown() returns:
+
+{
+    approvedBonus,
+    declinedBonus,
+    totalBonus
+}
+
+calculateDailyBonus() still returns the combined total.
+
+This existing architecture is working.
+
+Critical Threshold Behavior
+
+Transfers are ALWAYS stored in IndexedDB.
+
+Being below a threshold does not delete/exclude transfers.
+
+Example:
+
+2 approved
+
+still displays both transfers.
+
+Bonus:
+
+Approved Bonus: $0.00
+
+When the 3rd arrives:
+
+3 approved
+Approved Bonus: $14.10
+
+If one is deleted:
+
+2 approved
+Approved Bonus: $0.00
+
+The whole category is recalculated from remaining raw transfers.
+
+Never subtract an individual transfer's old rate.
+
+Verified Testing
+
+We successfully tested:
+
+3 approved
+→ $14.10
+
+Delete one
+→ 2 approved
+→ $0.00
+
+This recalculated correctly.
+
+We also verified that Approved and Declined bonuses are independent.
+
+Example:
+
+3 approved
+2 declined
+
+Approved Bonus: $14.10
+Declined Bonus: $0.00
+Total: $14.10
+
+And:
+
+3 approved
+3 declined
+
+Approved Bonus: $14.10
+Declined Bonus: $5.25
+Total: $19.35
+Payroll History Design
+
+The purpose of Payroll History is specifically to let the user quickly compare the app against their paystub.
+
+Therefore the Approved Bonus and Declined Bonus breakdown must remain visible throughout the payroll workflow.
+
+First Payroll History View
+
+The weekly payroll view should show:
+
+Week
+Approved
+Declined
+Bonus
+
+The approved/declined quantities are visible.
+
+The payroll view should also expose the separate Approved Bonus and Declined Bonus amounts as appropriate to the finalized UI design.
+
+Daily Breakdown
+
+The Daily Breakdown should show the approved and declined quantities with their respective bonus amounts in their respective boxes.
+
+The layout should remain compact and clean.
+
+Conceptually:
+
+Approved       Declined
+3              3
+$14.10         $5.25
+
+Then the combined total:
+
+Total Bonus
+$19.35
+
+Do not clutter the layout.
+
+Current Payroll Data Model
+
+createPayrollWeekData(transfers) now produces days containing:
+
+{
+    date,
+    transfers,
+    transferCount,
+    approvedCount,
+    declinedCount,
+    approvedBonus,
+    declinedBonus,
+    dailyBonus
+}
+
+Weekly data contains:
+
+{
+    weekStart,
+    weekEnd,
+    days,
+    transferCount,
+    weeklyApproved,
+    weeklyDeclined,
+    weeklyApprovedBonus,
+    weeklyDeclinedBonus,
+    weeklyBonus
+}
+
+Weekly bonuses are calculated by summing daily bonuses.
+
+Do not calculate weekly bonuses using weekly thresholds.
+
+Thresholds reset each day.
+
+Current Daily Payroll Delete Behavior
+
+This was the major issue we worked through today.
+
+Initially:
+
+Delete transfer
+→ IndexedDB deletes correctly
+→ UI stayed stale
+→ refresh required
+
+We inspected deleteTransfer() in storage.js.
+
+It is already correct:
+
+function deleteTransfer(id) {
+
+    return new Promise((resolve, reject) => {
+
+        const transaction = db.transaction(
+            STORE_NAME,
+            "readwrite"
+        );
+
+        const store =
+            transaction.objectStore(
+                STORE_NAME
+            );
+
+        store.delete(id);
+
+        transaction.oncomplete = function () {
+            resolve();
+        };
+
+        transaction.onerror = function () {
+            reject(
+                transaction.error
+            );
+        };
+
+    });
+
+}
+
+Do not change deleteTransfer().
+
+Important Fix We Made
+
+The original attachPayrollTransferEvents() was using day and week without having them in scope.
+
+We changed:
+
+attachPayrollTransferEvents();
+
+to:
+
+attachPayrollTransferEvents(
+    day,
+    week
+);
+
+and changed:
+
+function attachPayrollTransferEvents() {
+
+to:
+
+function attachPayrollTransferEvents(
+    day,
+    week
+) {
+
+That fixed the first major problem.
+
+Second Fix We Made
+
+The individual transfer event handlers were unreliable after the Daily View was dynamically rebuilt.
+
+We replaced the individual button event listeners with event delegation.
+
+Current structure:
+
+function attachPayrollTransferEvents(
+    day,
+    week
+) {
+
+    const container =
+        document.getElementById(
+            "payrollDayView"
+        );
+
+    container.onclick = async event => {
+
+        const menuButton =
+            event.target.closest(
+                ".payroll-transfer-menu"
+            );
+
+        if (menuButton) {
+
+            event.stopPropagation();
+
+            closeMenus();
+
+            const menu =
+                menuButton.nextElementSibling;
+
+            menu.classList.toggle(
+                "show"
+            );
+
+            return;
+        }
+
+        const deleteButton =
+            event.target.closest(
+                ".payroll-delete-option"
+            );
+
+        if (deleteButton) {
+
+            event.stopPropagation();
+
+            const id =
+                deleteButton.dataset.id;
+
+            await deleteTransfer(id);
+
+            const transfers =
+                await getTransfers();
+
+            const payrollWeeks =
+                createPayrollWeekData(
+                    transfers
+                );
+
+            const updatedWeek =
+                payrollWeeks.find(
+                    weekData =>
+                        weekData.weekStart.getTime() ===
+                        week.weekStart.getTime()
+                );
+
+            if (!updatedWeek) {
+                return;
+            }
+
+            const updatedDay =
+                updatedWeek.days.find(
+                    dayData =>
+                        dayData.date.toDateString() ===
+                        day.date.toDateString()
+                );
+
+            if (updatedDay) {
+
+                renderPayrollTransferView(
+                    updatedDay,
+                    updatedWeek
+                );
+
+            }
+            else {
+
+                renderPayrollDayView(
+                    updatedWeek
+                );
+
+            }
+
+            await renderRecentTransfers();
+
+            await updateDashboard();
+
+            await renderHistory();
+
+            return;
+        }
+
+        closeMenus();
+
+    };
+
+}
+
+This is currently working. Do not casually rewrite it.
+
+Current Verified Result
+
+We tested multiple deletions.
+
+Now:
+
+Transfer #1 deleted
+→ disappears immediately
+→ count updates
+→ bonus updates
+
+Transfer #2 deleted
+→ disappears immediately
+→ count updates
+→ bonus updates
+
+Transfer #3 deleted
+→ disappears immediately
+→ count updates
+→ bonus updates
+
+No page refresh is required for the normal cases.
+
+The delete menu also continues responding correctly after the Daily View is rebuilt.
+
+Remaining Bug at End of Today
+
+There is one minor visual/viewport bug remaining.
+
+When deleting the last remaining transfer in the Daily Transfer View, the delete menu/bubble can extend out of the visible frame.
+
+The delete button itself is still clickable and the transfer does delete.
+
+However:
+
+last transfer
+→ open delete menu
+→ menu extends out of frame
+→ click still works
+→ transfer deletes
+→ sometimes visual disappearance is not immediately apparent
+→ refresh makes the final state obvious
+
+This is NOT currently considered a payroll calculation problem.
+
+It appears to be a menu positioning / viewport / overflow issue.
+
+Tomorrow:
+
+Inspect the actual current CSS for:
+.action-menu
+.payroll-transfer-row
+.payroll-transfer-menu
+.payroll-transfer-list
+any overflow
+any position
+Inspect the current HTML structure.
+Determine why the final row's menu is extending outside the visible area.
+Make the smallest CSS/UI fix possible.
+Do not alter the working delete/recalculation logic unless testing proves it necessary.
+Important Development Rule
+
+Do not immediately start changing code tomorrow.
+
+First say that you understand the current state.
+
+Then inspect the relevant code before proposing changes.
+
+For the remaining menu issue, ask for the current CSS if necessary.
+
+Work one small step at a time.
+
+After each change, wait for:
+
+done
+
+before continuing.
+
+UI Changes Still Desired — AFTER Payroll Is Stable
+Header
+
+The "Transfer Tracker" header feels too large.
+
+Goal:
+
+Make it smaller
+Still dominant
+Possibly improve contrast/background styling
+Entry Card
+
+Paste areas/buttons take too much vertical space.
+
+Approved/Declined buttons feel too large.
+
+Goal:
+
+More compact
+Preserve easy touch targets
+Preserve keyboard-first workflow
+Today's Performance
+
+Change:
+
+Today's Approved
+Today's Declined
+
+to:
+
+Approved
+Declined
+
+because "Today's" is already implied.
+
+Add subtle visual distinction between Approved and Declined.
+
+Do NOT use the same bright green/red treatment as the main entry buttons.
+
+Keep it subtle.
+
+Phase 4 — Backup
+
+Only after payroll behavior is completely stable.
+
+Export JSON Backup
+
+Export all IndexedDB transfer records.
+
+Example:
+
+transfer-tracker-backup-2026-08-10.json
+
+Preserve exactly:
+
+id
+fileNumber
+customerName
+phone
+status
+timestamp
+Import JSON Restore
+
+Requirements:
+
+Validate JSON
+Reject malformed files
+Validate transfer object structure
+Preserve timestamps exactly
+Preserve IDs
+Do not silently overwrite existing records
+Handle duplicate IDs safely
+Clear success/error feedback
+
+Backup should probably live in a simple Settings/Data area.
+
+Do not store calculated payroll values in backups.
+
+Raw transfer records remain the source of truth.
+
+Tomorrow's First Goal
+
+Do not start with UI polish.
+
+First:
+
+Confirm understanding of today's final state.
+Acknowledge that the app is currently being used with real Wednesday data.
+Inspect the current CSS related to the payroll delete menu.
+Fix only the last-row/off-screen delete-menu issue.
+Test it with real data.
+Then stop and reassess before making any other changes.
+
+The payroll calculation and multi-delete behavior are currently considered working. Protect them.

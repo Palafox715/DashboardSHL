@@ -1,0 +1,389 @@
+# Transfer Tracker Project — Continuation Prompt
+
+I am building a personal call center transfer tracking web app.
+
+The goal is a fast, lightweight productivity tool for tracking approved and declined call transfers and accurately estimating bonus pay.
+
+## Tech Stack
+
+* HTML5
+* CSS3
+* Vanilla JavaScript (ES6+)
+* IndexedDB only
+* No frameworks
+* No backend
+* No login
+
+Priorities:
+
+* Speed
+* Keyboard-first workflow
+* Minimal clicks
+* Real-time tracking
+* Mobile-friendly (400px width)
+* Dark mode by default
+
+---
+
+# Current File Structure
+
+```
+transfer-tracker/
+
+index.html
+style.css
+
+js/
+    app.js
+    parser.js
+    storage.js
+    dashboard.js
+    ui.js
+```
+
+---
+
+# Current Architecture
+
+CRM Copy
+
+↓
+
+Paste Boxes
+
+↓
+
+parser.js
+
+↓
+
+Transfer Object
+
+↓
+
+storage.js
+
+↓
+
+IndexedDB
+
+↓
+
+dashboard.js + ui.js
+
+↓
+
+Dashboard + Recent Activity
+
+---
+
+# Transfer Object
+
+```javascript
+{
+    id: crypto.randomUUID(),
+
+    fileNumber: "0854305",
+
+    customerName: "John Smith",
+
+    phone: "(555) 555-5555",
+
+    status: "approved",
+
+    timestamp: Date.now()
+}
+```
+
+---
+
+# Current Status
+
+The app is working.
+
+Completed:
+
+✅ Transfer entry workflow
+✅ Customer parser
+✅ Phone parser
+✅ IndexedDB storage
+✅ Recent Activity display
+✅ Delete transfer
+✅ Today's approved/declined counts
+✅ Daily bonus engine foundation
+✅ Today's Bonus Total calculation
+✅ Date-aware bonus rules foundation
+
+---
+
+# Current Bonus Rules
+
+## Normal Days (Sunday-Friday)
+
+Approved:
+
+* 0–2 = $0
+* 3–7 = every approved transfer pays $4.70
+* 8+ = every approved transfer pays $5.85
+
+Example:
+
+8 approved:
+
+```
+8 × $5.85 = $46.80
+```
+
+Declined:
+
+* 0–2 = $0
+* 3+ = every declined transfer pays $1.75
+
+---
+
+# Saturday Rules
+
+Saturday is automatically detected by transfer date.
+
+No toggle.
+
+If there are no transfers on Saturday, there is no Saturday calculation.
+
+Approved:
+
+* 0–1 = $0
+* 2+ = every approved transfer pays $5.85
+
+Declined:
+
+* 0–2 = $0
+* 3+ = every declined transfer pays $1.75
+
+---
+
+# Current Bonus Engine
+
+Located in:
+
+```
+js/dashboard.js
+```
+
+Functions:
+
+```javascript
+getBonusRules(date)
+
+calculateApprovedBonus()
+
+calculateDeclinedBonus()
+
+calculateDailyBonus()
+
+calculateWeeklyBonus()
+```
+
+The bonus engine should remain the single source of truth.
+
+Do not duplicate calculations in UI files.
+
+---
+
+# Current Dashboard
+
+Layout:
+
+```
+Header
+
+Entry Card
+
+Today's Performance
+
+Current Week
+
+Recent Activity
+```
+
+This dashboard is optimized for live call entry.
+
+Do NOT redesign it.
+
+---
+
+# Current Week Rules
+
+Work week:
+
+Wednesday → Tuesday
+
+NOT Monday-Sunday.
+
+Weekly bonus is calculated by summing each day's earned bonus.
+
+Do not calculate weekly bonus from weekly totals because thresholds reset daily.
+
+---
+
+# Next Major Feature: Weekly Report
+
+This is the next priority.
+
+Purpose:
+
+Create an auditing/report view where I can:
+
+* See every transfer logged by date
+* Verify bonus calculations
+* Review payroll accuracy
+* Delete invalidated transfers
+* Understand exactly where weekly totals come from
+
+This view is intentionally more spreadsheet-like.
+
+The dashboard should stay fast.
+
+The report is for review.
+
+---
+
+# Weekly Report Design Direction
+
+Create a separate view/page/section.
+
+Do NOT add a giant table under Recent Activity.
+
+Preferred layout:
+
+```
+Weekly Report
+
+
+▼ Wednesday, Aug 5
+--------------------------------
+
+3:14 PM
+Approved
+John Smith
+#0854305
+(555) 555-5555
+
+3:27 PM
+Declined
+Jane Doe
+#0854310
+
+
+Approved: 2
+
+Declined: 1
+
+Daily Bonus: $0.00
+
+
+--------------------------------
+
+
+▶ Thursday, Aug 6
+
+Transfers: 18
+
+Daily Bonus: $91.80
+
+
+--------------------------------
+
+
+▶ Friday, Aug 7
+
+Transfers: 0
+
+Daily Bonus: $0.00
+```
+
+---
+
+# Important Weekly Report Feature
+
+Use collapsible day sections.
+
+Reason:
+
+* Mobile screen is only 400px wide.
+* A full spreadsheet would become difficult to use.
+* Collapsing lets me inspect one day at a time.
+* Day totals remain visible.
+
+Each day section should show:
+
+* Date
+* Number of transfers
+* Approved count
+* Declined count
+* Daily bonus
+
+Expanded:
+
+Show individual transfers.
+
+Each transfer should eventually support:
+
+* Delete transfer
+* Possibly edit transfer later
+
+Reuse the existing delete logic if possible.
+
+---
+
+# Future Roadmap
+
+## Phase 1 — Finish Bonus Engine
+
+1. Make weekly bonus fully date-aware
+2. Confirm Saturday calculations
+3. Verify Wednesday → Tuesday payroll week
+
+## Phase 2 — Dashboard Completion
+
+4. Dynamic progress labels
+5. Dynamic progress bars
+
+## Phase 3 — Weekly Report
+
+6. Build collapsible weekly report view
+7. Add transfer review/delete from report
+
+## Phase 4 — Backup
+
+8. Export JSON backup
+9. Import JSON restore
+
+## Phase 5 — Polish
+
+10. Keyboard shortcuts
+11. Final UX improvements
+12. Prepare for possible coworker use
+
+---
+
+# Development Rules
+
+Do not rebuild.
+
+Make small isolated changes.
+
+Use exact instructions:
+
+* Replace this entire function
+* Add this directly below...
+* Delete these exact lines
+
+Avoid vague instructions.
+
+Work one step at a time.
+
+Wait for me to finish each step before continuing.
+
+The app already works. Improve reliability, speed, and maintainability.
+
+The next task is continuing from the bonus engine and designing/building the Weekly Report with collapsible day sections.

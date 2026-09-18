@@ -1,0 +1,415 @@
+# Transfer Tracker Project — Continuation Prompt
+
+I am building a personal call center transfer tracking web app.
+
+The goal is a fast, lightweight productivity tool for tracking approved and declined call transfers and estimating bonus pay.
+
+## Tech Stack
+
+* HTML5
+* CSS3
+* Vanilla JavaScript (ES6+)
+* IndexedDB only
+* No frameworks
+* No backend
+* No login
+
+The app should prioritize:
+
+* Speed
+* Keyboard-first workflow
+* Minimal clicks
+* Real-time tracking
+* Mobile-friendly (400px width)
+* Dark mode by default
+
+---
+
+# Current Workflow
+
+Current workflow is:
+
+Paste customer information
+
+↓
+
+Paste phone number
+
+↓
+
+Click **Approved** or **Declined**
+
+↓
+
+Transfer saves instantly
+
+↓
+
+Inputs clear automatically
+
+↓
+
+Ready for next call
+
+Target entry time is **2–3 seconds per transfer**.
+
+---
+
+# Current File Structure
+
+```
+transfer-tracker/
+
+index.html
+style.css
+
+js/
+    app.js
+    parser.js
+    storage.js
+    dashboard.js
+    ui.js
+```
+
+---
+
+# Current Architecture
+
+CRM Copy
+
+↓
+
+Paste Boxes
+
+↓
+
+parser.js
+
+↓
+
+Transfer Object
+
+↓
+
+storage.js
+
+↓
+
+IndexedDB
+
+↓
+
+dashboard.js + ui.js
+
+↓
+
+Dashboard + Recent Activity
+
+---
+
+# Transfer Object
+
+```javascript
+{
+    id: crypto.randomUUID(),
+
+    fileNumber: "0854305",
+
+    customerName: "John Smith",
+
+    phone: "(555) 555-5555",
+
+    status: "approved",
+
+    timestamp: Date.now()
+}
+```
+
+---
+
+# Parser
+
+CRM format is fixed.
+
+Example:
+
+```
+#0854305John Smith
+```
+
+Phone:
+
+```
+(555) 555-5555
+```
+
+Current parser already works.
+
+Do NOT over-engineer it.
+
+---
+
+# IndexedDB
+
+Database:
+
+```
+TransferTrackerDB
+```
+
+Store:
+
+```
+transfers
+```
+
+Current functions:
+
+* initDatabase()
+* saveTransfer()
+* getTransfers()
+* getRecentTransfers()
+* deleteTransfer()
+
+Everything is stored locally.
+
+Future feature:
+
+Export / Import JSON backup.
+
+---
+
+# Current UI
+
+Current layout is:
+
+```
+Header
+
+Entry Card
+
+Today's Performance
+
+Current Week
+
+Recent Activity
+```
+
+This hierarchy was intentionally redesigned because the previous dashboard looked like a spreadsheet.
+
+---
+
+# Today's Performance
+
+Current dashboard has:
+
+Two cards:
+
+Approved
+
+Declined
+
+Large numbers
+
+Progress bars
+
+Progress labels
+
+Today's Bonus Total
+
+Current progress labels are placeholders:
+
+```
+0 / 3 to Bonus
+```
+
+Progress bars are currently static placeholders.
+
+They need to become dynamic.
+
+---
+
+# Current Week
+
+Current Week displays:
+
+* Approved count
+* Declined count
+* Weekly Bonus (not transfer total)
+
+Example:
+
+```
+CURRENT WEEK
+
+Wed → Tue
+
+Approved     14
+
+Declined      8
+
+Bonus      $186
+```
+
+The Bonus value is intended to match payroll so I can verify my paycheck.
+
+---
+
+# Recent Activity
+
+Recent Activity is working correctly.
+
+Transfer cards display:
+
+* Status
+* Time
+* Customer Name
+* File Number
+* Phone
+* Three-dot menu
+* Delete Transfer
+
+IndexedDB delete already works.
+
+Do NOT redesign Recent Activity.
+
+---
+
+# Business Rules
+
+Work week is:
+
+Wednesday → Tuesday
+
+NOT Monday–Sunday.
+
+All weekly calculations must use Wednesday as the beginning of the week.
+
+---
+
+# Bonus Rules
+
+Bonus is DAILY.
+
+Thresholds do NOT accumulate across the week.
+
+Example:
+
+Wednesday:
+
+2 Approved
+
+↓
+
+No approved bonus
+
+Thursday:
+
+3 Approved
+
+↓
+
+Approved bonus activates only for Thursday.
+
+Weekly bonus is simply the sum of each day's earned bonus.
+
+---
+
+# Current Placeholder Values
+
+Keep these configurable.
+
+Approved Transfer:
+
+$4
+
+Declined Transfer:
+
+$2
+
+Approved:
+
+1–2
+
+No payout
+
+3–7
+
+Normal payout
+
+8+
+
+Higher payout (placeholder for now)
+
+Declined:
+
+3+
+
+Normal payout
+
+No higher tier yet.
+
+These values will eventually move into Settings.
+
+---
+
+# Immediate Goal
+
+Implement the bonus engine.
+
+Do NOT rewrite the app.
+
+Make small, isolated improvements.
+
+Suggested structure:
+
+dashboard.js
+
+```
+calculateDailyBonus()
+
+calculateWeeklyBonus()
+
+getBonusProgress()
+```
+
+Keep calculation logic separate from UI updates.
+
+updateDashboard() should only display values.
+
+---
+
+# Coding Style
+
+When giving instructions:
+
+Be extremely specific.
+
+Use directions like:
+
+* Replace this entire function
+* Add this directly below...
+* Delete these exact lines
+
+Avoid vague directions.
+
+Work one step at a time.
+
+Wait for me to finish each step before moving to the next.
+
+---
+
+# Development Philosophy
+
+This app already works.
+
+Do not rebuild it.
+
+Focus on:
+
+* Reliability
+* Speed
+* Clean UX
+* Maintainable architecture
+
+The next task is implementing the bonus calculation engine and wiring it into the new dashboard while keeping the code organized.

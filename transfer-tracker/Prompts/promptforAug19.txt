@@ -1,0 +1,995 @@
+I am continuing a web app project called "Transfer Tracker."
+
+IMPORTANT:
+You have NO memory of my previous conversation, so treat this prompt as the complete project handoff and source of truth.
+
+Please do not make assumptions about code that I have not shown you. If I paste a file, analyze the actual file before suggesting changes.
+
+==================================================
+PROJECT OVERVIEW
+==================================================
+
+I am building a browser-based Transfer Tracker app.
+
+The app tracks customer transfers and whether each transfer was:
+
+- Approved
+- Declined
+
+Each transfer contains:
+
+- id
+- fileNumber
+- customerName
+- phone
+- status
+- timestamp
+
+The app stores data locally in the browser using IndexedDB.
+
+The general goal is a clean, professional, compact dashboard for entering transfers, viewing recent activity, viewing payroll/history, and backing up/restoring local data.
+
+This is currently a vanilla HTML/CSS/JavaScript project.
+
+Do NOT introduce a framework unless I specifically ask for one.
+
+==================================================
+CURRENT FUNCTIONALITY
+==================================================
+
+The app currently has:
+
+1. Customer entry
+2. Phone entry
+3. Approve button
+4. Decline button
+5. Recent Activity
+6. Dashboard statistics
+7. Current Week information
+8. Payroll History modal
+9. Weekly payroll view
+10. Daily payroll view
+11. Individual transfer view
+12. Delete transfer functionality
+13. Export backup as JSON
+14. Import backup from JSON
+15. Clear local data
+16. IndexedDB persistence
+17. Today's date display
+18. Bonus calculations
+
+Transfers are saved locally and can survive page reloads.
+
+The backup system exports raw transfer records as JSON and can restore them.
+
+==================================================
+IMPORTANT DATA MODEL
+==================================================
+
+A transfer looks approximately like this:
+
+{
+    id: crypto.randomUUID(),
+    fileNumber: customer.fileNumber,
+    customerName: customer.customerName,
+    phone: phone.phone,
+    status: status,
+    timestamp: Date.now()
+}
+
+status is either:
+
+"approved"
+
+or:
+
+"declined"
+
+==================================================
+IMPORTANT FUNCTIONS ALREADY EXIST
+==================================================
+
+The project already contains functions including:
+
+- initDatabase()
+- saveTransfer()
+- getTransfers()
+- getRecentTransfers()
+- deleteTransfer()
+- clearAllTransfers()
+- importTransfers()
+- parseCustomer()
+- parsePhone()
+- updateDashboard()
+- createTransfer()
+- renderRecentTransfers()
+- renderHistory()
+- createTransferCard()
+- createHistoryTransferCard()
+- createHistoryDay()
+- createPayrollWeekRow()
+- createPayrollDayRow()
+- renderPayrollDayView()
+- renderPayrollTransferView()
+- createPayrollTransferRow()
+- attachPayrollTransferEvents()
+- attachPayrollWeekEvents()
+- updateRecentActivitySummary()
+- exportBackup()
+
+Do not recreate these functions unless we verify that they are actually missing.
+
+==================================================
+IMPORTANT RECENT BUG HISTORY
+==================================================
+
+We had a serious issue where data stopped appearing after multiple edits were pasted into app.js.
+
+The browser console showed:
+
+Uncaught SyntaxError:
+Identifier 'activityCard' has already been declared
+
+This happened because duplicate JavaScript declarations had been pasted into the file.
+
+For example, the file contained duplicate declarations similar to:
+
+const activityToggle =
+    document.getElementById("activityToggle");
+
+const activityCard =
+    document.querySelector(".activity-card");
+
+There had also been another activity-related implementation using a differently named variable.
+
+This caused the entire JavaScript file to fail parsing, which made it look like the stored data was gone.
+
+IMPORTANT LESSON:
+
+If the app suddenly shows no data after an edit, FIRST check the browser console for a JavaScript syntax error before touching IndexedDB or data-storage code.
+
+A syntax error prevents the entire script from executing.
+
+The data itself was not necessarily deleted.
+
+==================================================
+CURRENT RECENT ACTIVITY FEATURE
+==================================================
+
+We recently added a collapsible "Recent Activity" section.
+
+The desired behavior is:
+
+CLOSED:
+- Only the Recent Activity header is visible.
+- A subtitle such as:
+  "Last transfer · Approved · 4:32 PM"
+  is visible.
+- The transfer list is hidden.
+
+OPEN:
+- The transfer list becomes visible.
+- The chevron rotates.
+- The user can see recent transfers.
+
+The HTML is expected to have something conceptually like:
+
+<div class="activity-card">
+
+    <button class="activity-header" id="activityToggle">
+
+        <div>
+            <h2>Recent Activity</h2>
+
+            <span
+                class="activity-subtitle"
+                id="activitySubtitle">
+                No transfers yet
+            </span>
+        </div>
+
+        <span class="activity-chevron">
+            ▼
+        </span>
+
+    </button>
+
+    <div class="recent-activity-content">
+
+        <div id="recentTransfers"></div>
+
+    </div>
+
+</div>
+
+Use the actual HTML I provide if it differs.
+
+==================================================
+CURRENT COLLAPSE JAVASCRIPT
+==================================================
+
+The intended JavaScript is essentially:
+
+const activityToggle =
+    document.getElementById("activityToggle");
+
+const activityCard =
+    document.querySelector(".activity-card");
+
+if (activityToggle && activityCard) {
+
+    activityToggle.addEventListener(
+        "click",
+        () => {
+
+            activityCard.classList.toggle(
+                "activity-open"
+            );
+
+        }
+    );
+
+}
+
+IMPORTANT:
+
+There must only be ONE declaration of:
+
+activityToggle
+
+and only ONE declaration of:
+
+activityCard
+
+in app.js.
+
+Do NOT add another copy.
+
+If a different activity toggle implementation exists, inspect it first and consolidate rather than stacking another implementation on top.
+
+==================================================
+CURRENT RECENT ACTIVITY CSS
+==================================================
+
+We discovered that the collapse was not working because the CSS contained this override at the very bottom:
+
+.recent-activity-content {
+    max-height: none !important;
+    opacity: 1 !important;
+    display: block !important;
+    padding: 16px 18px !important;
+}
+
+This forced the content to remain visible.
+
+That rule MUST NOT exist.
+
+The intended collapse CSS is:
+
+.activity-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0;
+    margin-bottom: 18px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.activity-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 16px 18px;
+    margin: 0;
+
+    background: transparent;
+    border: none;
+
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.activity-header > div {
+    min-width: 0;
+}
+
+.activity-header h2 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 650;
+}
+
+.activity-subtitle {
+    display: block;
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.activity-chevron {
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 30px;
+    height: 30px;
+
+    margin-left: 12px;
+
+    border-radius: 8px;
+
+    background: var(--surface);
+    border: 1px solid var(--border);
+
+    color: var(--muted);
+    font-size: 16px;
+
+    transition:
+        transform .25s ease,
+        background .2s ease,
+        color .2s ease;
+}
+
+.activity-header:hover .activity-chevron {
+    background: #eef2f7;
+    color: var(--text);
+}
+
+.recent-activity-content {
+    overflow: hidden;
+
+    max-height: 0;
+    opacity: 0;
+
+    padding: 0 18px;
+
+    transition:
+        max-height .35s ease,
+        opacity .25s ease,
+        padding .35s ease;
+}
+
+.activity-card.activity-open
+.recent-activity-content {
+    max-height: 1000px;
+    opacity: 1;
+
+    padding-top: 2px;
+    padding-bottom: 16px;
+}
+
+.activity-card.activity-open
+.activity-chevron {
+    transform: rotate(180deg);
+}
+
+==================================================
+CURRENT CSS CLEANUP STATUS
+==================================================
+
+The CSS file contains some duplicate sections because many edits were pasted into the stylesheet over time.
+
+Known duplicates include:
+
+- .activity-header
+- .activity-subtitle
+- .activity-chevron
+- .week-summary
+- .week-range
+- .week-row
+
+The duplicates are not all currently breaking the app, because later rules override earlier ones, but they should eventually be consolidated.
+
+IMPORTANT:
+Do NOT blindly rewrite the entire CSS file.
+
+Clean it incrementally.
+
+Before deleting or combining anything, identify:
+1. which rule is active,
+2. which rule is duplicated,
+3. whether either rule contains a unique property,
+4. then consolidate safely.
+
+The goal is to end up with ONE authoritative definition for each component.
+
+==================================================
+CURRENT VISUAL STYLE
+==================================================
+
+The design is intentionally compact and professional.
+
+Current color variables include:
+
+:root {
+
+    --bg: #b8bec7;
+    --card: #ffffff;
+    --surface: #f8fafc;
+
+    --border: #e5e7eb;
+    --border-strong: #d1d5db;
+
+    --text: #1f2937;
+    --muted: #6b7280;
+
+    --blue: #2563eb;
+    --blue-soft: #eff6ff;
+
+    --green: #16a34a;
+    --green-soft: #f0fdf4;
+
+    --red: #dc2626;
+    --red-soft: #fef2f2;
+
+    --radius: 12px;
+
+}
+
+The body has a gray gradient background.
+
+The app is constrained to approximately:
+
+max-width: 520px;
+
+The overall visual direction is:
+
+- clean
+- compact
+- professional
+- mobile-friendly
+- spreadsheet/dashboard inspired
+- subtle shadows
+- light gray surfaces
+- green approved indicators
+- red declined indicators
+- blue used sparingly for focus/action states
+
+==================================================
+RECENT TRANSFER CARD
+==================================================
+
+Recent transfers are intentionally compact.
+
+The generated HTML looks approximately like:
+
+<div class="recent-transfer ${statusClass}">
+
+    <div class="recent-transfer-main">
+
+        <div class="recent-transfer-line">
+
+            <span class="recent-status">
+                <span class="status-dot"></span>
+                ${statusText}
+            </span>
+
+            <span class="recent-name">
+                ${transfer.customerName}
+            </span>
+
+            <span class="recent-time">
+                ${time}
+            </span>
+
+        </div>
+
+        <div class="recent-transfer-details">
+
+            #${transfer.fileNumber}
+
+            <span>•</span>
+
+            ${transfer.phone}
+
+        </div>
+
+    </div>
+
+    <button
+        class="menu-button recent-menu-button"
+        data-id="${transfer.id}">
+        ⋮
+    </button>
+
+    <div class="action-menu">
+
+        <button
+            class="delete-option"
+            data-id="${transfer.id}">
+            Delete Transfer
+        </button>
+
+    </div>
+
+</div>
+
+==================================================
+RECENT ACTIVITY SUMMARY
+==================================================
+
+There is a function:
+
+function updateRecentActivitySummary(transfer) {
+
+    const summary =
+        document.getElementById(
+            "activitySubtitle"
+        );
+
+    if (!summary) {
+        return;
+    }
+
+    if (!transfer) {
+
+        summary.textContent =
+            "No transfers yet";
+
+        return;
+    }
+
+    const status =
+        transfer.status === "approved"
+            ? "Approved"
+            : "Declined";
+
+    const time =
+        new Date(
+            transfer.timestamp
+        ).toLocaleTimeString(
+            [],
+            {
+                hour: "numeric",
+                minute: "2-digit"
+            }
+        );
+
+    summary.textContent =
+        `Last transfer · ${status} · ${time}`;
+
+}
+
+This should remain functional.
+
+==================================================
+RENDER RECENT TRANSFERS
+==================================================
+
+Current logic is approximately:
+
+async function renderRecentTransfers() {
+
+    const container =
+        document.getElementById("recentTransfers");
+
+    const transfers =
+        await getRecentTransfers(5);
+
+    updateRecentActivitySummary(
+        transfers[0]
+    );
+
+    if (!transfers.length) {
+
+        container.innerHTML = `
+            <div class="empty">
+                No transfers yet.
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML =
+        transfers.map(createTransferCard).join("");
+
+    attachMenuEvents();
+
+}
+
+IMPORTANT:
+Recent Activity should show only the most recent 5 transfers.
+
+==================================================
+MENU / DELETE BEHAVIOR
+==================================================
+
+Transfer cards have a three-dot menu.
+
+The menu contains:
+
+Delete Transfer
+
+There is an action-menu class that is hidden by default:
+
+.action-menu {
+    display: none;
+    position: absolute;
+    ...
+}
+
+and shown with:
+
+.action-menu.show {
+    display: block;
+}
+
+The JavaScript closes menus when appropriate.
+
+Do not break this while modifying the collapsible Recent Activity section.
+
+==================================================
+PAYROLL SYSTEM
+==================================================
+
+The app has a Payroll History modal.
+
+The user can:
+
+1. Open Payroll History.
+2. See weekly payroll rows.
+3. Click a week.
+4. See daily breakdown for that week.
+5. Click a day.
+6. See individual transfers for that day.
+7. Delete individual transfers.
+8. Navigate backward.
+
+Relevant functions:
+
+- renderHistory()
+- createPayrollWeekRow()
+- attachPayrollWeekEvents()
+- renderPayrollDayView()
+- createPayrollDayRow()
+- renderPayrollTransferView()
+- createPayrollTransferRow()
+- attachPayrollTransferEvents()
+
+Do not redesign this unless specifically requested.
+
+==================================================
+IMPORTANT PAYROLL FLOW
+==================================================
+
+Weekly view:
+
+Week
+Approved
+Declined
+Bonus
+
+Clicking a week opens the daily view.
+
+Daily view:
+
+Date
+Approved
+Declined
+Bonus
+
+Clicking a day opens individual transfers.
+
+Individual transfer view displays:
+
+- time
+- status
+- customer
+- file number
+- phone
+- menu/delete
+
+==================================================
+INITIALIZATION
+==================================================
+
+The app currently initializes approximately like:
+
+initDatabase()
+.then(() => {
+
+    renderRecentTransfers();
+
+    renderHistory();
+
+    updateDashboard();
+
+})
+.catch(error => {
+
+    console.error(
+        "Database error:",
+        error
+    );
+
+});
+
+There is also:
+
+const customerInput =
+    document.getElementById("customerInput");
+
+const phoneInput =
+    document.getElementById("phoneInput");
+
+Approve and decline buttons call:
+
+createTransfer("approved")
+
+and:
+
+createTransfer("declined")
+
+After saving a transfer, the app refreshes:
+
+renderRecentTransfers()
+updateDashboard()
+renderHistory()
+
+==================================================
+BACKUP SYSTEM
+==================================================
+
+Export:
+
+exportBackup()
+
+gets all transfers and downloads JSON:
+
+transfer-tracker-backup-YYYY-MM-DD.json
+
+Import validates:
+
+- array
+- object
+- id
+- fileNumber
+- customerName
+- phone
+- status
+- timestamp
+
+Then calls:
+
+importTransfers(data)
+
+After import:
+
+renderRecentTransfers()
+updateDashboard()
+renderHistory()
+
+There is also:
+
+clearAllTransfers()
+
+which permanently clears local transfer data after confirmation.
+
+Do NOT modify backup behavior unless specifically requested.
+
+==================================================
+MOST IMPORTANT DEVELOPMENT RULE
+==================================================
+
+I have repeatedly had problems caused by pasting a new block of code without realizing the old block was still in the file.
+
+Therefore:
+
+NEVER tell me to simply "add this" when the project may already contain an implementation.
+
+Instead:
+
+1. Ask me to paste the relevant section/file if you need to inspect it.
+2. Identify the existing implementation.
+3. Tell me exactly what to remove.
+4. Tell me exactly what to replace it with.
+5. Keep one authoritative implementation.
+6. Avoid duplicate const declarations.
+7. Avoid duplicate event listeners.
+8. Avoid duplicate CSS selectors unless there is a deliberate cascade reason.
+
+When making changes, prefer:
+
+"Find this block and replace it with this block."
+
+rather than:
+
+"Paste this somewhere near the bottom."
+
+==================================================
+DEBUGGING RULE
+==================================================
+
+If something suddenly disappears or stops working:
+
+FIRST:
+Check the browser console.
+
+If there is:
+
+Uncaught SyntaxError
+
+STOP.
+
+Fix the syntax error first.
+
+Especially watch for:
+
+Identifier 'activityCard' has already been declared
+
+Identifier 'activityToggle' has already been declared
+
+or similar errors.
+
+A JavaScript syntax error can stop the entire app script from running.
+
+Do not assume IndexedDB data was deleted.
+
+==================================================
+CURRENT PROJECT DIRECTION
+==================================================
+
+The app is moving toward a polished dashboard rather than simply a basic data-entry form.
+
+The desired hierarchy is:
+
+1. Top scoreboard
+2. Entry card
+3. Dashboard/today statistics
+4. Recent Activity — COLLAPSED BY DEFAULT
+5. Current Week
+6. Payroll History
+7. Backup/data controls
+
+The Recent Activity section should not dominate the screen.
+
+It should behave like a compact expandable section.
+
+==================================================
+NEXT DEVELOPMENT PRIORITY
+==================================================
+
+The immediate task is CSS/JS cleanup.
+
+We just fixed the Recent Activity collapse.
+
+Next, I want to clean up duplicate CSS safely.
+
+Known duplicate areas:
+
+- Recent Activity
+- Current Week
+
+Potentially there may be more duplicates elsewhere.
+
+Do NOT immediately rewrite everything.
+
+First audit the CSS.
+
+I want you to identify duplicates and tell me:
+
+1. selector
+2. number of occurrences
+3. which occurrence should survive
+4. whether there are unique properties in the other occurrence
+5. exact replacement instructions
+
+Then we can clean them one group at a time.
+
+==================================================
+LONGER-TERM ROADMAP
+==================================================
+
+After cleanup, I want to continue polishing the application.
+
+Potential future improvements:
+
+- better mobile responsiveness
+- smoother collapsible sections
+- better empty states
+- improved payroll presentation
+- more polished dashboard hierarchy
+- confirmation/undo behavior for deletion
+- stronger backup/import UX
+- perhaps search/filtering
+- possibly date filtering
+- possibly monthly/yearly payroll summaries
+- possibly persistent UI preferences such as remembering whether Recent Activity is open
+- visual polish and accessibility
+- keyboard navigation
+- ARIA improvements
+- prevention of accidental duplicate submissions
+- improved error handling
+
+But do not jump ahead unless I ask.
+
+We are currently focused on cleaning the existing implementation without breaking working functionality.
+
+==================================================
+HOW I WANT YOU TO WORK WITH ME
+==================================================
+
+Be precise and incremental.
+
+When I paste code:
+
+- inspect it carefully
+- don't assume missing pieces
+- point out duplicates
+- preserve working functionality
+- give exact replacement blocks
+- avoid unnecessary rewrites
+
+If I say:
+
+"that worked"
+
+move to the next logical small step.
+
+If I say:
+
+"it broke"
+
+help me diagnose before adding more code.
+
+If I paste an error message, prioritize fixing that error before making feature changes.
+
+If I paste an entire file, feel free to audit it, but don't rewrite the entire file unless necessary.
+
+==================================================
+CURRENT STATUS
+==================================================
+
+The app's data is back.
+
+The JavaScript duplicate declaration problem was resolved.
+
+The Recent Activity collapse now works.
+
+The remaining known issue is that the CSS contains duplicated sections that should be consolidated carefully.
+
+The next task is:
+
+AUDIT AND CLEAN THE CSS DUPLICATES WITHOUT BREAKING THE APP.
+
+Start by asking me to paste the current complete CSS if you do not have it in the current conversation.
+
+If I have already pasted it, use the version I provide as the current source of truth.
+
+Do NOT rely on memory from any previous conversation.
+
+==================================================
+FINAL IMPORTANT INSTRUCTION
+==================================================
+
+Treat this project as an existing production-like app.
+
+Do not "simplify" working systems just because you could implement them differently.
+
+Preserve:
+
+- IndexedDB data
+- transfer records
+- backup/import
+- payroll calculations
+- delete functionality
+- recent transfer rendering
+- dashboard updates
+
+Make one controlled change at a time.
+
+Before each code change, explain briefly what is wrong and why the change fixes it.
+
+Then give me the exact code to remove/replace.
+
+Let's continue from the current state.

@@ -1,0 +1,787 @@
+# Transfer Tracker — Continuation Prompt for Tomorrow
+
+We are continuing development on my personal **Transfer Tracker** web app.
+
+The app is a fast, lightweight call-center transfer tracking and payroll auditing tool.
+
+## Tech Stack
+
+* HTML5
+* CSS3
+* Vanilla JavaScript (ES6+)
+* IndexedDB only
+* No frameworks
+* No backend
+* No login
+
+Priorities:
+
+* Speed
+* Keyboard-first workflow
+* Minimal clicks
+* Real-time tracking
+* Mobile-friendly around 400px width
+* Dark mode by default
+* Clean payroll/audit experience
+
+---
+
+# Current File Structure
+
+```text
+transfer-tracker/
+
+index.html
+style.css
+
+js/
+    app.js
+    parser.js
+    storage.js
+    dashboard.js
+    ui.js
+```
+
+---
+
+# Important Architecture
+
+CRM Copy
+
+↓
+
+Paste Boxes
+
+↓
+
+parser.js
+
+↓
+
+Transfer Object
+
+↓
+
+storage.js
+
+↓
+
+IndexedDB
+
+↓
+
+dashboard.js + ui.js
+
+↓
+
+Dashboard + Payroll History
+
+The **raw transfer records in IndexedDB are the source of truth**.
+
+Calculated payroll values should NOT be stored as permanent transfer data. They should be recalculated from the raw transfers.
+
+---
+
+# Transfer Object
+
+```javascript
+{
+    id: crypto.randomUUID(),
+
+    fileNumber: "0854305",
+
+    customerName: "John Smith",
+
+    phone: "(555) 555-5555",
+
+    status: "approved",
+
+    timestamp: Date.now()
+}
+```
+
+Do not change this structure unless there is a very strong reason.
+
+---
+
+# Current Status
+
+The application is fully functional.
+
+Completed:
+
+✅ Transfer entry workflow
+✅ Customer parser
+✅ Phone parser
+✅ IndexedDB storage
+✅ Recent Activity
+✅ Delete transfer
+✅ Today's approved/declined counts
+✅ Daily bonus engine
+✅ Date-aware bonus rules
+✅ Saturday bonus rules
+✅ Wednesday → Tuesday payroll week
+✅ Current Week summary
+✅ Compact Recent Activity cards
+✅ Recent Activity limited to 5 transfers
+✅ Lifetime Earnings
+✅ Lifetime Transfer count
+✅ Payroll History modal
+✅ Weekly payroll breakdown
+✅ Daily payroll breakdown
+✅ Transfer-level payroll/audit view
+✅ Delete transfers from payroll history
+✅ Back navigation inside modal
+✅ Spreadsheet-style payroll presentation
+✅ Hover/click feedback on payroll rows
+✅ Payroll History button styling
+✅ Compact transfer rows in detailed payroll view
+
+---
+
+# Bonus Rules
+
+## Normal Days — Sunday through Friday
+
+### Approved
+
+* 0–2 = $0
+* 3–7 = every approved transfer pays $4.70
+* 8+ = every approved transfer pays $5.85
+
+Example:
+
+```text
+8 approved
+8 × $5.85 = $46.80
+```
+
+### Declined
+
+* 0–2 = $0
+* 3+ = every declined transfer pays $1.75
+
+---
+
+# Saturday Rules
+
+Saturday is automatically detected from the transfer date.
+
+No toggle.
+
+### Approved
+
+* 0–1 = $0
+* 2+ = every approved transfer pays $5.85
+
+### Declined
+
+* 0–2 = $0
+* 3+ = every declined transfer pays $1.75
+
+The bonus engine is the single source of truth.
+
+---
+
+# IMPORTANT NEW REQUIREMENT DISCOVERED
+
+We realized that actual pay stubs show **Approved Bonus and Declined Bonus separately**.
+
+This must be supported.
+
+Approved and declined thresholds are independent.
+
+For example:
+
+```text
+3 Approved
+2 Declined
+
+Approved Bonus: $14.10
+Declined Bonus: $0.00
+Total Bonus:    $14.10
+```
+
+Another example:
+
+```text
+2 Approved
+3 Declined
+
+Approved Bonus: $0.00
+Declined Bonus: $5.25
+Total Bonus:    $5.25
+```
+
+Another example:
+
+```text
+3 Approved
+3 Declined
+
+Approved Bonus: $14.10
+Declined Bonus: $5.25
+Total Bonus:    $19.35
+```
+
+The existing calculation functions already calculate the two categories independently:
+
+```javascript
+calculateApprovedBonus()
+calculateDeclinedBonus()
+```
+
+and `calculateDailyBonus()` currently combines them.
+
+We should NOT rewrite the rules.
+
+Instead, we should make the bonus calculation/data layer expose:
+
+```javascript
+{
+    approvedBonus,
+    declinedBonus,
+    totalBonus
+}
+```
+
+or an equivalent clean structure.
+
+The existing combined bonus should remain available because the dashboard uses it.
+
+---
+
+# CRITICAL PAYROLL LOGIC
+
+Transfers are ALWAYS logged in IndexedDB.
+
+Being below a threshold does NOT mean the transfer should be deleted or excluded from the database.
+
+Example:
+
+```text
+1 approved
+2 approved
+```
+
+Both transfers remain stored.
+
+If the threshold has not been reached:
+
+```text
+Approved Bonus = $0.00
+```
+
+When the 3rd approved arrives:
+
+```text
+3 approved
+
+Approved Bonus = $14.10
+```
+
+The entire group becomes payable.
+
+If one is later deleted:
+
+```text
+2 approved
+
+Approved Bonus = $0.00
+```
+
+The system must recalculate the entire category from the remaining raw transfers.
+
+Do NOT simply subtract the deleted transfer's individual rate.
+
+---
+
+# Important Testing Cases
+
+We need to test threshold crossing in BOTH directions.
+
+## Approved
+
+```text
+2 approved
+→ $0.00
+
+Add 3rd
+→ $14.10
+
+Add 4th
+→ $18.80
+
+Delete one
+→ $14.10
+
+Delete another
+→ $0.00
+```
+
+## Declined
+
+```text
+2 declined
+→ $0.00
+
+Add 3rd
+→ $5.25
+
+Delete one
+→ $0.00
+```
+
+## Mixed
+
+```text
+3 approved
+2 declined
+
+Approved Bonus = $14.10
+Declined Bonus = $0.00
+Total = $14.10
+```
+
+Then:
+
+```text
+3 approved
+3 declined
+
+Approved Bonus = $14.10
+Declined Bonus = $5.25
+Total = $19.35
+```
+
+---
+
+# BUGS WE WERE WORKING ON
+
+## Bug 1 — History didn't update after adding
+
+THIS HAS BEEN FIXED.
+
+In `createTransfer()` we changed:
+
+```javascript
+await saveTransfer(transfer);
+
+await renderRecentTransfers();
+
+await updateDashboard();
+
+await renderHistory();
+```
+
+This successfully fixed Lifetime Earnings / Payroll History updating immediately after adding a transfer.
+
+Do NOT undo this.
+
+---
+
+# Remaining Bug — Daily Payroll View
+
+When deleting a transfer from:
+
+```text
+Payroll History
+→ Week
+→ Day
+→ Individual Transfer
+```
+
+the transfer is successfully deleted from IndexedDB.
+
+The dollar amount recalculates correctly after our latest change.
+
+However, the Daily View still has stale displayed information, particularly the transfer count/list state.
+
+The current delete handler in `attachPayrollTransferEvents()` was recently modified to re-read IndexedDB and rebuild the payroll data.
+
+We need to inspect the actual current code before making further changes.
+
+DO NOT assume the previous attempted fix is perfect.
+
+---
+
+# Current Desired Payroll Behavior
+
+The Daily View should show all actual transfers that occurred that day, even if the current approved/declined count is below its bonus threshold.
+
+For example:
+
+```text
+2 approved
+```
+
+should still show those 2 transfers in the audit list.
+
+The bonus should simply be:
+
+```text
+Approved Bonus: $0.00
+```
+
+The transfer records themselves remain in IndexedDB.
+
+The payroll/audit view is allowed to show transfers that currently earn $0.
+
+---
+
+# Payroll Data Structure
+
+Current `createPayrollWeekData(transfers)` produces roughly:
+
+```javascript
+{
+    weekStart,
+    weekEnd,
+    days,
+    transferCount,
+    weeklyApproved,
+    weeklyDeclined,
+    weeklyBonus
+}
+```
+
+Each day currently contains:
+
+```javascript
+{
+    date,
+    transfers,
+    transferCount,
+    approvedCount,
+    declinedCount,
+    dailyBonus
+}
+```
+
+We will likely need to extend the calculated payroll data to include:
+
+```javascript
+approvedBonus
+declinedBonus
+dailyBonus
+```
+
+while preserving:
+
+```javascript
+dailyBonus
+```
+
+as the combined total.
+
+Weekly data should similarly be able to expose separate Approved and Declined bonus totals while preserving the combined weekly bonus.
+
+Weekly bonus MUST continue to be calculated by summing each day's bonus because thresholds reset daily.
+
+Do NOT calculate weekly bonuses using weekly thresholds.
+
+---
+
+# Current Bonus Engine
+
+Important existing functions:
+
+```javascript
+getBonusRules()
+calculateApprovedBonus()
+calculateDeclinedBonus()
+calculateDailyBonus()
+calculateWeeklyBonus()
+```
+
+Current `calculateDailyBonus()` essentially does:
+
+```javascript
+const approvedBonus =
+    calculateApprovedBonus(
+        approvedCount,
+        rules
+    );
+
+const declinedBonus =
+    calculateDeclinedBonus(
+        declinedCount,
+        rules
+    );
+
+return approvedBonus + declinedBonus;
+```
+
+We should preserve the underlying calculations but expose the separate components.
+
+---
+
+# Dashboard
+
+Today's Performance currently shows:
+
+```text
+Approved
+Declined
+
+Today's Bonus Total: $0.00
+```
+
+Progress bars were intentionally removed.
+
+DO NOT re-add progress bars.
+
+Current Week shows:
+
+```text
+Current Week
+
+Wednesday → Tuesday
+
+Approved
+Declined
+Bonus
+```
+
+---
+
+# History
+
+Main History section intentionally only shows:
+
+```text
+History
+
+Lifetime Earnings
+$0.00
+
+Total Transfers
+0
+
+[ View Payroll History ]
+```
+
+Do NOT put the entire transfer history on the main page.
+
+Detailed payroll history remains inside the single modal.
+
+---
+
+# Payroll Modal
+
+One modal only.
+
+Workflow:
+
+```text
+View Payroll History
+
+        ↓
+
+Weekly Payroll List
+
+        ↓
+
+Click Week
+
+        ↓
+
+Daily Breakdown
+
+        ↓
+
+Click Day
+
+        ↓
+
+Individual Transfers
+```
+
+There is a Back button.
+
+The modal can close using X or clicking outside.
+
+Do NOT create nested modals.
+
+---
+
+# Next Immediate Goal
+
+Before doing UI polish or Export/Import, fix the payroll calculation/data model to support:
+
+```text
+Approved Bonus
+Declined Bonus
+Total Bonus
+```
+
+while preserving all existing behavior.
+
+Then fix the Daily Payroll View so deletion completely refreshes the displayed data.
+
+Work one small step at a time.
+
+---
+
+# UI Changes Still Desired After Payroll Logic Is Stable
+
+These were identified but NOT completed yet:
+
+### Header
+
+The "Transfer Tracker" header feels too large.
+
+Goal:
+
+* Make it smaller
+* Still dominant
+* Possibly improve contrast/background styling
+
+### Entry Card
+
+The paste areas/buttons take too much vertical space.
+
+The Approved/Declined buttons feel too large.
+
+Goal:
+
+* Make the entry area more compact
+* Preserve easy touch targets
+* Keep keyboard-first workflow
+
+### Today's Performance
+
+Change:
+
+```text
+Today's Approved
+Today's Declined
+```
+
+to:
+
+```text
+Approved
+Declined
+```
+
+because "Today's" is already implied by the section.
+
+Add subtle visual distinction between Approved and Declined.
+
+Do NOT use the same bright green/red treatment as the main entry buttons.
+
+Keep it subtle.
+
+---
+
+# Phase 4 — Backup
+
+ONLY after payroll behavior is stable:
+
+## Export JSON Backup
+
+Export all IndexedDB transfer records.
+
+Example filename:
+
+```text
+transfer-tracker-backup-2026-08-10.json
+```
+
+Preserve exactly:
+
+* id
+* fileNumber
+* customerName
+* phone
+* status
+* timestamp
+
+## Import JSON Restore
+
+Allow selecting a previous backup.
+
+Requirements:
+
+* Validate JSON
+* Reject malformed files
+* Validate transfer object structure
+* Preserve timestamps exactly
+* Preserve IDs
+* Do not silently overwrite existing records
+* Handle duplicate IDs safely
+* Give clear success/error feedback
+
+Backup should probably live in a simple Settings/Data area rather than cluttering the dashboard.
+
+IMPORTANT:
+
+Do not store calculated payroll values in the backup.
+
+The raw transfer records are the source of truth.
+
+---
+
+# Development Rules
+
+VERY IMPORTANT:
+
+Do not rebuild the app.
+
+Do not replace working architecture.
+
+Do not make large unrelated changes.
+
+Work one step at a time.
+
+Give exact instructions such as:
+
+```text
+Replace this entire function.
+```
+
+or:
+
+```text
+Add this directly below X.
+```
+
+or:
+
+```text
+Delete these exact lines.
+```
+
+Avoid vague instructions.
+
+If I paste code, inspect the actual code I provide before telling me what to change.
+
+If something is already working, leave it alone.
+
+We are building on a working application, not starting over.
+
+After each step, wait for me to say **done** before continuing.
+
+---
+
+# VERY IMPORTANT FOR TOMORROW
+
+Do NOT immediately start changing code.
+
+First:
+
+1. Confirm you understand the new separate Approved/Declined payroll requirement.
+2. Briefly explain the smallest safe change you recommend.
+3. Ask me to paste the current `dashboard.js` if needed.
+4. Inspect the actual current code before giving replacement instructions.
+5. Make ONE change at a time.
+6. Wait for confirmation after every step.
+
+We are tired and the app is working.
+
+Be conservative.
+No unnecessary refactoring.
+No architecture rewrite.
+
+The goal is to make the payroll model more accurate while preserving everything that already works.

@@ -1,0 +1,721 @@
+Transfer Tracker — Continuation Prompt for Tomorrow
+
+We are continuing development on my personal Transfer Tracker web app.
+
+This is a fast, lightweight call-center transfer tracking and payroll auditing tool.
+
+Tech Stack
+HTML5
+CSS3
+Vanilla JavaScript (ES6+)
+IndexedDB only
+No frameworks
+No backend
+No login
+Priorities
+Speed
+Keyboard-first workflow
+Minimal clicks
+Real-time tracking
+Mobile-friendly around 400px width
+Dark mode by default
+Clean payroll/audit experience
+
+Important: The app is being used with real transfer data. Be extremely conservative with changes.
+
+Do not rebuild anything.
+Do not refactor working architecture.
+Do not change the transfer object.
+Do not alter bonus rules unless explicitly requested.
+Do not make large unrelated changes.
+
+Current File Structure
+transfer-tracker/
+
+index.html
+style.css
+
+js/
+    app.js
+    parser.js
+    storage.js
+    dashboard.js
+    ui.js
+Architecture
+CRM Copy
+    ↓
+Paste Boxes
+    ↓
+parser.js
+    ↓
+Transfer Object
+    ↓
+storage.js
+    ↓
+IndexedDB
+    ↓
+dashboard.js + ui.js
+    ↓
+Dashboard + Payroll History
+Transfer Object
+
+Do not change this structure:
+
+{
+    id: crypto.randomUUID(),
+
+    fileNumber: "0854305",
+
+    customerName: "John Smith",
+
+    phone: "(555) 555-5555",
+
+    status: "approved",
+
+    timestamp: Date.now()
+}
+Source of Truth
+
+Raw transfer records in IndexedDB are the source of truth.
+
+Calculated payroll values must not be stored as permanent transfer data.
+
+Payroll values are recalculated from raw transfers.
+
+Payroll — Stable and Working
+
+The following are considered working and must be protected:
+
+Transfer entry workflow
+Customer parser
+Phone parser
+IndexedDB storage
+Recent Activity
+Delete transfer
+Today's approved/declined counts
+Daily bonus engine
+Date-aware bonus rules
+Saturday bonus rules
+Wednesday → Tuesday payroll week
+Compact Recent Activity cards
+Recent Activity limited to 5 transfers
+Lifetime Earnings
+Lifetime Transfer count
+Payroll History modal
+Weekly payroll breakdown
+Daily payroll breakdown
+Transfer-level payroll/audit view
+Delete transfers from payroll history
+Back navigation inside modal
+Spreadsheet-style payroll presentation
+Hover/click feedback on payroll rows
+Payroll History button styling
+Compact transfer rows
+Separate Approved Bonus / Declined Bonus calculations
+Separate Approved Bonus / Declined Bonus displayed in payroll views
+Daily payroll deletion recalculates immediately
+Multiple daily transfers can be deleted without refreshing
+Bonus Rules
+Normal Days — Sunday through Friday
+Approved
+0–2 = $0
+3–7 = every approved transfer pays $4.70
+8+ = every approved transfer pays $5.85
+
+Example:
+
+8 approved
+8 × $5.85 = $46.80
+Declined
+0–2 = $0
+3+ = every declined transfer pays $1.75
+Saturday
+
+Saturday is automatically detected from the transfer date.
+
+Approved
+0–1 = $0
+2+ = every approved transfer pays $5.85
+Declined
+0–2 = $0
+3+ = every declined transfer pays $1.75
+
+No toggle.
+
+The bonus engine is the single source of truth.
+
+Payroll Calculation Architecture
+
+These functions exist and are working:
+
+calculateApprovedBonus()
+calculateDeclinedBonus()
+calculateDailyBonusBreakdown()
+calculateDailyBonus()
+
+calculateDailyBonusBreakdown() returns:
+
+{
+    approvedBonus,
+    declinedBonus,
+    totalBonus
+}
+
+calculateDailyBonus() still returns the combined total.
+
+Critical Threshold Behavior
+
+Transfers are always stored in IndexedDB.
+
+Being below a threshold does not delete or exclude transfers.
+
+Example:
+
+2 approved
+
+Both transfers remain visible.
+
+Bonus:
+
+Approved Bonus: $0.00
+
+When the third arrives:
+
+3 approved
+Approved Bonus: $14.10
+
+If one is deleted:
+
+2 approved
+Approved Bonus: $0.00
+
+The category is recalculated from the remaining raw transfers.
+
+Never subtract an individual transfer's old rate.
+
+Verified Payroll Testing
+
+We successfully tested:
+
+3 approved
+→ $14.10
+
+Delete one:
+
+2 approved
+→ $0.00
+
+Approved and Declined bonuses are independent.
+
+Example:
+
+3 approved
+2 declined
+
+Approved Bonus: $14.10
+Declined Bonus: $0.00
+Total: $14.10
+
+And:
+
+3 approved
+3 declined
+
+Approved Bonus: $14.10
+Declined Bonus: $5.25
+Total: $19.35
+Current Payroll Data Model
+
+createPayrollWeekData(transfers) produces days containing:
+
+{
+    date,
+    transfers,
+    transferCount,
+    approvedCount,
+    declinedCount,
+    approvedBonus,
+    declinedBonus,
+    dailyBonus
+}
+
+Weekly data contains:
+
+{
+    weekStart,
+    weekEnd,
+    days,
+    transferCount,
+    weeklyApproved,
+    weeklyDeclined,
+    weeklyApprovedBonus,
+    weeklyDeclinedBonus,
+    weeklyBonus
+}
+
+Weekly bonuses are calculated by summing daily bonuses.
+
+Do not calculate weekly bonuses using weekly thresholds.
+
+Thresholds reset each day.
+
+Payroll Delete Behavior
+
+This was a major issue earlier and is now working.
+
+deleteTransfer() in storage.js is correct.
+
+Do not change it.
+
+The current payroll transfer event handling uses event delegation.
+
+The current working structure is:
+
+attachPayrollTransferEvents(
+    day,
+    week
+);
+
+with:
+
+function attachPayrollTransferEvents(
+    day,
+    week
+)
+
+and delegated click handling on #payrollDayView.
+
+Multiple deletions have been successfully tested.
+
+Example:
+
+Transfer #1 deleted
+→ disappears immediately
+→ count updates
+→ bonus updates
+
+Transfer #2 deleted
+→ disappears immediately
+→ count updates
+→ bonus updates
+
+Transfer #3 deleted
+→ disappears immediately
+→ count updates
+→ bonus updates
+
+No page refresh required.
+
+Do not casually rewrite this logic.
+
+Last Payroll UI Bug
+
+There was a minor issue where the final transfer's delete menu could extend outside the visible frame.
+
+That has now been fixed.
+
+The final delete bubble is readable and clickable.
+
+We considered adding another 2–3px of space but decided the current result is good enough.
+
+Do not revisit this unless a new problem appears.
+
+Header
+
+The header originally felt too large.
+
+We reduced:
+
+header h1
+
+to:
+
+font-size: 20px;
+
+The user said:
+
+looks clean!
+
+Leave the header alone for now.
+
+Backup / Restore
+
+Backup functionality is now working.
+
+Export
+
+Exports all raw IndexedDB transfer records as JSON.
+
+Example filename:
+
+transfer-tracker-backup-2026-08-13.json
+
+The backup preserves exactly:
+
+id
+fileNumber
+customerName
+phone
+status
+timestamp
+
+No calculated payroll values are stored.
+
+Import Validation
+
+Import validates:
+
+JSON syntax
+Array structure
+Transfer object structure
+ID
+fileNumber
+customerName
+phone
+status
+timestamp
+
+Malformed or invalid records are rejected.
+
+Import Duplicate Protection
+
+The final importTransfers() implementation was changed so it checks existing IndexedDB IDs before adding records.
+
+This avoids IndexedDB ConstraintError problems.
+
+Current behavior is:
+
+Existing IDs are skipped.
+New IDs are imported.
+Nothing is overwritten.
+
+We tested the actual 39-transfer backup.
+
+Result:
+
+Backup restored — 0 transfers imported. 39 already existed and were skipped.
+
+BINGO — this is working.
+
+Do not change the backup system unless a new bug appears.
+
+Important Backup Rule
+
+The user originally wondered whether overwriting was really a concern because importing would generally happen on a new machine.
+
+We agreed the safest user-facing behavior is:
+
+Never overwrite an existing transfer. Skip duplicate IDs and report how many were skipped.
+
+This is now implemented.
+
+Current Backup Code
+
+The important storage.js function is now:
+
+function importTransfers(transfers) {
+
+    return new Promise((resolve, reject) => {
+
+        const readTransaction =
+            db.transaction(
+                STORE_NAME,
+                "readonly"
+            );
+
+
+        const readStore =
+            readTransaction.objectStore(
+                STORE_NAME
+            );
+
+
+        const request =
+            readStore.getAllKeys();
+
+
+        request.onsuccess = function() {
+
+            const existingIds =
+                new Set(request.result);
+
+
+            const newTransfers =
+                transfers.filter(
+                    transfer =>
+                        !existingIds.has(
+                            transfer.id
+                        )
+                );
+
+
+            const skippedCount =
+                transfers.length -
+                newTransfers.length;
+
+
+            if (!newTransfers.length) {
+
+                resolve({
+                    importedCount: 0,
+                    skippedCount
+                });
+
+                return;
+
+            }
+
+
+            const transaction =
+                db.transaction(
+                    STORE_NAME,
+                    "readwrite"
+                );
+
+
+            const store =
+                transaction.objectStore(
+                    STORE_NAME
+                );
+
+
+            let importedCount = 0;
+
+
+            newTransfers.forEach(
+                transfer => {
+
+                    const addRequest =
+                        store.add(transfer);
+
+
+                    addRequest.onsuccess =
+                        function() {
+
+                            importedCount++;
+
+                        };
+
+                }
+            );
+
+
+            transaction.oncomplete =
+                function() {
+
+                    resolve({
+
+                        importedCount,
+
+                        skippedCount
+
+                    });
+
+                };
+
+
+            transaction.onerror =
+                function() {
+
+                    reject(
+                        transaction.error ||
+                        new Error(
+                            "Import transaction failed."
+                        )
+                    );
+
+                };
+
+
+            transaction.onabort =
+                function() {
+
+                    reject(
+                        transaction.error ||
+                        new Error(
+                            "Import transaction was aborted."
+                        )
+                    );
+
+                };
+
+        };
+
+
+        request.onerror = function() {
+
+            reject(
+                request.error ||
+                new Error(
+                    "Unable to check existing transfers."
+                )
+            );
+
+        };
+
+    });
+
+}
+
+Do not modify this without a specific reason.
+
+Current UI Roadmap
+
+The major payroll work is complete.
+
+The backup/export/import phase is complete.
+
+The header has been cleaned up.
+
+Remaining UI improvements from the original plan:
+
+1. Entry Card — NEXT
+
+The paste areas and buttons currently take too much vertical space.
+
+Current HTML:
+
+<section class="entry-card">
+
+    <label for="customerInput">Customer Info</label>
+
+    <textarea
+        id="customerInput"
+        placeholder="#0854305John Smith"
+        rows="3"
+    ></textarea>
+
+    <label for="phoneInput">Phone Number</label>
+
+    <textarea
+        id="phoneInput"
+        placeholder="(555) 555-5555"
+        rows="2"
+    ></textarea>
+
+    <div class="button-row">
+
+        <button id="approveBtn" class="approve">
+            ✅ Approved (A)
+        </button>
+
+        <button id="declineBtn" class="decline">
+            ❌ Declined (D)
+        </button>
+
+    </div>
+
+</section>
+
+Current goals:
+
+Make paste areas more compact
+Make Approved/Declined buttons more compact
+Preserve easy touch targets
+Preserve keyboard-first workflow
+Reduce unnecessary vertical space
+Do not alter parser behavior
+Do not alter transfer creation
+Do not alter bonus logic
+
+Do not start by changing JavaScript.
+
+Inspect the current HTML/CSS first and make the smallest CSS/UI change possible.
+
+2. Today's Performance — AFTER Entry Card
+
+Current labels:
+
+Today's Approved
+Today's Declined
+
+Change them to:
+
+Approved
+Declined
+
+because "Today's" is already implied.
+
+Add a subtle visual distinction between Approved and Declined.
+
+Important:
+
+Do NOT use the same bright green/red treatment as the main entry buttons.
+
+Keep the distinction subtle and professional.
+
+Development Rules for Tomorrow
+
+This is extremely important.
+
+The app contains real payroll data.
+
+Therefore:
+
+Do not rebuild anything.
+Do not refactor working architecture.
+Do not change the transfer object.
+Do not alter bonus calculations.
+Do not touch IndexedDB schema.
+Do not touch deleteTransfer().
+Do not modify the backup system unless necessary.
+Do not make multiple changes at once.
+
+Work one small step at a time.
+
+Before changing anything:
+
+Say that you understand the current state.
+Inspect the relevant code.
+Explain the smallest proposed change.
+Make only that change.
+Wait for me to say:
+ready
+
+or
+
+done
+
+before continuing.
+
+After each change, I will test it.
+
+Tomorrow's First Goal
+
+Do not start with Today's Performance.
+
+Start with:
+
+Entry Card compactness
+
+First inspect the current entry-card HTML/CSS.
+
+Then make the smallest visual change that reduces unnecessary vertical space while preserving usability.
+
+Test it.
+
+Then stop and reassess.
+
+Current Status
+
+The app is in a very good state.
+
+The important functionality is stable:
+
+Real transfer data
+        ↓
+IndexedDB
+        ↓
+Payroll calculations
+        ↓
+Payroll history
+        ↓
+Delete/recalculate
+        ↓
+Backup/export
+        ↓
+Validated restore
+
+We successfully tested the backup system against 39 real transfer records, and duplicate protection worked exactly as intended.
+
+Protect the working system. Make only small, deliberate UI changes from here

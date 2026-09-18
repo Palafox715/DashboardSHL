@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transfer Tracker</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+
+          <header class="top-scoreboard">
+        
+            <div class="header-title">
+        
+                <h1>Transfer Tracker</h1>
+        
+                <div id="currentDate"></div>
+        
+            </div>
+        
+        
+            <div class="today-score">
+        
+                <div class="score-item approved-score">
+        
+                    <span>Approved</span>
+        
+                    <strong id="todayApproved">
+                        0
+                    </strong>
+        
+                </div>
+        
+        
+                <div class="score-item declined-score">
+        
+                    <span>Declined</span>
+        
+                    <strong id="todayDeclined">
+                        0
+                    </strong>
+        
+                </div>
+        
+        
+                <div class="score-bonus">
+        
+                    <span>Today's Bonus</span>
+        
+                    <strong class="today-bonus">$0</strong>
+        
+                </div>
+        
+            </div>
+        
+        </header>
+
+    <section class="entry-card">
+
+        <label for="customerInput">Customer Info</label>
+
+        <textarea
+            id="customerInput"
+            placeholder="#0854305John Smith"
+            rows="3"
+        ></textarea>
+
+        <label for="phoneInput">Phone Number</label>
+
+        <textarea
+            id="phoneInput"
+            placeholder="(555) 555-5555"
+            rows="2"
+        ></textarea>
+
+        <div class="button-row">
+
+            <button id="approveBtn" class="approve">
+                ✅ Approved (A)
+            </button>
+
+            <button id="declineBtn" class="decline">
+                ❌ Declined (D)
+            </button>
+
+        </div>
+
+    </section>
+
+    
+
+
+    <section class="activity-card">
+
+    <button class="activity-header" id="activityToggle">
+
+        <div>
+            <h2>Recent Activity</h2>
+
+            <span class="activity-subtitle" id="activitySubtitle">
+                No recent transfers
+            </span>
+        </div>
+
+        <span class="activity-chevron">⌄</span>
+
+    </button>
+
+
+    <div class="recent-activity-content" id="recentActivityContent">
+
+        <div id="recentTransfers"></div>
+
+    </div>
+
+</section>
+
+
+<section class="week-summary">
+
+    <h3>Current Week</h3>
+
+    <div class="week-range">
+        Wednesday → Tuesday
+    </div>
+
+    <div class="week-row">
+
+        <span>Approved</span>
+
+        <strong id="weekApproved">
+            0
+        </strong>
+
+    </div>
+
+    <div class="week-row">
+
+        <span>Declined</span>
+
+        <strong id="weekDeclined">
+            0
+        </strong>
+
+    </div>
+
+    <div class="week-row">
+
+        <span>Bonus</span>
+
+        <strong id="weekBonus">
+            $0
+        </strong>
+
+    </div>
+
+</section>
+
+
+    <section class="history-card">
+
+    <h2>History</h2>
+
+
+    <div class="history-summary">
+
+        <div class="history-stat">
+
+            <span>Lifetime Earnings</span>
+
+            <strong id="lifetimeEarnings">
+                $0.00
+            </strong>
+
+        </div>
+
+
+        <div class="history-stat">
+
+            <span>Total Transfers</span>
+
+            <strong id="lifetimeTransfers">
+                0
+            </strong>
+
+        </div>
+
+    </div>
+
+
+    <button
+        id="payrollHistoryBtn"
+        class="payroll-history-button">
+
+        View Payroll History
+
+    </button>
+
+</section>
+
+    <section class="backup-card">
+
+    <h2>Data & Backup</h2>
+
+    <div class="backup-actions">
+
+        <button
+            id="exportBackupBtn"
+            class="backup-button">
+
+            Export Backup
+
+        </button>
+
+        <button
+            id="importBackupBtn"
+            class="backup-button">
+
+            Import Backup
+
+        </button>
+
+    </div>
+
+        <button
+        id="clearLocalDataBtn"
+        class="clear-data-button">
+    
+        Clear Local Transfer Data
+    
+        </button>
+
+
+
+        
+    <div
+        id="backupStatus"
+        class="backup-status">
+    </div>
+
+    <input
+        type="file"
+        id="importBackupInput"
+        accept=".json,application/json"
+        hidden>
+
+</section>
+
+    
+
+<div
+    id="payrollModal"
+    class="payroll-modal">
+
+    <div class="payroll-modal-content">
+
+        <div class="payroll-modal-header">
+
+            <div>
+
+                <h2>Payroll History</h2>
+
+                <div class="payroll-modal-subtitle">
+                    Wednesday → Tuesday
+                </div>
+
+            </div>
+
+
+            <button
+                id="closePayrollModal"
+                class="payroll-close-button">
+
+                ×
+
+            </button>
+
+        </div>
+
+
+       <div
+    id="payrollHistoryTable"
+    class="payroll-history-table">
+
+        </div>
+        
+        
+        <div
+            id="payrollDayView"
+            class="payroll-day-view">
+        
+        </div>
+
+    </div>
+
+</div>
+
+    
+    
+</div>
+
+<script src="js/parser.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>

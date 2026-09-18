@@ -1,0 +1,25 @@
+
+here are the edits:
+
+-deleting transfer from main page happens instantly, but nothing auto updates on the main page until i refresh. well, adding a transfer auto updates if that makes any difference.  is that a simple fix?
+
+-on the daily view. the last transfer on the list, which is the most recent transfer, the delete button renders in a place where you can't read or click it. maybe we need a scroll option or more bottom div space?
+
+-also on the daily view, the delete button deletes the record but it stays stagnant when you click it. making you feel like nothing happened. but when you refresh the page the record is gone
+
+-i think the header for transfer tracker is way too big. we need to make it smaller but still dominant. or maybe add some contrast coolor to the div background? 
+
+
+- something that's taking up a lot of space as well is the paste area. something about the button size is throwing me off. like they're too big. 
+
+
+- in today's performance, we need to remove the "today's" from both the approved and declined boxes since it's kinda given. an we also add a little style and color to distinguish which is which? but since the big buttons above are already bright green and red we need something a little more subtle for this section.
+
+that should be it for now, after these edits, we will move on to export.
+
+
+
+you know what i noticed.. the threshold calculation doesn't auto update when you reach 3 transfers. and say, if you reach 3 and you delete 1. it doesn't subtract the 3 from the total transfers it only subtracts 1. so technically there's 2 transfers in the total that don't belong there yet. although they're added as a group when the threshold is reached, you just gotta, as mentioned before, refresh the app. how complicated is this to adjust? plz analyze and confirm understanding. oh and deleting from the daily view still deletes the same without auto updating
+
+
+after testing it again, it auto updates in the current week block when you add. just in history is where we're having the issues. and you know what else, the life time earning section auto updates when i delete transfers. so it doesn't work when you add and updates when you delete. and i can confirm when we delete transfers and go back below the threshold, that it doesn't subtract the transfers that you're no longer getting paid. so let's focus on fixing these first 
